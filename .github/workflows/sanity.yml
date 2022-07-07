@@ -1,0 +1,33 @@
+name: Go
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.18
+
+    - name: Build
+      run: make
+
+    - name: Test
+      run: |-
+        go install "github.com/onsi/ginkgo/v2/ginkgo@latest"
+        ginkgo ginkgo run -r .
+    
+    - name: Functional Test
+      run: |-
+        cp ginkgo-linter testdata/src/a
+        cd testdata/src/a
+        [[ $(./ginkgo-linter . 2>&1 | wc -l) == 90 ]]
