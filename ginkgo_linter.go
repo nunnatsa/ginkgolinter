@@ -21,8 +21,8 @@ import (
 //   * Expect(len(something)).To(Equal(number)) ===> Expect(x).To(HaveLen(number))
 //   * ExpectWithOffset(1, len(something)).ShouldNot(Equal(0)) ===> ExpectWithOffset(1, something).ShouldNot(BeEmpty())
 //   * Ω(len(something)).NotTo(BeZero()) ===> Ω(something).NotTo(BeEmpty())
-//   * Expect(len(something)).To(BeNumerically(">", 0)) ===> Expect(something).To(Not(BeEmpty())
-//   * Expect(len(something)).To(BeNumerically(">=", 1)) ===> Expect(something).To(Not(BeEmpty())
+//   * Expect(len(something)).To(BeNumerically(">", 0)) ===> Expect(something).ToNot(BeEmpty())
+//   * Expect(len(something)).To(BeNumerically(">=", 1)) ===> Expect(something).ToNot(BeEmpty())
 //   * Expect(len(something)).To(BeNumerically("==", number)) ===> Expect(something).To(HaveLen(number))
 
 // Analyzer is the package interface with nogo
