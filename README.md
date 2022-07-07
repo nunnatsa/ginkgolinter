@@ -21,3 +21,13 @@ Expect(len(x)).To(Equal(1)) // should be Expect(x).To(HaveLen(1))
 Expect(len(x)).To(BeNumeric("==", 2)) // should be Expect(x).To(HaveLen(2))
 Expect(len(x)).To(BeNumeric("!=", 3)) // should be Expect(x).ToNot(HaveLen(3))
 ```
+
+The linter supports the `Expect`, `ExpectWithOffset` and the `Ω` function, and the `Should`, `ShouldNot`, `To`, `ToNot` and `NotTo` assertion functions.
+
+It also supports the embedded `Not()` function; e.g.
+
+`Ω(len(x)).Should(Not(Equal(4)))` => `Ω(x).ShouldNot(HaveLen(4))`
+
+Or even (double negative):
+
+`Ω(len(x)).To(Not(BeNumeric(">", 0)))` => `Ω(x).To(BeEmpty())`
