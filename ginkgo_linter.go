@@ -223,11 +223,11 @@ func handleEqualMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.Cal
 			exp.Args[0].(*ast.CallExpr).Fun = ast.NewIdent(haveLen)
 			exp.Args[0].(*ast.CallExpr).Args = []ast.Expr{equalTo}
 		}
-		reportLengthCheck(pass, exp)
 	} else {
-		reportLengthCheckNoSuggestion(pass, exp)
+		exp.Args[0].(*ast.CallExpr).Fun = ast.NewIdent(haveLen)
+		exp.Args[0].(*ast.CallExpr).Args = []ast.Expr{matcher.Args[0]}
 	}
-
+	reportLengthCheck(pass, exp)
 }
 
 func handleBeZero(pass *analysis.Pass, exp *ast.CallExpr) {

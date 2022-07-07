@@ -30,4 +30,4 @@ jobs:
       run: |-
         cp ginkgo-linter testdata/src/a
         cd testdata/src/a
-        [[ $(./ginkgo-linter . 2>&1 | wc -l) == 90 ]]
+        [[ $(./ginkgo-linter . 2>&1 | wc -l) == 200 ]]
