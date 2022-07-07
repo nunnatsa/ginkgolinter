@@ -22,7 +22,7 @@ Expect(len(x)).To(BeNumeric("==", 2)) // should be Expect(x).To(HaveLen(2))
 Expect(len(x)).To(BeNumeric("!=", 3)) // should be Expect(x).ToNot(HaveLen(3))
 ```
 
-The linter supports the `Expect`, `ExpectWithOffset` and the `Ω` function, and the `Should`, `ShouldNot`, `To`, `ToNot` and `NotTo` assertion functions.
+The linter supports the `Expect`, `ExpectWithOffset` and the `Ω` functions, and the `Should`, `ShouldNot`, `To`, `ToNot` and `NotTo` assertion functions.
 
 It also supports the embedded `Not()` function; e.g.
 
@@ -31,3 +31,10 @@ It also supports the embedded `Not()` function; e.g.
 Or even (double negative):
 
 `Ω(len(x)).To(Not(BeNumeric(">", 0)))` => `Ω(x).To(BeEmpty())`
+
+The output of the linter,when finding issues, looks like this:
+```
+./testdata/src/a/a.go:14:5: ginkgo-linter: wrong length check; consider using `Expect("abcd").Should(HaveLen(4))` instead
+./testdata/src/a/a.go:18:5: ginkgo-linter: wrong length check; consider using `Expect("").Should(BeEmpty())` instead
+./testdata/src/a/a.go:22:5: ginkgo-linter: wrong length check; consider using `Expect("").Should(BeEmpty())` instead
+```
