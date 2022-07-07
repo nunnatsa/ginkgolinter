@@ -39,7 +39,6 @@ This should be replaced with:
 const (
 	linterName                 = "ginkgo-linter"
 	wrongLengthWarningTemplate = "wrong length check; consider using `%s` instead"
-	wrongLengthNoSuggestion    = "wrong length check"
 	beEmpty                    = "BeEmpty"
 	haveLen                    = "HaveLen"
 	expect                     = "Expect"
@@ -252,11 +251,6 @@ func report(pass *analysis.Pass, pos token.Pos, warning string) {
 func reportLengthCheck(pass *analysis.Pass, expr *ast.CallExpr) {
 	replaceLenActualArg(expr.Fun.(*ast.SelectorExpr).X.(*ast.CallExpr))
 	report(pass, expr.Pos(), fmt.Sprintf(wrongLengthWarningTemplate, goFmt(pass.Fset, expr)))
-}
-
-func reportLengthCheckNoSuggestion(pass *analysis.Pass, expr *ast.CallExpr) {
-	replaceLenActualArg(expr.Fun.(*ast.SelectorExpr).X.(*ast.CallExpr))
-	report(pass, expr.Pos(), wrongLengthNoSuggestion)
 }
 
 func goFmt(fset *token.FileSet, x ast.Expr) string {
