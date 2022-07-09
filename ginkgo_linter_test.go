@@ -22,9 +22,11 @@ func TestGinkgoLinter(t *testing.T) {
 //}
 
 var _ = Describe("", func() {
-	It("Test all", func() {
-		testdata := analysistest.TestData()
+	Context("test a", func() {
+		It("Test all", func() {
+			testdata := analysistest.TestData()
 
-		analysistest.Run(GinkgoT(), testdata, Analyzer, "a")
+			analysistest.Run(GinkgoT(), testdata, Analyzer, "a")
+		})
 	})
 })

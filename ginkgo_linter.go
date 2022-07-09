@@ -6,6 +6,7 @@ import (
 	"go/ast"
 	"go/printer"
 	"go/token"
+	"strings"
 
 	"golang.org/x/tools/go/analysis"
 
@@ -44,14 +45,35 @@ const (
 	expect                     = "Expect"
 	omega                      = "Ω"
 	expectWithOffset           = "ExpectWithOffset"
+
+	supressPrefix             = "ginkgo-linter"
+	supressLengthCheckWarning = supressPrefix + ":ignore-length-warning"
 )
 
 // main assertion function
 func run(pass *analysis.Pass) (interface{}, error) {
+
 	for _, file := range pass.Files {
+		cm := ast.NewCommentMap(pass.Fset, file, file.Comments)
+
+		if isSuppressedFile(cm) {
+			continue
+		}
+
 		ast.Inspect(file, func(n ast.Node) bool {
+			stmt, ok := n.(*ast.ExprStmt)
+			if !ok {
+				return true
+			}
+
+			if comments, ok := cm[stmt]; ok {
+				if isSuppressComment(comments) {
+					return true
+				}
+			}
+
 			// search for function calls
-			assertionExp, ok := n.(*ast.CallExpr)
+			assertionExp, ok := stmt.X.(*ast.CallExpr)
 			if !ok {
 				return true
 			}
@@ -257,4 +279,34 @@ func goFmt(fset *token.FileSet, x ast.Expr) string {
 	var b bytes.Buffer
 	printer.Fprint(&b, fset, x)
 	return b.String()
+}
+
+func isSuppressComment(commentGroup []*ast.CommentGroup) bool {
+	for _, cmntList := range commentGroup {
+		for _, cmnt := range cmntList.List {
+			commentLines := strings.Split(cmnt.Text, "\n")
+			for _, comment := range commentLines {
+				comment = strings.TrimPrefix(comment, "//")
+				comment = strings.TrimPrefix(comment, "/*")
+				comment = strings.TrimSuffix(comment, "*/")
+				comment = strings.TrimSpace(comment)
+				if comment == supressLengthCheckWarning {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+func isSuppressedFile(cm ast.CommentMap) bool {
+	for key, commentGroup := range cm {
+		if _, ok := key.(*ast.GenDecl); ok {
+			if isSuppressComment(commentGroup) {
+				return true
+			}
+		}
+	}
+
+	return false
 }
