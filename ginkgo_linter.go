@@ -39,7 +39,7 @@ This should be replaced with:
 
 const (
 	linterName                 = "ginkgo-linter"
-	wrongLengthWarningTemplate = "wrong length check; consider using `%s` instead"
+	wrongLengthWarningTemplate = linterName + ": wrong length check; consider using `%s` instead"
 	beEmpty                    = "BeEmpty"
 	haveLen                    = "HaveLen"
 	expect                     = "Expect"
@@ -93,7 +93,9 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				return true
 			}
 
-			return checkMatcher(assertionExp, pass)
+			oldExpr := goFmt(pass.Fset, assertionExp)
+
+			return checkMatcher(assertionExp, pass, oldExpr)
 		})
 	}
 	return nil, nil
@@ -111,7 +113,7 @@ func isActualIsLenFunc(actualArg ast.Expr) bool {
 }
 
 // Check if matcher function is in one of the patterns we want to avoid
-func checkMatcher(exp *ast.CallExpr, pass *analysis.Pass) bool {
+func checkMatcher(exp *ast.CallExpr, pass *analysis.Pass, oldExp string) bool {
 	matcher, ok := exp.Args[0].(*ast.CallExpr)
 	if !ok {
 		return true
@@ -124,20 +126,20 @@ func checkMatcher(exp *ast.CallExpr, pass *analysis.Pass) bool {
 
 	switch matcherFunc.Name {
 	case "Equal":
-		handleEqualMatcher(matcher, pass, exp)
+		handleEqualMatcher(matcher, pass, exp, oldExp)
 		return false
 
 	case "BeZero":
-		handleBeZero(pass, exp)
+		handleBeZero(pass, exp, oldExp)
 		return false
 
 	case "BeNumerically":
-		return handleBeNumerically(matcher, pass, exp)
+		return handleBeNumerically(matcher, pass, exp, oldExp)
 
 	case "Not":
 		reverseAssertionFuncLogic(exp)
 		exp.Args[0] = exp.Args[0].(*ast.CallExpr).Args[0]
-		return checkMatcher(exp, pass)
+		return checkMatcher(exp, pass, oldExp)
 
 	default:
 		return true
@@ -186,7 +188,7 @@ func replaceLenActualArg(actualExpr *ast.CallExpr) {
 }
 
 // For the BeNumerically matcher, we want to avoid the assertion of length to be > 0 or >= 1, or just == number
-func handleBeNumerically(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr) bool {
+func handleBeNumerically(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, oldExp string) bool {
 	opExp, ok1 := matcher.Args[0].(*ast.BasicLit)
 	valExp, ok2 := matcher.Args[1].(*ast.BasicLit)
 
@@ -198,7 +200,7 @@ func handleBeNumerically(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.Ca
 			reverseAssertionFuncLogic(exp)
 			exp.Args[0].(*ast.CallExpr).Fun = ast.NewIdent(beEmpty)
 			exp.Args[0].(*ast.CallExpr).Args = nil
-			reportLengthCheck(pass, exp)
+			reportLengthCheck(pass, exp, oldExp)
 			return false
 		} else if op == `"=="` {
 			if val == "0" {
@@ -209,7 +211,7 @@ func handleBeNumerically(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.Ca
 				exp.Args[0].(*ast.CallExpr).Args = []ast.Expr{valExp}
 			}
 
-			reportLengthCheck(pass, exp)
+			reportLengthCheck(pass, exp, oldExp)
 			return false
 		} else if op == `"!="` {
 			reverseAssertionFuncLogic(exp)
@@ -222,7 +224,7 @@ func handleBeNumerically(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.Ca
 				exp.Args[0].(*ast.CallExpr).Args = []ast.Expr{valExp}
 			}
 
-			reportLengthCheck(pass, exp)
+			reportLengthCheck(pass, exp, oldExp)
 			return false
 		}
 	}
@@ -234,7 +236,7 @@ func reverseAssertionFuncLogic(exp *ast.CallExpr) {
 	assertionFunc.Name = reverseassertion.ChangeAssertionLogic(assertionFunc.Name)
 }
 
-func handleEqualMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr) {
+func handleEqualMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, oldExp string) {
 	equalTo, ok := matcher.Args[0].(*ast.BasicLit)
 	if ok {
 		if equalTo.Value == "0" {
@@ -248,14 +250,14 @@ func handleEqualMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.Cal
 		exp.Args[0].(*ast.CallExpr).Fun = ast.NewIdent(haveLen)
 		exp.Args[0].(*ast.CallExpr).Args = []ast.Expr{matcher.Args[0]}
 	}
-	reportLengthCheck(pass, exp)
+	reportLengthCheck(pass, exp, oldExp)
 }
 
-func handleBeZero(pass *analysis.Pass, exp *ast.CallExpr) {
+func handleBeZero(pass *analysis.Pass, exp *ast.CallExpr, oldExp string) {
 	exp.Args[0].(*ast.CallExpr).Args = nil
 	exp.Args[0].(*ast.CallExpr).Fun.(*ast.Ident).Name = beEmpty
 
-	reportLengthCheck(pass, exp)
+	reportLengthCheck(pass, exp, oldExp)
 }
 
 func isAssertionFunc(name string) bool {
@@ -266,13 +268,26 @@ func isAssertionFunc(name string) bool {
 	return false
 }
 
-func report(pass *analysis.Pass, pos token.Pos, warning string) {
-	pass.Reportf(pos, "%s: %s", linterName, warning)
-}
-
-func reportLengthCheck(pass *analysis.Pass, expr *ast.CallExpr) {
+func reportLengthCheck(pass *analysis.Pass, expr *ast.CallExpr, oldExpr string) {
 	replaceLenActualArg(expr.Fun.(*ast.SelectorExpr).X.(*ast.CallExpr))
-	report(pass, expr.Pos(), fmt.Sprintf(wrongLengthWarningTemplate, goFmt(pass.Fset, expr)))
+
+	newExp := goFmt(pass.Fset, expr)
+	pass.Report(analysis.Diagnostic{
+		Pos:     expr.Pos(),
+		Message: fmt.Sprintf(wrongLengthWarningTemplate, newExp),
+		SuggestedFixes: []analysis.SuggestedFix{
+			{
+				Message: fmt.Sprintf("should replace %s with %s", oldExpr, newExp),
+				TextEdits: []analysis.TextEdit{
+					{
+						Pos:     expr.Pos(),
+						End:     expr.End(),
+						NewText: []byte(newExp),
+					},
+				},
+			},
+		},
+	})
 }
 
 func goFmt(fset *token.FileSet, x ast.Expr) string {

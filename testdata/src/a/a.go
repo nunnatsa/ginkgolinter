@@ -5,8 +5,6 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var obj = struct{ Items []int }{Items: []int{1234}}
-
 var _ = Describe("test data for the ginkgo-linter", func() {
 	Context("test Expect", func() {
 		Context("test Should", func() {
