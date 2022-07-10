@@ -4,6 +4,12 @@ This is a golang linter to check usage of the ginkgo and gomega packages.
 
 ginkgo is a testing framework and gomega is its assertion package.
 
+## usage
+```shell
+ginkgo-linter [-fix] .
+```
+Use the `-fix` flag to apply the fix suggestions to the source code.
+
 ## Linter Checks
 ### Wrong Length checks
 The linter finds usage of the golang built-in `len` function, and then all kind of matchers, while there are already gomega matchers for these usecases.
