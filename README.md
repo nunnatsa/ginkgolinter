@@ -12,7 +12,7 @@ Use the `-fix` flag to apply the fix suggestions to the source code.
 
 ## Linter Checks
 ### Wrong Length checks
-The linter finds usage of the golang built-in `len` function, and then all kind of matchers, while there are already gomega matchers for these usecases.
+The linter finds assertion of the golang built-in `len` function, with all kind of matchers, while there are already gomega matchers for these usecases; We want to assert the item, rather than its length.
 
 There are several wrong patterns:
 ```go
@@ -28,9 +28,9 @@ Expect(len(x)).To(BeNumeric("==", 2)) // should be Expect(x).To(HaveLen(2))
 Expect(len(x)).To(BeNumeric("!=", 3)) // should be Expect(x).ToNot(HaveLen(3))
 ```
 
-The linter supports the `Expect`, `ExpectWithOffset` and the `Ω` functions, and the `Should`, `ShouldNot`, `To`, `ToNot` and `NotTo` assertion functions.
+The linter supports the `Expect`, `ExpectWithOffset` and the `Ω` "actual" functions, and the `Should`, `ShouldNot`, `To`, `ToNot` and `NotTo` assertion functions.
 
-It also supports the embedded `Not()` function; e.g.
+It also supports the embedded `Not()` matcher; e.g.
 
 `Ω(len(x)).Should(Not(Equal(4)))` => `Ω(x).ShouldNot(HaveLen(4))`
 
@@ -40,19 +40,19 @@ Or even (double negative):
 
 The output of the linter,when finding issues, looks like this:
 ```
-./testdata/src/a/a.go:14:5: ginkgo-linter: wrong length check; consider using `Expect("abcd").Should(HaveLen(4))` instead
-./testdata/src/a/a.go:18:5: ginkgo-linter: wrong length check; consider using `Expect("").Should(BeEmpty())` instead
-./testdata/src/a/a.go:22:5: ginkgo-linter: wrong length check; consider using `Expect("").Should(BeEmpty())` instead
+./testdata/src/a/a.go:14:5: ginkgo-linter: wrong length assertion; consider using `Expect("abcd").Should(HaveLen(4))` instead
+./testdata/src/a/a.go:18:5: ginkgo-linter: wrong length assertion; consider using `Expect("").Should(BeEmpty())` instead
+./testdata/src/a/a.go:22:5: ginkgo-linter: wrong length assertion; consider using `Expect("").Should(BeEmpty())` instead
 ```
 
 ## Suppress the linter
-To suppress the wrong length check warning, add a comment with (only)
-`ginkgo-linter:supressLengthCheckWarning`. There are two options to use this comment:
+To suppress the wrong length assertion warning, add a comment with (only)
+`ginkgo-linter:ignore-len-assert-warning`. There are two options to use this comment:
 1. If the comment is at the top of the file, supress the warning for the whole file; e.g.:
    ```go
    package mypackage
    
-   // ginkgo-linter:ignore-length-warning
+   // ginkgo-linter:ignore-len-assert-warning
    
    import (
        . "github.com/onsi/ginkgo/v2"
@@ -68,7 +68,7 @@ To suppress the wrong length check warning, add a comment with (only)
 2. If the comment is before a wrong length check expression, the warning is suppressed for this expression only; for example:
    ```go
    It("should test something", func() {
-       // ginkgo-linter:ignore-length-warning
+       // ginkgo-linter:ignore-len-assert-warning
        Expect(len("abc")).Should(Equal(3)) // this line will not trigger the warning
        Expect(len("abc")).Should(Equal(3)) // this line will trigger the warning
    }
