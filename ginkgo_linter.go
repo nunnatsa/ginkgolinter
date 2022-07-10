@@ -30,7 +30,8 @@ import (
 var Analyzer = &analysis.Analyzer{
 	Name: "ginkgolinter",
 	Doc: `enforces standards of using ginkgo and gomega
-currently, the linter searches for wrong length checks; e.g.
+currently, the linter searches for wrong length assertions. We want to assert the item rather than its length.
+For example:
 	Expect(len(x).Should(Equal(1))
 This should be replaced with:
 	Expect(x).Should(HavelLen(1)`,
