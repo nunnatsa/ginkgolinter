@@ -16,7 +16,7 @@ import (
 // The ginkgolinter enforces standards of using ginkgo and gomega.
 //
 // The current checks are:
-// * enforce right length check - warn for assertion of len(something):
+// * enforce right length assertion - warn for assertion of len(something):
 //
 //   This check finds the following patterns and suggests an alternative
 //   * Expect(len(something)).To(Equal(number)) ===> Expect(x).To(HaveLen(number))
@@ -39,15 +39,15 @@ This should be replaced with:
 
 const (
 	linterName                 = "ginkgo-linter"
-	wrongLengthWarningTemplate = linterName + ": wrong length check; consider using `%s` instead"
+	wrongLengthWarningTemplate = linterName + ": wrong length assertion; consider using `%s` instead"
 	beEmpty                    = "BeEmpty"
 	haveLen                    = "HaveLen"
 	expect                     = "Expect"
 	omega                      = "Ω"
 	expectWithOffset           = "ExpectWithOffset"
 
-	supressPrefix             = "ginkgo-linter"
-	supressLengthCheckWarning = supressPrefix + ":ignore-length-warning"
+	supressPrefix                 = "ginkgo-linter"
+	supressLengthAssertionWarning = supressPrefix + ":ignore-len-assert-warning"
 )
 
 // main assertion function
@@ -200,7 +200,7 @@ func handleBeNumerically(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.Ca
 			reverseAssertionFuncLogic(exp)
 			exp.Args[0].(*ast.CallExpr).Fun = ast.NewIdent(beEmpty)
 			exp.Args[0].(*ast.CallExpr).Args = nil
-			reportLengthCheck(pass, exp, oldExp)
+			reportLengthAssertion(pass, exp, oldExp)
 			return false
 		} else if op == `"=="` {
 			if val == "0" {
@@ -211,7 +211,7 @@ func handleBeNumerically(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.Ca
 				exp.Args[0].(*ast.CallExpr).Args = []ast.Expr{valExp}
 			}
 
-			reportLengthCheck(pass, exp, oldExp)
+			reportLengthAssertion(pass, exp, oldExp)
 			return false
 		} else if op == `"!="` {
 			reverseAssertionFuncLogic(exp)
@@ -224,7 +224,7 @@ func handleBeNumerically(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.Ca
 				exp.Args[0].(*ast.CallExpr).Args = []ast.Expr{valExp}
 			}
 
-			reportLengthCheck(pass, exp, oldExp)
+			reportLengthAssertion(pass, exp, oldExp)
 			return false
 		}
 	}
@@ -250,14 +250,14 @@ func handleEqualMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.Cal
 		exp.Args[0].(*ast.CallExpr).Fun = ast.NewIdent(haveLen)
 		exp.Args[0].(*ast.CallExpr).Args = []ast.Expr{matcher.Args[0]}
 	}
-	reportLengthCheck(pass, exp, oldExp)
+	reportLengthAssertion(pass, exp, oldExp)
 }
 
 func handleBeZero(pass *analysis.Pass, exp *ast.CallExpr, oldExp string) {
 	exp.Args[0].(*ast.CallExpr).Args = nil
 	exp.Args[0].(*ast.CallExpr).Fun.(*ast.Ident).Name = beEmpty
 
-	reportLengthCheck(pass, exp, oldExp)
+	reportLengthAssertion(pass, exp, oldExp)
 }
 
 func isAssertionFunc(name string) bool {
@@ -268,7 +268,7 @@ func isAssertionFunc(name string) bool {
 	return false
 }
 
-func reportLengthCheck(pass *analysis.Pass, expr *ast.CallExpr, oldExpr string) {
+func reportLengthAssertion(pass *analysis.Pass, expr *ast.CallExpr, oldExpr string) {
 	replaceLenActualArg(expr.Fun.(*ast.SelectorExpr).X.(*ast.CallExpr))
 
 	newExp := goFmt(pass.Fset, expr)
@@ -305,7 +305,7 @@ func isSuppressComment(commentGroup []*ast.CommentGroup) bool {
 				comment = strings.TrimPrefix(comment, "/*")
 				comment = strings.TrimSuffix(comment, "*/")
 				comment = strings.TrimSpace(comment)
-				if comment == supressLengthCheckWarning {
+				if comment == supressLengthAssertionWarning {
 					return true
 				}
 			}

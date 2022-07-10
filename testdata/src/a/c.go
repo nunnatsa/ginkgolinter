@@ -1,6 +1,6 @@
 package a
 
-// ginkgo-linter:ignore-length-warning
+// ginkgo-linter:ignore-len-assert-warning
 
 import (
 	. "github.com/onsi/ginkgo/v2"
