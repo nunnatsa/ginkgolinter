@@ -1,7 +1,6 @@
 package ginkgolinter_test
 
 import (
-	"os"
 	"testing"
 
 	"golang.org/x/tools/go/analysis/analysistest"
@@ -10,8 +9,5 @@ import (
 )
 
 func TestGinkgoLinter(t *testing.T) {
-	testdata := analysistest.TestData()
-
-	os.Setenv("GOPATH", "/home/nunnatsa/go")
-	analysistest.Run(t, testdata, ginkgolinter.Analyzer, "a")
+	analysistest.Run(t, analysistest.TestData(), ginkgolinter.Analyzer, "a")
 }
