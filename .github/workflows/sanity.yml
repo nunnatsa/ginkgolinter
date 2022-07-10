@@ -22,9 +22,7 @@ jobs:
       run: make
 
     - name: Test
-      run: |-
-        go install "github.com/onsi/ginkgo/v2/ginkgo@latest"
-        ginkgo run -r .
+      run: go test ./...
     
     - name: Functional Test
       run: |-
