@@ -35,7 +35,8 @@ For example:
 	Expect(len(x).Should(Equal(1))
 This should be replaced with:
 	Expect(x).Should(HavelLen(1)`,
-	Run: run,
+	Run:              run,
+	RunDespiteErrors: true,
 }
 
 const (
