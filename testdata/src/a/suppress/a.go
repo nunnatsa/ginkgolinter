@@ -1,4 +1,4 @@
-package a
+package suppress
 
 import (
 	. "github.com/onsi/ginkgo/v2"
@@ -27,6 +27,31 @@ var _ = Describe("Supress wrong length check", func() {
 				occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 			*/
 			Expect(len("abc")).Should(Equal(3))
+		})
+	})
+
+	Context("test ginkgo-linter:ignore-nil-assert-warning", func() {
+		var x *int
+		It("should ignore length warning", func() {
+			// ginkgo-linter:ignore-nil-assert-warning
+			Expect(x == nil).Should(BeTrue())
+			Expect(x == nil).Should(BeTrue()) // want `ginkgo-linter: wrong nil assertion; consider using .Expect\(x\)\.Should\(beNil\(\)\). instead`
+			Expect(x).To(BeNil())
+			/*
+
+				Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
+				aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+				Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
+				occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+				ginkgo-linter:ignore-nil-assert-warning
+
+				Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
+				aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+				Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
+				occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+			*/
+			Expect(x == nil).Should(BeTrue())
 		})
 	})
 })
