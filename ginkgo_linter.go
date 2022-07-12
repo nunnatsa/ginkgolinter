@@ -144,9 +144,6 @@ func (l *ginkgoLinter) run(pass *analysis.Pass) (interface{}, error) {
 
 			if comments, ok := cm[stmt]; ok {
 				exprSuppress.updateFromComment(comments)
-				if exprSuppress.allTrue() {
-					return true
-				}
 			}
 
 			// search for function calls
