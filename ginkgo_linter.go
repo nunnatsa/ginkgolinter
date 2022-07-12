@@ -2,6 +2,8 @@ package ginkgolinter
 
 import (
 	"bytes"
+	"errors"
+	"flag"
 	"fmt"
 	"go/ast"
 	"go/printer"
@@ -33,27 +35,6 @@ import (
 //   * Expect(x != nil).Should(Equal(false))
 //   * Expect(nil == x).Should(BeFalse())
 
-// Analyzer is the package interface with nogo
-var Analyzer = &analysis.Analyzer{
-	Name: "ginkgolinter",
-	Doc: `enforces standards of using ginkgo and gomega
-currently, the linter searches for following:
-* wrong length assertions. We want to assert the item rather than its length.
-For example:
-	Expect(len(x)).Should(Equal(1))
-This should be replaced with:
-	Expect(x)).Should(HavelLen(1))
-	
-* wrong nil assertions. We want to assert the item rather than a comparison result.
-For example:
-	Expect(x == nil).Should(BeTrue())
-This should be replaced with:
-	Expect(x).Should(BeNil())
-	`,
-	Run:              run,
-	RunDespiteErrors: true,
-}
-
 const (
 	linterName                 = "ginkgo-linter"
 	wrongLengthWarningTemplate = linterName + ": wrong length assertion; consider using `%s` instead"
@@ -70,14 +51,81 @@ const (
 	suppressNilAssertionWarning    = suppressPrefix + "ignore-nil-assert-warning"
 )
 
-// main assertion function
-func run(pass *analysis.Pass) (interface{}, error) {
+type boolean bool
 
-	for _, file := range pass.Files {
-		fileSuppress := suppress{
+func (b *boolean) Set(value string) error {
+	if b == nil {
+		return errors.New("trying to set nil parameter")
+	}
+	switch strings.ToLower(value) {
+	case "true":
+		*b = true
+	case "false":
+		*b = false
+	default:
+		return errors.New(value + " is not a boolean value")
+
+	}
+	return nil
+}
+
+func (b boolean) String() string {
+	if b {
+		return "true"
+	}
+	return "false"
+}
+
+type ginkgoLinter struct {
+	suppress *suppress
+}
+
+// NewAnalyzer returns an Analyzer - the package interface with nogo
+func NewAnalyzer() *analysis.Analyzer {
+	linter := ginkgoLinter{
+		suppress: &suppress{
 			Len: false,
 			Nil: false,
-		}
+		},
+	}
+
+	a := &analysis.Analyzer{
+		Name: "ginkgolinter",
+		Doc: `enforces standards of using ginkgo and gomega
+currently, the linter searches for following:
+* wrong length assertions. We want to assert the item rather than its length.
+For example:
+	Expect(len(x)).Should(Equal(1))
+This should be replaced with:
+	Expect(x)).Should(HavelLen(1))
+	
+* wrong nil assertions. We want to assert the item rather than a comparison result.
+For example:
+	Expect(x == nil).Should(BeTrue())
+This should be replaced with:
+	Expect(x).Should(BeNil())
+	`,
+		Run:              linter.run,
+		RunDespiteErrors: true,
+	}
+
+	a.Flags.Init("ginkgolinter", flag.ExitOnError)
+	a.Flags.Var(&linter.suppress.Len, "suppress-len-assertion", "suppress warning for wrong length assertions")
+	a.Flags.Var(&linter.suppress.Nil, "suppress-nil-assertion", "suppress warning for wrong nil assertions")
+
+	return a
+}
+
+//var Analyzer = NewAnalyzer()
+
+// main assertion function
+func (l *ginkgoLinter) run(pass *analysis.Pass) (interface{}, error) {
+	if l.suppress.allTrue() {
+		return nil, nil
+	}
+
+	for _, file := range pass.Files {
+		fileSuppress := l.suppress.clone()
 
 		cm := ast.NewCommentMap(pass.Fset, file, file.Comments)
 
@@ -122,7 +170,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				return true
 			}
 
-			if !exprSuppress.Len && isActualIsLenFunc(actualArg) {
+			if !bool(exprSuppress.Len) && isActualIsLenFunc(actualArg) {
 				oldExpr := goFmt(pass.Fset, assertionExp)
 
 				return checkLengthMatcher(assertionExp, pass, oldExpr)
@@ -449,17 +497,17 @@ func isNil(expr ast.Expr) bool {
 
 func goFmt(fset *token.FileSet, x ast.Expr) string {
 	var b bytes.Buffer
-	printer.Fprint(&b, fset, x)
+	_ = printer.Fprint(&b, fset, x)
 	return b.String()
 }
 
 type suppress struct {
-	Len bool
-	Nil bool
+	Len boolean
+	Nil boolean
 }
 
 func (s suppress) allTrue() bool {
-	return s.Len && s.Nil
+	return bool(s.Len) && bool(s.Nil)
 }
 
 func (s suppress) clone() suppress {
