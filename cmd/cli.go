@@ -6,5 +6,5 @@ import (
 )
 
 func main() {
-	singlechecker.Main(ginkgolinter.Analyzer)
+	singlechecker.Main(ginkgolinter.NewAnalyzer())
 }
