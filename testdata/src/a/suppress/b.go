@@ -1,4 +1,4 @@
-package a
+package suppress
 
 // ginkgo-linter:ignore-len-assert-warning
 

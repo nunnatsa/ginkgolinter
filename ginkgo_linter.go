@@ -25,16 +25,31 @@ import (
 //   * Expect(len(something)).To(BeNumerically(">", 0)) ===> Expect(something).ToNot(BeEmpty())
 //   * Expect(len(something)).To(BeNumerically(">=", 1)) ===> Expect(something).ToNot(BeEmpty())
 //   * Expect(len(something)).To(BeNumerically("==", number)) ===> Expect(something).To(HaveLen(number))
+//
+// * enforce right nil assertion - warn for assertion of x == nil:
+//   This check finds the following patterns and suggests an alternative
+//   * Expect(x == nil).Should(Equal(true))
+//   * Expect(nil == x).Should(BeTrue())
+//   * Expect(x != nil).Should(Equal(false))
+//   * Expect(nil == x).Should(BeFalse())
 
 // Analyzer is the package interface with nogo
 var Analyzer = &analysis.Analyzer{
 	Name: "ginkgolinter",
 	Doc: `enforces standards of using ginkgo and gomega
-currently, the linter searches for wrong length assertions. We want to assert the item rather than its length.
+currently, the linter searches for following:
+* wrong length assertions. We want to assert the item rather than its length.
 For example:
-	Expect(len(x).Should(Equal(1))
+	Expect(len(x)).Should(Equal(1))
 This should be replaced with:
-	Expect(x).Should(HavelLen(1)`,
+	Expect(x)).Should(HavelLen(1))
+	
+* wrong nil assertions. We want to assert the item rather than a comparison result.
+For example:
+	Expect(x == nil).Should(BeTrue())
+This should be replaced with:
+	Expect(x).Should(BeNil())
+	`,
 	Run:              run,
 	RunDespiteErrors: true,
 }
@@ -42,23 +57,32 @@ This should be replaced with:
 const (
 	linterName                 = "ginkgo-linter"
 	wrongLengthWarningTemplate = linterName + ": wrong length assertion; consider using `%s` instead"
+	wrongNilWarningTemplate    = linterName + ": wrong nil assertion; consider using `%s` instead"
 	beEmpty                    = "BeEmpty"
+	beNil                      = "beNil"
 	haveLen                    = "HaveLen"
 	expect                     = "Expect"
 	omega                      = "Ω"
 	expectWithOffset           = "ExpectWithOffset"
 
-	supressPrefix                 = "ginkgo-linter"
-	supressLengthAssertionWarning = supressPrefix + ":ignore-len-assert-warning"
+	suppressPrefix                 = "ginkgo-linter:"
+	suppressLengthAssertionWarning = suppressPrefix + "ignore-len-assert-warning"
+	suppressNilAssertionWarning    = suppressPrefix + "ignore-nil-assert-warning"
 )
 
 // main assertion function
 func run(pass *analysis.Pass) (interface{}, error) {
 
 	for _, file := range pass.Files {
+		fileSuppress := suppress{
+			Len: false,
+			Nil: false,
+		}
+
 		cm := ast.NewCommentMap(pass.Fset, file, file.Comments)
 
-		if isSuppressedFile(cm) {
+		fileSuppress.updateFromFile(cm)
+		if fileSuppress.allTrue() {
 			continue
 		}
 
@@ -68,8 +92,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				return true
 			}
 
+			exprSuppress := fileSuppress.clone()
+
 			if comments, ok := cm[stmt]; ok {
-				if isSuppressComment(comments) {
+				exprSuppress.updateFromComment(comments)
+				if exprSuppress.allTrue() {
 					return true
 				}
 			}
@@ -91,13 +118,22 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			}
 
 			actualArg := getActualArg(actualExpr)
-			if actualArg == nil || !isActualIsLenFunc(actualArg) {
+			if actualArg == nil {
 				return true
 			}
 
-			oldExpr := goFmt(pass.Fset, assertionExp)
+			if !exprSuppress.Len && isActualIsLenFunc(actualArg) {
+				oldExpr := goFmt(pass.Fset, assertionExp)
 
-			return checkMatcher(assertionExp, pass, oldExpr)
+				return checkLengthMatcher(assertionExp, pass, oldExpr)
+			} else if !exprSuppress.Nil {
+				if nilable, compOp := getNilableFromComparison(actualArg); nilable != nil {
+					oldExpr := goFmt(pass.Fset, assertionExp)
+					return checkNilMatcher(assertionExp, pass, nilable, compOp == token.NEQ, oldExpr)
+				}
+			}
+			return true
+
 		})
 	}
 	return nil, nil
@@ -115,7 +151,7 @@ func isActualIsLenFunc(actualArg ast.Expr) bool {
 }
 
 // Check if matcher function is in one of the patterns we want to avoid
-func checkMatcher(exp *ast.CallExpr, pass *analysis.Pass, oldExp string) bool {
+func checkLengthMatcher(exp *ast.CallExpr, pass *analysis.Pass, oldExp string) bool {
 	matcher, ok := exp.Args[0].(*ast.CallExpr)
 	if !ok {
 		return true
@@ -141,11 +177,45 @@ func checkMatcher(exp *ast.CallExpr, pass *analysis.Pass, oldExp string) bool {
 	case "Not":
 		reverseAssertionFuncLogic(exp)
 		exp.Args[0] = exp.Args[0].(*ast.CallExpr).Args[0]
-		return checkMatcher(exp, pass, oldExp)
+		return checkLengthMatcher(exp, pass, oldExp)
 
 	default:
 		return true
 	}
+}
+
+// Check if matcher function is in one of the patterns we want to avoid
+func checkNilMatcher(exp *ast.CallExpr, pass *analysis.Pass, nilable ast.Expr, notEqual bool, oldExp string) bool {
+	matcher, ok := exp.Args[0].(*ast.CallExpr)
+	if !ok {
+		return true
+	}
+
+	matcherFunc, ok := matcher.Fun.(*ast.Ident)
+	if !ok {
+		return true
+	}
+
+	switch matcherFunc.Name {
+	case "Equal":
+		handleEqualNilMatcher(matcher, pass, exp, nilable, notEqual, oldExp)
+
+	case "BeTrue":
+		handleNilBeBoolMatcher(pass, exp, nilable, notEqual, oldExp)
+
+	case "BeFalse":
+		reverseAssertionFuncLogic(exp)
+		handleNilBeBoolMatcher(pass, exp, nilable, notEqual, oldExp)
+
+	case "Not":
+		reverseAssertionFuncLogic(exp)
+		exp.Args[0] = exp.Args[0].(*ast.CallExpr).Args[0]
+		return checkNilMatcher(exp, pass, nilable, notEqual, oldExp)
+
+	default:
+		return true
+	}
+	return false
 }
 
 // checks that the function is an assertion's actual function and return the "actual" parameter. If the function
@@ -186,6 +256,27 @@ func replaceLenActualArg(actualExpr *ast.CallExpr) {
 			// replace the len function call by its parameter, to create a fix suggestion
 			actualExpr.Args[1] = arg.(*ast.CallExpr).Args[0]
 		}
+	}
+}
+
+// Replace the nil comparison with the compared object, to create a fix suggestion
+func replaceNilActualArg(actualExpr *ast.CallExpr, nilable ast.Expr) bool {
+	actualFunc, ok := actualExpr.Fun.(*ast.Ident)
+	if !ok {
+		return false
+	}
+
+	switch actualFunc.Name {
+	case expect, omega:
+		actualExpr.Args[0] = nilable
+		return true
+
+	case expectWithOffset:
+		actualExpr.Args[1] = nilable
+		return true
+
+	default:
+		return false
 	}
 }
 
@@ -262,6 +353,31 @@ func handleBeZero(pass *analysis.Pass, exp *ast.CallExpr, oldExp string) {
 	reportLengthAssertion(pass, exp, oldExp)
 }
 
+func handleEqualNilMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, nilable ast.Expr, notEqual bool, oldExp string) {
+	equalTo, ok := matcher.Args[0].(*ast.Ident)
+	if !ok {
+		return
+	}
+
+	if equalTo.Name == "false" {
+		reverseAssertionFuncLogic(exp)
+	} else if equalTo.Name != "true" {
+		return
+	}
+
+	exp.Args[0].(*ast.CallExpr).Fun = ast.NewIdent(beNil)
+	exp.Args[0].(*ast.CallExpr).Args = nil
+
+	reportNilAssertion(pass, exp, nilable, notEqual, oldExp)
+}
+
+func handleNilBeBoolMatcher(pass *analysis.Pass, exp *ast.CallExpr, nilable ast.Expr, notEqual bool, oldExp string) {
+	exp.Args[0].(*ast.CallExpr).Fun = ast.NewIdent(beNil)
+	exp.Args[0].(*ast.CallExpr).Args = nil
+
+	reportNilAssertion(pass, exp, nilable, notEqual, oldExp)
+}
+
 func isAssertionFunc(name string) bool {
 	switch name {
 	case "To", "ToNot", "NotTo", "Should", "ShouldNot":
@@ -273,10 +389,27 @@ func isAssertionFunc(name string) bool {
 func reportLengthAssertion(pass *analysis.Pass, expr *ast.CallExpr, oldExpr string) {
 	replaceLenActualArg(expr.Fun.(*ast.SelectorExpr).X.(*ast.CallExpr))
 
+	report(pass, expr, wrongLengthWarningTemplate, oldExpr)
+}
+
+func reportNilAssertion(pass *analysis.Pass, expr *ast.CallExpr, nilable ast.Expr, notEqual bool, oldExpr string) {
+	changed := replaceNilActualArg(expr.Fun.(*ast.SelectorExpr).X.(*ast.CallExpr), nilable)
+	if !changed {
+		return
+	}
+
+	if notEqual {
+		reverseAssertionFuncLogic(expr)
+	}
+
+	report(pass, expr, wrongNilWarningTemplate, oldExpr)
+}
+
+func report(pass *analysis.Pass, expr *ast.CallExpr, messageTemplate, oldExpr string) {
 	newExp := goFmt(pass.Fset, expr)
 	pass.Report(analysis.Diagnostic{
 		Pos:     expr.Pos(),
-		Message: fmt.Sprintf(wrongLengthWarningTemplate, newExp),
+		Message: fmt.Sprintf(messageTemplate, newExp),
 		SuggestedFixes: []analysis.SuggestedFix{
 			{
 				Message: fmt.Sprintf("should replace %s with %s", oldExpr, newExp),
@@ -292,14 +425,56 @@ func reportLengthAssertion(pass *analysis.Pass, expr *ast.CallExpr, oldExpr stri
 	})
 }
 
+func getNilableFromComparison(actualArg ast.Expr) (ast.Expr, token.Token) {
+	bin, ok := actualArg.(*ast.BinaryExpr)
+	if !ok {
+		return nil, token.ILLEGAL
+	}
+
+	if bin.Op == token.EQL || bin.Op == token.NEQ {
+		if isNil(bin.Y) {
+			return bin.X, bin.Op
+		} else if isNil(bin.X) {
+			return bin.Y, bin.Op
+		}
+	}
+
+	return nil, token.ILLEGAL
+}
+
+func isNil(expr ast.Expr) bool {
+	nilObject, ok := expr.(*ast.Ident)
+	return ok && nilObject.Name == "nil" && nilObject.Obj == nil
+}
+
 func goFmt(fset *token.FileSet, x ast.Expr) string {
 	var b bytes.Buffer
 	printer.Fprint(&b, fset, x)
 	return b.String()
 }
 
-func isSuppressComment(commentGroup []*ast.CommentGroup) bool {
+type suppress struct {
+	Len bool
+	Nil bool
+}
+
+func (s suppress) allTrue() bool {
+	return s.Len && s.Nil
+}
+
+func (s suppress) clone() suppress {
+	return suppress{
+		Len: s.Len,
+		Nil: s.Nil,
+	}
+}
+
+func (s *suppress) updateFromComment(commentGroup []*ast.CommentGroup) {
 	for _, cmntList := range commentGroup {
+		if s.allTrue() {
+			break
+		}
+
 		for _, cmnt := range cmntList.List {
 			commentLines := strings.Split(cmnt.Text, "\n")
 			for _, comment := range commentLines {
@@ -307,23 +482,23 @@ func isSuppressComment(commentGroup []*ast.CommentGroup) bool {
 				comment = strings.TrimPrefix(comment, "/*")
 				comment = strings.TrimSuffix(comment, "*/")
 				comment = strings.TrimSpace(comment)
-				if comment == supressLengthAssertionWarning {
-					return true
-				}
+
+				s.Len = s.Len || (comment == suppressLengthAssertionWarning)
+				s.Nil = s.Nil || (comment == suppressNilAssertionWarning)
 			}
 		}
 	}
-	return false
 }
 
-func isSuppressedFile(cm ast.CommentMap) bool {
+func (s *suppress) updateFromFile(cm ast.CommentMap) {
+
 	for key, commentGroup := range cm {
+		if s.allTrue() {
+			break
+		}
+
 		if _, ok := key.(*ast.GenDecl); ok {
-			if isSuppressComment(commentGroup) {
-				return true
-			}
+			s.updateFromComment(commentGroup)
 		}
 	}
-
-	return false
 }

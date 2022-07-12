@@ -8,6 +8,14 @@ import (
 	"github.com/nunnatsa/ginkgolinter"
 )
 
-func TestGinkgoLinter(t *testing.T) {
-	analysistest.Run(t, analysistest.TestData(), ginkgolinter.Analyzer, "a")
+func TestGinkgoLenLinter(t *testing.T) {
+	analysistest.Run(t, analysistest.TestData(), ginkgolinter.Analyzer, "a/len")
+}
+
+func TestGinkgoNilLinter(t *testing.T) {
+	analysistest.Run(t, analysistest.TestData(), ginkgolinter.Analyzer, "a/nil")
+}
+
+func TestSuppress(t *testing.T) {
+	analysistest.Run(t, analysistest.TestData(), ginkgolinter.Analyzer, "a/suppress")
 }
