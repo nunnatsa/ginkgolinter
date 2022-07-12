@@ -76,12 +76,14 @@ Or even (double negative):
 
 ### Suppress warning from the code
 To suppress the wrong length assertion warning, add a comment with (only)
+
 `ginkgo-linter:ignore-len-assert-warning`. 
 
 To suppress the wrong nil assertion warning, add a comment with (only)
+
 `ginkgo-linter:ignore-nil-assert-warning`. 
 
-There are two options to use this comment:
+There are two options to use these comments:
 1. If the comment is at the top of the file, supress the warning for the whole file; e.g.:
    ```go
    package mypackage
