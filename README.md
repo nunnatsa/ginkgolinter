@@ -4,6 +4,15 @@ This is a golang linter to check usage of the ginkgo and gomega packages.
 
 ginkgo is a testing framework and gomega is its assertion package.
 
+## Install the CLI
+Download the right executable from the latest release, according to your OS.
+
+Another option is to use go:
+```shell
+go install github.com/nunnatsa/ginkgolinter/cmd/ginkgolinter@latest
+```
+Then add the new executable to your PATH.
+
 ## usage
 ```shell
 ginkgo-linter [-fix] .
