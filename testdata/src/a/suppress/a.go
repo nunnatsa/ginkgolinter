@@ -35,7 +35,7 @@ var _ = Describe("Supress wrong length check", func() {
 		It("should ignore length warning", func() {
 			// ginkgo-linter:ignore-nil-assert-warning
 			Expect(x == nil).Should(BeTrue())
-			Expect(x == nil).Should(BeTrue()) // want `ginkgo-linter: wrong nil assertion; consider using .Expect\(x\)\.Should\(beNil\(\)\). instead`
+			Expect(x == nil).Should(BeTrue()) // want `ginkgo-linter: wrong nil assertion; consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
 			Expect(x).To(BeNil())
 			/*
 

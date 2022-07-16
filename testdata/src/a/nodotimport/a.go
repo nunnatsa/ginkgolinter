@@ -18,10 +18,10 @@ var _ = ginkgo.Describe("no dot import", func() {
 	})
 	ginkgo.It("should trigger nil warning", func() {
 		var x *int
-		gomega.Expect(x == nil).Should(gomega.Equal(true))           // want `ginkgo-linter: wrong nil assertion; consider using .gomega\.Expect\(x\)\.Should\(gomega\.beNil\(\)\). instead`
-		gomega.Expect(x == nil).ShouldNot(gomega.Equal(false))       // want `ginkgo-linter: wrong nil assertion; consider using .gomega\.Expect\(x\)\.Should\(gomega\.beNil\(\)\). instead`
-		gomega.Expect(nil == x).Should(gomega.BeTrue())              // want `ginkgo-linter: wrong nil assertion; consider using .gomega\.Expect\(x\)\.Should\(gomega\.beNil\(\)\). instead`
-		gomega.Expect(x == nil).ShouldNot(gomega.BeFalse())          // want `ginkgo-linter: wrong nil assertion; consider using .gomega\.Expect\(x\)\.Should\(gomega\.beNil\(\)\). instead`
-		gomega.Expect(x == nil).Should(gomega.Not(gomega.BeFalse())) // want `ginkgo-linter: wrong nil assertion; consider using .gomega\.Expect\(x\)\.Should\(gomega\.beNil\(\)\). instead`
+		gomega.Expect(x == nil).Should(gomega.Equal(true))           // want `ginkgo-linter: wrong nil assertion; consider using .gomega\.Expect\(x\)\.Should\(gomega\.BeNil\(\)\). instead`
+		gomega.Expect(x == nil).ShouldNot(gomega.Equal(false))       // want `ginkgo-linter: wrong nil assertion; consider using .gomega\.Expect\(x\)\.Should\(gomega\.BeNil\(\)\). instead`
+		gomega.Expect(nil == x).Should(gomega.BeTrue())              // want `ginkgo-linter: wrong nil assertion; consider using .gomega\.Expect\(x\)\.Should\(gomega\.BeNil\(\)\). instead`
+		gomega.Expect(x == nil).ShouldNot(gomega.BeFalse())          // want `ginkgo-linter: wrong nil assertion; consider using .gomega\.Expect\(x\)\.Should\(gomega\.BeNil\(\)\). instead`
+		gomega.Expect(x == nil).Should(gomega.Not(gomega.BeFalse())) // want `ginkgo-linter: wrong nil assertion; consider using .gomega\.Expect\(x\)\.Should\(gomega\.BeNil\(\)\). instead`
 	})
 })

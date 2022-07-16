@@ -40,7 +40,7 @@ const (
 	wrongLengthWarningTemplate = linterName + ": wrong length assertion; consider using `%s` instead"
 	wrongNilWarningTemplate    = linterName + ": wrong nil assertion; consider using `%s` instead"
 	beEmpty                    = "BeEmpty"
-	beNil                      = "beNil"
+	beNil                      = "BeNil"
 	haveLen                    = "HaveLen"
 	expect                     = "Expect"
 	omega                      = "Ω"
