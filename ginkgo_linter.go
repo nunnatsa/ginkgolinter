@@ -134,7 +134,13 @@ func (l *ginkgoLinter) run(pass *analysis.Pass) (interface{}, error) {
 			continue
 		}
 
+		handler := getGomegaHandler(file)
+		if handler == nil { // no gomega import => no use in gomega in this file; nothing to do here
+			continue
+		}
+
 		ast.Inspect(file, func(n ast.Node) bool {
+
 			stmt, ok := n.(*ast.ExprStmt)
 			if !ok {
 				return true
@@ -162,7 +168,7 @@ func (l *ginkgoLinter) run(pass *analysis.Pass) (interface{}, error) {
 				return true
 			}
 
-			actualArg := getActualArg(actualExpr)
+			actualArg := getActualArg(actualExpr, handler)
 			if actualArg == nil {
 				return true
 			}
@@ -170,11 +176,11 @@ func (l *ginkgoLinter) run(pass *analysis.Pass) (interface{}, error) {
 			if !bool(exprSuppress.Len) && isActualIsLenFunc(actualArg) {
 				oldExpr := goFmt(pass.Fset, assertionExp)
 
-				return checkLengthMatcher(assertionExp, pass, oldExpr)
+				return checkLengthMatcher(assertionExp, pass, handler, oldExpr)
 			} else if !exprSuppress.Nil {
 				if nilable, compOp := getNilableFromComparison(actualArg); nilable != nil {
 					oldExpr := goFmt(pass.Fset, assertionExp)
-					return checkNilMatcher(assertionExp, pass, nilable, compOp == token.NEQ, oldExpr)
+					return checkNilMatcher(assertionExp, pass, nilable, handler, compOp == token.NEQ, oldExpr)
 				}
 			}
 			return true
@@ -182,6 +188,82 @@ func (l *ginkgoLinter) run(pass *analysis.Pass) (interface{}, error) {
 		})
 	}
 	return nil, nil
+}
+
+func getGomegaHandler(file *ast.File) gomegaHandler {
+	for _, imp := range file.Imports {
+		if imp.Path.Value != `"github.com/onsi/gomega"` {
+			continue
+		}
+
+		switch name := imp.Name.String(); {
+		case len(name) == 0:
+			return nil // no gomega import; this file does not use gomega
+		case name == ".":
+			return gomegaDotHandler{}
+		case name == "<nil>": // import with no local name
+			return gomegaNameHandler("gomega")
+		default:
+			return gomegaNameHandler(name)
+		}
+	}
+
+	return nil
+}
+
+// gomegaHandler provide different handling, depend on the way gomega was imported, whether
+// in imported with "." name, custome name or without any name.
+type gomegaHandler interface {
+	getActualFuncName(*ast.CallExpr) (string, bool)
+	replaceFunction(*ast.CallExpr, *ast.Ident)
+}
+
+// this handler is used when importing gomega with dot; i.e.
+// import . "github.com/onsi/gomega"
+//
+type gomegaDotHandler struct{}
+
+func (gomegaDotHandler) getActualFuncName(expr *ast.CallExpr) (string, bool) {
+	actualFunc, ok := expr.Fun.(*ast.Ident)
+	if !ok {
+		return "", false
+	}
+
+	return actualFunc.Name, true
+}
+
+func (gomegaDotHandler) replaceFunction(caller *ast.CallExpr, newExpr *ast.Ident) {
+	caller.Fun = newExpr
+}
+
+// this handler is used when importing gomega without name; i.e.
+// import "github.com/onsi/gomega"
+//
+// or with a custom name; e.g.
+// import customname "github.com/onsi/gomega"
+//
+type gomegaNameHandler string
+
+func (g gomegaNameHandler) getActualFuncName(expr *ast.CallExpr) (string, bool) {
+	selector, ok := expr.Fun.(*ast.SelectorExpr)
+	if !ok {
+		return "", false
+	}
+
+	x, ok := selector.X.(*ast.Ident)
+	if !ok {
+		return "", false
+	}
+
+	if x.Name != string(g) {
+		return "", false
+	}
+
+	return selector.Sel.Name, true
+}
+
+func (gomegaNameHandler) replaceFunction(caller *ast.CallExpr, newExpr *ast.Ident) {
+	caller.Fun.(*ast.SelectorExpr).Sel = newExpr
 }
 
 // Check if the "actual" argument is a call to the golang built-in len() function
@@ -196,33 +278,33 @@ func isActualIsLenFunc(actualArg ast.Expr) bool {
 }
 
 // Check if matcher function is in one of the patterns we want to avoid
-func checkLengthMatcher(exp *ast.CallExpr, pass *analysis.Pass, oldExp string) bool {
+func checkLengthMatcher(exp *ast.CallExpr, pass *analysis.Pass, handler gomegaHandler, oldExp string) bool {
 	matcher, ok := exp.Args[0].(*ast.CallExpr)
 	if !ok {
 		return true
 	}
 
-	matcherFunc, ok := matcher.Fun.(*ast.Ident)
+	matcherFuncName, ok := handler.getActualFuncName(matcher)
 	if !ok {
 		return true
 	}
 
-	switch matcherFunc.Name {
+	switch matcherFuncName {
 	case "Equal":
-		handleEqualMatcher(matcher, pass, exp, oldExp)
+		handleEqualMatcher(matcher, pass, exp, handler, oldExp)
 		return false
 
 	case "BeZero":
-		handleBeZero(pass, exp, oldExp)
+		handleBeZero(pass, exp, handler, oldExp)
 		return false
 
 	case "BeNumerically":
-		return handleBeNumerically(matcher, pass, exp, oldExp)
+		return handleBeNumerically(matcher, pass, exp, handler, oldExp)
 
 	case "Not":
 		reverseAssertionFuncLogic(exp)
 		exp.Args[0] = exp.Args[0].(*ast.CallExpr).Args[0]
-		return checkLengthMatcher(exp, pass, oldExp)
+		return checkLengthMatcher(exp, pass, handler, oldExp)
 
 	default:
 		return true
@@ -230,32 +312,32 @@ func checkLengthMatcher(exp *ast.CallExpr, pass *analysis.Pass, oldExp string) b
 }
 
 // Check if matcher function is in one of the patterns we want to avoid
-func checkNilMatcher(exp *ast.CallExpr, pass *analysis.Pass, nilable ast.Expr, notEqual bool, oldExp string) bool {
+func checkNilMatcher(exp *ast.CallExpr, pass *analysis.Pass, nilable ast.Expr, handler gomegaHandler, notEqual bool, oldExp string) bool {
 	matcher, ok := exp.Args[0].(*ast.CallExpr)
 	if !ok {
 		return true
 	}
 
-	matcherFunc, ok := matcher.Fun.(*ast.Ident)
+	matcherFuncName, ok := handler.getActualFuncName(matcher)
 	if !ok {
 		return true
 	}
 
-	switch matcherFunc.Name {
+	switch matcherFuncName {
 	case "Equal":
-		handleEqualNilMatcher(matcher, pass, exp, nilable, notEqual, oldExp)
+		handleEqualNilMatcher(matcher, pass, exp, handler, nilable, notEqual, oldExp)
 
 	case "BeTrue":
-		handleNilBeBoolMatcher(pass, exp, nilable, notEqual, oldExp)
+		handleNilBeBoolMatcher(pass, exp, handler, nilable, notEqual, oldExp)
 
 	case "BeFalse":
 		reverseAssertionFuncLogic(exp)
-		handleNilBeBoolMatcher(pass, exp, nilable, notEqual, oldExp)
+		handleNilBeBoolMatcher(pass, exp, handler, nilable, notEqual, oldExp)
 
 	case "Not":
 		reverseAssertionFuncLogic(exp)
 		exp.Args[0] = exp.Args[0].(*ast.CallExpr).Args[0]
-		return checkNilMatcher(exp, pass, nilable, notEqual, oldExp)
+		return checkNilMatcher(exp, pass, nilable, handler, notEqual, oldExp)
 
 	default:
 		return true
@@ -265,13 +347,13 @@ func checkNilMatcher(exp *ast.CallExpr, pass *analysis.Pass, nilable ast.Expr, n
 
 // checks that the function is an assertion's actual function and return the "actual" parameter. If the function
 // is not assertion's actual function, return nil.
-func getActualArg(actualExpr *ast.CallExpr) ast.Expr {
-	actualFunc, ok := actualExpr.Fun.(*ast.Ident)
+func getActualArg(actualExpr *ast.CallExpr, handler gomegaHandler) ast.Expr {
+	funcName, ok := handler.getActualFuncName(actualExpr)
 	if !ok {
 		return nil
 	}
 
-	switch actualFunc.Name {
+	switch funcName {
 	case expect, omega:
 		return actualExpr.Args[0]
 	case expectWithOffset:
@@ -282,13 +364,13 @@ func getActualArg(actualExpr *ast.CallExpr) ast.Expr {
 }
 
 // Replace the len function call by its parameter, to create a fix suggestion
-func replaceLenActualArg(actualExpr *ast.CallExpr) {
-	actualFunc, ok := actualExpr.Fun.(*ast.Ident)
+func replaceLenActualArg(actualExpr *ast.CallExpr, handler gomegaHandler) {
+	name, ok := handler.getActualFuncName(actualExpr)
 	if !ok {
 		return
 	}
 
-	switch actualFunc.Name {
+	switch name {
 	case expect, omega:
 		arg := actualExpr.Args[0]
 		if isActualIsLenFunc(arg) {
@@ -305,13 +387,13 @@ func replaceLenActualArg(actualExpr *ast.CallExpr) {
 }
 
 // Replace the nil comparison with the compared object, to create a fix suggestion
-func replaceNilActualArg(actualExpr *ast.CallExpr, nilable ast.Expr) bool {
-	actualFunc, ok := actualExpr.Fun.(*ast.Ident)
+func replaceNilActualArg(actualExpr *ast.CallExpr, handler gomegaHandler, nilable ast.Expr) bool {
+	actualFuncName, ok := handler.getActualFuncName(actualExpr)
 	if !ok {
 		return false
 	}
 
-	switch actualFunc.Name {
+	switch actualFuncName {
 	case expect, omega:
 		actualExpr.Args[0] = nilable
 		return true
@@ -326,7 +408,7 @@ func replaceNilActualArg(actualExpr *ast.CallExpr, nilable ast.Expr) bool {
 }
 
 // For the BeNumerically matcher, we want to avoid the assertion of length to be > 0 or >= 1, or just == number
-func handleBeNumerically(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, oldExp string) bool {
+func handleBeNumerically(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, handler gomegaHandler, oldExp string) bool {
 	opExp, ok1 := matcher.Args[0].(*ast.BasicLit)
 	valExp, ok2 := matcher.Args[1].(*ast.BasicLit)
 
@@ -334,35 +416,36 @@ func handleBeNumerically(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.Ca
 		op := opExp.Value
 		val := valExp.Value
 
+		caller := exp.Args[0].(*ast.CallExpr)
 		if (op == `">"` && val == "0") || (op == `">="` && val == "1") {
 			reverseAssertionFuncLogic(exp)
-			exp.Args[0].(*ast.CallExpr).Fun = ast.NewIdent(beEmpty)
+			handler.replaceFunction(caller, ast.NewIdent(beEmpty))
 			exp.Args[0].(*ast.CallExpr).Args = nil
-			reportLengthAssertion(pass, exp, oldExp)
+			reportLengthAssertion(pass, exp, handler, oldExp)
 			return false
 		} else if op == `"=="` {
 			if val == "0" {
-				exp.Args[0].(*ast.CallExpr).Fun = ast.NewIdent(beEmpty)
+				handler.replaceFunction(caller, ast.NewIdent(beEmpty))
 				exp.Args[0].(*ast.CallExpr).Args = nil
 			} else {
-				exp.Args[0].(*ast.CallExpr).Fun = ast.NewIdent(haveLen)
+				handler.replaceFunction(caller, ast.NewIdent(haveLen))
 				exp.Args[0].(*ast.CallExpr).Args = []ast.Expr{valExp}
 			}
 
-			reportLengthAssertion(pass, exp, oldExp)
+			reportLengthAssertion(pass, exp, handler, oldExp)
 			return false
 		} else if op == `"!="` {
 			reverseAssertionFuncLogic(exp)
 
 			if val == "0" {
-				exp.Args[0].(*ast.CallExpr).Fun = ast.NewIdent(beEmpty)
+				handler.replaceFunction(caller, ast.NewIdent(beEmpty))
 				exp.Args[0].(*ast.CallExpr).Args = nil
 			} else {
-				exp.Args[0].(*ast.CallExpr).Fun = ast.NewIdent(haveLen)
+				handler.replaceFunction(caller, ast.NewIdent(haveLen))
 				exp.Args[0].(*ast.CallExpr).Args = []ast.Expr{valExp}
 			}
 
-			reportLengthAssertion(pass, exp, oldExp)
+			reportLengthAssertion(pass, exp, handler, oldExp)
 			return false
 		}
 	}
@@ -374,31 +457,31 @@ func reverseAssertionFuncLogic(exp *ast.CallExpr) {
 	assertionFunc.Name = reverseassertion.ChangeAssertionLogic(assertionFunc.Name)
 }
 
-func handleEqualMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, oldExp string) {
+func handleEqualMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, handler gomegaHandler, oldExp string) {
 	equalTo, ok := matcher.Args[0].(*ast.BasicLit)
+	caller := exp.Args[0].(*ast.CallExpr)
 	if ok {
 		if equalTo.Value == "0" {
-			exp.Args[0].(*ast.CallExpr).Fun = ast.NewIdent(beEmpty)
+			handler.replaceFunction(caller, ast.NewIdent(beEmpty))
 			exp.Args[0].(*ast.CallExpr).Args = nil
 		} else {
-			exp.Args[0].(*ast.CallExpr).Fun = ast.NewIdent(haveLen)
+			handler.replaceFunction(caller, ast.NewIdent(haveLen))
 			exp.Args[0].(*ast.CallExpr).Args = []ast.Expr{equalTo}
 		}
 	} else {
-		exp.Args[0].(*ast.CallExpr).Fun = ast.NewIdent(haveLen)
+		handler.replaceFunction(caller, ast.NewIdent(haveLen))
 		exp.Args[0].(*ast.CallExpr).Args = []ast.Expr{matcher.Args[0]}
 	}
-	reportLengthAssertion(pass, exp, oldExp)
+	reportLengthAssertion(pass, exp, handler, oldExp)
 }
 
-func handleBeZero(pass *analysis.Pass, exp *ast.CallExpr, oldExp string) {
+func handleBeZero(pass *analysis.Pass, exp *ast.CallExpr, handler gomegaHandler, oldExp string) {
 	exp.Args[0].(*ast.CallExpr).Args = nil
-	exp.Args[0].(*ast.CallExpr).Fun.(*ast.Ident).Name = beEmpty
-
-	reportLengthAssertion(pass, exp, oldExp)
+	handler.replaceFunction(exp.Args[0].(*ast.CallExpr), ast.NewIdent(beEmpty))
+	reportLengthAssertion(pass, exp, handler, oldExp)
 }
 
-func handleEqualNilMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, nilable ast.Expr, notEqual bool, oldExp string) {
+func handleEqualNilMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, handler gomegaHandler, nilable ast.Expr, notEqual bool, oldExp string) {
 	equalTo, ok := matcher.Args[0].(*ast.Ident)
 	if !ok {
 		return
@@ -410,17 +493,17 @@ func handleEqualNilMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.
 		return
 	}
 
-	exp.Args[0].(*ast.CallExpr).Fun = ast.NewIdent(beNil)
+	handler.replaceFunction(exp.Args[0].(*ast.CallExpr), ast.NewIdent(beNil))
 	exp.Args[0].(*ast.CallExpr).Args = nil
 
-	reportNilAssertion(pass, exp, nilable, notEqual, oldExp)
+	reportNilAssertion(pass, exp, handler, nilable, notEqual, oldExp)
 }
 
-func handleNilBeBoolMatcher(pass *analysis.Pass, exp *ast.CallExpr, nilable ast.Expr, notEqual bool, oldExp string) {
-	exp.Args[0].(*ast.CallExpr).Fun = ast.NewIdent(beNil)
+func handleNilBeBoolMatcher(pass *analysis.Pass, exp *ast.CallExpr, handler gomegaHandler, nilable ast.Expr, notEqual bool, oldExp string) {
+	handler.replaceFunction(exp.Args[0].(*ast.CallExpr), ast.NewIdent(beNil))
 	exp.Args[0].(*ast.CallExpr).Args = nil
 
-	reportNilAssertion(pass, exp, nilable, notEqual, oldExp)
+	reportNilAssertion(pass, exp, handler, nilable, notEqual, oldExp)
 }
 
 func isAssertionFunc(name string) bool {
@@ -431,14 +514,14 @@ func isAssertionFunc(name string) bool {
 	return false
 }
 
-func reportLengthAssertion(pass *analysis.Pass, expr *ast.CallExpr, oldExpr string) {
-	replaceLenActualArg(expr.Fun.(*ast.SelectorExpr).X.(*ast.CallExpr))
+func reportLengthAssertion(pass *analysis.Pass, expr *ast.CallExpr, handler gomegaHandler, oldExpr string) {
+	replaceLenActualArg(expr.Fun.(*ast.SelectorExpr).X.(*ast.CallExpr), handler)
 
 	report(pass, expr, wrongLengthWarningTemplate, oldExpr)
 }
 
-func reportNilAssertion(pass *analysis.Pass, expr *ast.CallExpr, nilable ast.Expr, notEqual bool, oldExpr string) {
-	changed := replaceNilActualArg(expr.Fun.(*ast.SelectorExpr).X.(*ast.CallExpr), nilable)
+func reportNilAssertion(pass *analysis.Pass, expr *ast.CallExpr, handler gomegaHandler, nilable ast.Expr, notEqual bool, oldExpr string) {
+	changed := replaceNilActualArg(expr.Fun.(*ast.SelectorExpr).X.(*ast.CallExpr), handler, nilable)
 	if !changed {
 		return
 	}

@@ -68,3 +68,11 @@ func TestFlags_suppress_all(t *testing.T) {
 	a := analyzerFunc()
 	analysistest.Run(t, analysistest.TestData(), a, "a/configlen", "a/confignil")
 }
+
+func TestNoGinkgo(t *testing.T) {
+	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/noginkgo")
+}
+
+func TestNoDotImport(t *testing.T) {
+	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/nodotimport")
+}
