@@ -2,7 +2,7 @@ package reverseassertion_test
 
 import (
 	"testing"
-	
+
 	"github.com/nunnatsa/ginkgolinter/reverseassertion"
 )
 

@@ -1,3 +1,4 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/nunnatsa/ginkgolinter)](https://goreportcard.com/report/github.com/nunnatsa/ginkgolinter)
 # ginkgo-linter
 
 This is a golang linter to check usage of the ginkgo and gomega packages.
