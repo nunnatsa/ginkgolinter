@@ -15,7 +15,7 @@ Then add the new executable to your PATH.
 
 ## usage
 ```shell
-ginkgo-linter [-fix] .
+ginkgolinter [-fix] ./...
 ```
 Use the `-fix` flag to apply the fix suggestions to the source code.
 
