@@ -18,12 +18,23 @@ jobs:
       with:
         go-version: 1.18
 
+    - name: Run golangci-lint
+      uses: golangci/golangci-lint-action@v3
+      with:
+        skip-go-installation: true
+        skip-pkg-cache: true
+        args: --timeout=5m
+
     - name: Build
       run: make
 
     - name: Test
-      run: go test ./...
-    
+      run: go test -covermode=count -coverprofile cover.out ./...
+
+    - uses: shogo82148/actions-goveralls@v1
+      with:
+        path-to-profile: cover.out
+
     - name: Functional Test
       run: |-
         cp ginkgolinter testdata/src/a
