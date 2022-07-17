@@ -1482,4 +1482,7 @@ var _ = Describe("test data for the ginkgo-linter", func() {
 			})
 		})
 	})
+	Context("valid len(x) cases", func() {
+		Expect(len("abcd")).Should(BeElementOf([]int{1, 2, 3, 4, 5}))
+	})
 })
