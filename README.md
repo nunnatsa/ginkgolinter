@@ -9,11 +9,11 @@ ginkgo is a testing framework and gomega is its assertion package.
 ## Install the CLI
 Download the right executable from the latest release, according to your OS.
 
-Another option is to use go:
+Another option is to use go install:
 ```shell
 go install github.com/nunnatsa/ginkgolinter/cmd/ginkgolinter@latest
 ```
-Then add the new executable to your PATH.
+Then add the new executable `ginkgolinter` to your PATH.
 
 ## usage
 ```shell
