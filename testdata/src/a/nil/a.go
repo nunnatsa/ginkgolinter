@@ -1591,4 +1591,16 @@ var _ = Describe("", func() {
 			})
 		})
 	})
+
+	Context("valid (x == nil) cases", func() {
+		It("should not trigger warning", func() {
+			var x *int
+			Expect(x == nil).To(BeElementOf([]bool{true, false}))
+		})
+
+		It("should not trigger warning", func() {
+			var x = 5
+			Expect(x > 3).To(BeTrue())
+		})
+	})
 })

@@ -1,9 +1,9 @@
 package ginkgolinter_test
 
 import (
-	"golang.org/x/tools/go/analysis"
 	"testing"
 
+	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/analysistest"
 
 	"github.com/nunnatsa/ginkgolinter"
@@ -17,14 +17,18 @@ func TestGinkgoNilLinter(t *testing.T) {
 	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/nil")
 }
 
+func TestGinkgoEqualNilLinter(t *testing.T) {
+	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/equalnil")
+}
+
 func TestSuppress(t *testing.T) {
-	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/suppress")
+	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/Suppress")
 }
 
 func TestFlags_suppress_len(t *testing.T) {
 	analyzerFunc := func() *analysis.Analyzer {
 		a := ginkgolinter.NewAnalyzer()
-		err := a.Flags.Set("suppress-len-assertion", "true")
+		err := a.Flags.Set("Suppress-len-assertion", "true")
 		if err != nil {
 			t.Error(err)
 		}
@@ -38,7 +42,7 @@ func TestFlags_suppress_len(t *testing.T) {
 func TestFlags_suppress_nil(t *testing.T) {
 	analyzerFunc := func() *analysis.Analyzer {
 		a := ginkgolinter.NewAnalyzer()
-		err := a.Flags.Set("suppress-nil-assertion", "true")
+		err := a.Flags.Set("Suppress-nil-assertion", "true")
 		if err != nil {
 			t.Error(err)
 		}
@@ -53,11 +57,11 @@ func TestFlags_suppress_all(t *testing.T) {
 	analyzerFunc := func() *analysis.Analyzer {
 		a := ginkgolinter.NewAnalyzer()
 
-		err := a.Flags.Set("suppress-len-assertion", "true")
+		err := a.Flags.Set("Suppress-len-assertion", "true")
 		if err != nil {
 			t.Error(err)
 		}
-		err = a.Flags.Set("suppress-nil-assertion", "true")
+		err = a.Flags.Set("Suppress-nil-assertion", "true")
 		if err != nil {
 			t.Error(err)
 		}

@@ -24,4 +24,11 @@ var _ = ginkgo.Describe("no dot import", func() {
 		gomega.Expect(x == nil).ShouldNot(gomega.BeFalse())          // want `ginkgo-linter: wrong nil assertion; consider using .gomega\.Expect\(x\)\.Should\(gomega\.BeNil\(\)\). instead`
 		gomega.Expect(x == nil).Should(gomega.Not(gomega.BeFalse())) // want `ginkgo-linter: wrong nil assertion; consider using .gomega\.Expect\(x\)\.Should\(gomega\.BeNil\(\)\). instead`
 	})
+	ginkgo.It("should trigger equal nil warning", func() {
+		var x *int
+		var y = 5
+		var py = &y
+		gomega.Expect(x).Should(gomega.Equal(nil))              // want `ginkgo-linter: wrong nil assertion; consider using .gomega\.Expect\(x\)\.Should\(gomega\.BeNil\(\)\). instead`
+		gomega.Expect(py).Should(gomega.Not(gomega.Equal(nil))) // want `ginkgo-linter: wrong nil assertion; consider using .gomega\.Expect\(py\)\.ShouldNot\(gomega\.BeNil\(\)\). instead`
+	})
 })
