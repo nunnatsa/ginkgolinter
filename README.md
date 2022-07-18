@@ -1,10 +1,9 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/nunnatsa/ginkgolinter)](https://goreportcard.com/report/github.com/nunnatsa/ginkgolinter)
 [![Coverage Status](https://coveralls.io/repos/github/nunnatsa/ginkgolinter/badge.svg?branch=main)](https://coveralls.io/github/nunnatsa/ginkgolinter?branch=main)
 # ginkgo-linter
+[ginkgo](https://onsi.github.io/ginkgo/) is a popular testing framework and [gomega](https://onsi.github.io/gomega/) is its assertion package.
 
-This is a golang linter to check usage of the ginkgo and gomega packages.
-
-ginkgo is a testing framework and gomega is its assertion package.
+This is a golang linter to enforce some standards while using the ginkgo and gomega packages.
 
 ## Install the CLI
 Download the right executable from the latest release, according to your OS.
