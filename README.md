@@ -80,10 +80,28 @@ Or even (double negative):
 
 `Ω(x != nil).Should(Not(BeTrue()))` => `Ω(x).Should(BeNil())`
 
+### Wrong Error Assertion
+The linter finds assertion of errors compared with nil, or to be equal nil, or to be nil. The linter suggests to use `Succeed` for functions or `HaveOccurred` for error values..
+
+There are several wrong patterns:
+
+```go
+Expect(err == nil).To(Equal(true)) // should be: Expect(err).ToNot(HaveOccurred())
+Expect(err == nil).To(BeFalse()) // should be: Expect(err).To(HaveOccurred())
+Expect(err != nil).To(BeTrue()) // should be: Expect(err).To(HaveOccurred())
+Expect(funcReturnsError()).To(BeNil()) // should be: Expect(HaveOccurred).To(Succeed())
+
+and so on
+```
+It also supports the embedded `Not()` matcher; e.g.
+
+`Ω(err == nil).Should(Not(BeTrue()))` => `Ω(x).Should(HaveOccurred())`
+
 ## Suppress the linter
 ### Suppress warning from command line
-* Use the `suppress-len-assertion=true` flag to suppress the wrong length assertion warning
-* Use the `suppress-nil-assertion=true` flag to suppress the wrong nil assertion warning
+* Use the `--suppress-len-assertion=true` flag to suppress the wrong length assertion warning
+* Use the `--suppress-nil-assertion=true` flag to suppress the wrong nil assertion warning
+* Use the `--suppress-err-assertion=true` flag to suppress the wrong error assertion warning
 
 ### Suppress warning from the code
 To suppress the wrong length assertion warning, add a comment with (only)
@@ -93,6 +111,10 @@ To suppress the wrong length assertion warning, add a comment with (only)
 To suppress the wrong nil assertion warning, add a comment with (only)
 
 `ginkgo-linter:ignore-nil-assert-warning`. 
+
+To suppress the wrong error assertion warning, add a comment with (only)
+
+`ginkgo-linter:ignore-err-assert-warning`. 
 
 There are two options to use these comments:
 1. If the comment is at the top of the file, supress the warning for the whole file; e.g.:
