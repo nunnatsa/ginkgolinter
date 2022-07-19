@@ -88,7 +88,7 @@ There are several wrong patterns:
 Expect(err == nil).To(Equal(true)) // should be: Expect(err).ToNot(HaveOccurred())
 Expect(err == nil).To(BeFalse()) // should be: Expect(err).To(HaveOccurred())
 Expect(err != nil).To(BeTrue()) // should be: Expect(err).To(HaveOccurred())
-Expect(funcReturnsError()).To(BeNil()) // should be: Expect(HaveOccurred).To(Succeed())
+Expect(funcReturnsError()).To(BeNil()) // should be: Expect(funcReturnsError()).To(Succeed())
 
 and so on
 ```
