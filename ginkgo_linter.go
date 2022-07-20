@@ -67,6 +67,7 @@ func NewAnalyzer() *analysis.Analyzer {
 		suppress: &types.Suppress{
 			Len: false,
 			Nil: false,
+			Err: false,
 		},
 	}
 
