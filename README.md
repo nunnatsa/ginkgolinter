@@ -85,6 +85,7 @@ The linter finds assertion of errors compared with nil, or to be equal nil, or t
 There are several wrong patterns:
 
 ```go
+Expect(err).To(BeNil()) // should be: Expect(err).ToNot(HaveOccurred())
 Expect(err == nil).To(Equal(true)) // should be: Expect(err).ToNot(HaveOccurred())
 Expect(err == nil).To(BeFalse()) // should be: Expect(err).To(HaveOccurred())
 Expect(err != nil).To(BeTrue()) // should be: Expect(err).To(HaveOccurred())
