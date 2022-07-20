@@ -54,6 +54,9 @@ const (
 	expectWithOffset           = "ExpectWithOffset"
 )
 
+// Analyzer is the interface to go_vet
+var Analyzer = NewAnalyzer()
+
 type ginkgoLinter struct {
 	suppress *types.Suppress
 }
