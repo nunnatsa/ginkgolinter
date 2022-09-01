@@ -79,6 +79,20 @@ Or even (double negative):
 
 `Ω(x != nil).Should(Not(BeTrue()))` => `Ω(x).Should(BeNil())`
 
+### Wrong boolean Assertion
+The linter finds assertion using the `Equal` method, with the values of to `true` or `false`, instead
+of using the existing `BeTrue()` or `BeFalse()` matcher.
+
+There are several wrong patterns:
+
+```go
+Expect(x).To(Equal(true)) // should be: Expect(x).To(BeTrue())
+Expect(x).To(Equal(false)) // should be: Expect(x).To(BeFalse())
+```
+It also supports the embedded `Not()` matcher; e.g.
+
+`Ω(x).Should(Not(Equal(True)))` => `Ω(x).ShouldNot(BeBeTrue())`
+
 ### Wrong Error Assertion
 The linter finds assertion of errors compared with nil, or to be equal nil, or to be nil. The linter suggests to use `Succeed` for functions or `HaveOccurred` for error values..
 

@@ -9,6 +9,7 @@ import (
 	"go/printer"
 	"go/token"
 	gotypes "go/types"
+
 	"golang.org/x/tools/go/analysis"
 
 	"github.com/nunnatsa/ginkgolinter/gomegahandler"
@@ -41,9 +42,12 @@ const (
 	linterName                 = "ginkgo-linter"
 	wrongLengthWarningTemplate = linterName + ": wrong length assertion; consider using `%s` instead"
 	wrongNilWarningTemplate    = linterName + ": wrong nil assertion; consider using `%s` instead"
+	wrongBoolWarningTemplate   = linterName + ": wrong boolean assertion; consider using `%s` instead"
 	wrongErrWarningTemplate    = linterName + ": wrong error assertion; consider using `%s` instead"
 	beEmpty                    = "BeEmpty"
 	beNil                      = "BeNil"
+	beTrue                     = "BeTrue"
+	beFalse                    = "BeFalse"
 	equal                      = "Equal"
 	not                        = "Not"
 	haveLen                    = "HaveLen"
@@ -177,7 +181,7 @@ func checkExpression(pass *analysis.Pass, exprSuppress types.Suppress, actualArg
 			return bool(exprSuppress.Err) || checkNilError(pass, assertionExp, handler, actualArg, oldExpr)
 
 		} else {
-			return bool(exprSuppress.Nil) || checkEqualNil(pass, assertionExp, handler, actualArg, oldExpr)
+			return simplifyEqual(pass, exprSuppress, assertionExp, handler, actualArg, oldExpr)
 		}
 	}
 }
@@ -243,10 +247,10 @@ func checkNilMatcher(exp *ast.CallExpr, pass *analysis.Pass, nilable ast.Expr, h
 	case equal:
 		handleEqualNilMatcher(matcher, pass, exp, handler, nilable, notEqual, oldExp)
 
-	case "BeTrue":
+	case beTrue:
 		handleNilBeBoolMatcher(pass, exp, handler, nilable, notEqual, oldExp)
 
-	case "BeFalse":
+	case beFalse:
 		reverseAssertionFuncLogic(exp)
 		handleNilBeBoolMatcher(pass, exp, handler, nilable, notEqual, oldExp)
 
@@ -312,7 +316,8 @@ func checkNilError(pass *analysis.Pass, assertionExp *ast.CallExpr, handler gome
 	return false
 }
 
-func checkEqualNil(pass *analysis.Pass, assertionExp *ast.CallExpr, handler gomegahandler.Handler, actualArg ast.Expr, oldExpr string) bool {
+// handle Equal(nil), Equal(true) and Equal(false)
+func simplifyEqual(pass *analysis.Pass, exprSuppress types.Suppress, assertionExp *ast.CallExpr, handler gomegahandler.Handler, actualArg ast.Expr, oldExpr string) bool {
 	if len(assertionExp.Args) == 0 {
 		return true
 	}
@@ -333,22 +338,41 @@ func checkEqualNil(pass *analysis.Pass, assertionExp *ast.CallExpr, handler gome
 			return true
 		}
 
-		nilable, ok := equalFuncExpr.Args[0].(*ast.Ident)
-		if !ok || nilable.Name != "nil" {
+		token, ok := equalFuncExpr.Args[0].(*ast.Ident)
+		if !ok {
 			return true
 		}
 
-		handler.ReplaceFunction(equalFuncExpr, ast.NewIdent(beNil))
+		var replacement string
+		var template string
+		switch token.Name {
+		case "nil":
+			if exprSuppress.Nil {
+				return true
+			}
+			replacement = beNil
+			template = wrongNilWarningTemplate
+		case "true":
+			replacement = beTrue
+			template = wrongBoolWarningTemplate
+		case "false":
+			replacement = beFalse
+			template = wrongBoolWarningTemplate
+		default:
+			return true
+		}
+
+		handler.ReplaceFunction(equalFuncExpr, ast.NewIdent(replacement))
 		equalFuncExpr.Args = nil
 
-		report(pass, assertionExp, wrongNilWarningTemplate, oldExpr)
+		report(pass, assertionExp, template, oldExpr)
 
 		return false
 
 	case not:
 		reverseAssertionFuncLogic(assertionExp)
 		assertionExp.Args[0] = assertionExp.Args[0].(*ast.CallExpr).Args[0]
-		return checkEqualNil(pass, assertionExp, handler, actualArg, oldExpr)
+		return simplifyEqual(pass, exprSuppress, assertionExp, handler, actualArg, oldExpr)
 	default:
 		return true
 	}
