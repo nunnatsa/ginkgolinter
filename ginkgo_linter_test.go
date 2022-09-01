@@ -21,6 +21,10 @@ func TestGinkgoEqualNilLinter(t *testing.T) {
 	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/equalnil")
 }
 
+func TestGinkgoEqualBooleanLinter(t *testing.T) {
+	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/boolean")
+}
+
 func TestSuppress(t *testing.T) {
 	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/suppress")
 }
