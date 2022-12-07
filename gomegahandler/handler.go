@@ -3,9 +3,11 @@ package gomegahandler
 import "go/ast"
 
 // Handler provide different handling, depend on the way gomega was imported, whether
-// in imported with "." name, custome name or without any name.
+// in imported with "." name, custom name or without any name.
 type Handler interface {
+	// GetActualFuncName returns the name of the gomega function, e.g. `Expect`
 	GetActualFuncName(*ast.CallExpr) (string, bool)
+	// ReplaceFunction replaces the function with another one, for fix suggestions
 	ReplaceFunction(*ast.CallExpr, *ast.Ident)
 }
 
@@ -31,9 +33,9 @@ func GetGomegaHandler(file *ast.File) Handler {
 
 // dotHandler is used when importing gomega with dot; i.e.
 // import . "github.com/onsi/gomega"
-//
 type dotHandler struct{}
 
+// GetActualFuncName returns the name of the gomega function, e.g. `Expect`
 func (dotHandler) GetActualFuncName(expr *ast.CallExpr) (string, bool) {
 	actualFunc, ok := expr.Fun.(*ast.Ident)
 	if !ok {
@@ -43,6 +45,7 @@ func (dotHandler) GetActualFuncName(expr *ast.CallExpr) (string, bool) {
 	return actualFunc.Name, true
 }
 
+// ReplaceFunction replaces the function with another one, for fix suggestions
 func (dotHandler) ReplaceFunction(caller *ast.CallExpr, newExpr *ast.Ident) {
 	caller.Fun = newExpr
 }
@@ -52,9 +55,9 @@ func (dotHandler) ReplaceFunction(caller *ast.CallExpr, newExpr *ast.Ident) {
 //
 // or with a custom name; e.g.
 // import customname "github.com/onsi/gomega"
-//
 type nameHandler string
 
+// GetActualFuncName returns the name of the gomega function, e.g. `Expect`
 func (g nameHandler) GetActualFuncName(expr *ast.CallExpr) (string, bool) {
 	selector, ok := expr.Fun.(*ast.SelectorExpr)
 	if !ok {
@@ -73,6 +76,7 @@ func (g nameHandler) GetActualFuncName(expr *ast.CallExpr) (string, bool) {
 	return selector.Sel.Name, true
 }
 
+// ReplaceFunction replaces the function with another one, for fix suggestions
 func (nameHandler) ReplaceFunction(caller *ast.CallExpr, newExpr *ast.Ident) {
 	caller.Fun.(*ast.SelectorExpr).Sel = newExpr
 }

@@ -167,7 +167,7 @@ func checkExpression(pass *analysis.Pass, exprSuppress types.Suppress, actualArg
 		return checkLengthMatcher(assertionExp, pass, handler, oldExpr)
 	} else {
 		if nilable, compOp := getNilableFromComparison(actualArg); nilable != nil {
-			if IsExprError(pass, nilable) {
+			if isExprError(pass, nilable) {
 				if exprSuppress.Err {
 					return true
 				}
@@ -177,7 +177,7 @@ func checkExpression(pass *analysis.Pass, exprSuppress types.Suppress, actualArg
 
 			return checkNilMatcher(assertionExp, pass, nilable, handler, compOp == token.NEQ, oldExpr)
 
-		} else if IsExprError(pass, actualArg) {
+		} else if isExprError(pass, actualArg) {
 			return bool(exprSuppress.Err) || checkNilError(pass, assertionExp, handler, actualArg, oldExpr)
 
 		} else {
@@ -521,26 +521,26 @@ func handleEqualNilMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.
 		return
 	}
 
-	newFuncName, isError := handleNilComparisonErr(pass, exp, nilable)
+	newFuncName, isItError := handleNilComparisonErr(pass, exp, nilable)
 
 	handler.ReplaceFunction(exp.Args[0].(*ast.CallExpr), ast.NewIdent(newFuncName))
 	exp.Args[0].(*ast.CallExpr).Args = nil
 
-	reportNilAssertion(pass, exp, handler, nilable, notEqual, oldExp, isError)
+	reportNilAssertion(pass, exp, handler, nilable, notEqual, oldExp, isItError)
 }
 
 func handleNilBeBoolMatcher(pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, nilable ast.Expr, notEqual bool, oldExp string) {
-	newFuncName, isError := handleNilComparisonErr(pass, exp, nilable)
+	newFuncName, isItError := handleNilComparisonErr(pass, exp, nilable)
 	handler.ReplaceFunction(exp.Args[0].(*ast.CallExpr), ast.NewIdent(newFuncName))
 	exp.Args[0].(*ast.CallExpr).Args = nil
 
-	reportNilAssertion(pass, exp, handler, nilable, notEqual, oldExp, isError)
+	reportNilAssertion(pass, exp, handler, nilable, notEqual, oldExp, isItError)
 }
 
 func handleNilComparisonErr(pass *analysis.Pass, exp *ast.CallExpr, nilable ast.Expr) (string, bool) {
 	newFuncName := beNil
-	isError := IsExprError(pass, nilable)
-	if isError {
+	isItError := isExprError(pass, nilable)
+	if isItError {
 		if _, ok := nilable.(*ast.CallExpr); ok {
 			newFuncName = succeed
 		} else {
@@ -549,7 +549,7 @@ func handleNilComparisonErr(pass *analysis.Pass, exp *ast.CallExpr, nilable ast.
 		}
 	}
 
-	return newFuncName, isError
+	return newFuncName, isItError
 }
 func isAssertionFunc(name string) bool {
 	switch name {
@@ -565,7 +565,7 @@ func reportLengthAssertion(pass *analysis.Pass, expr *ast.CallExpr, handler gome
 	report(pass, expr, wrongLengthWarningTemplate, oldExpr)
 }
 
-func reportNilAssertion(pass *analysis.Pass, expr *ast.CallExpr, handler gomegahandler.Handler, nilable ast.Expr, notEqual bool, oldExpr string, isError bool) {
+func reportNilAssertion(pass *analysis.Pass, expr *ast.CallExpr, handler gomegahandler.Handler, nilable ast.Expr, notEqual bool, oldExpr string, isItError bool) {
 	changed := replaceNilActualArg(expr.Fun.(*ast.SelectorExpr).X.(*ast.CallExpr), handler, nilable)
 	if !changed {
 		return
@@ -575,7 +575,7 @@ func reportNilAssertion(pass *analysis.Pass, expr *ast.CallExpr, handler gomegah
 		reverseAssertionFuncLogic(expr)
 	}
 	template := wrongNilWarningTemplate
-	if isError {
+	if isItError {
 		template = wrongErrWarningTemplate
 	}
 
@@ -636,22 +636,22 @@ func init() {
 	errorType = gotypes.Universe.Lookup("error").Type().Underlying().(*gotypes.Interface)
 }
 
-func IsError(t gotypes.Type) bool {
+func isError(t gotypes.Type) bool {
 	return gotypes.Implements(t, errorType)
 }
 
-func IsExprError(pass *analysis.Pass, expr ast.Expr) bool {
+func isExprError(pass *analysis.Pass, expr ast.Expr) bool {
 	actualArgType := pass.TypesInfo.TypeOf(expr)
 	switch t := actualArgType.(type) {
 	case *gotypes.Named:
-		if IsError(actualArgType) {
+		if isError(actualArgType) {
 			return true
 		}
 	case *gotypes.Tuple:
 		if t.Len() > 0 {
 			switch t0 := t.At(0).Type().(type) {
 			case *gotypes.Named, *gotypes.Pointer:
-				if IsError(t0) {
+				if isError(t0) {
 					return true
 				}
 			}
