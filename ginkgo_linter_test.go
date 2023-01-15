@@ -107,3 +107,7 @@ func TestNoDotImport(t *testing.T) {
 func TestErrNil(t *testing.T) {
 	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/errnil")
 }
+
+func TestGomegaOnly(t *testing.T) {
+	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/gomegaonly")
+}
