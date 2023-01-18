@@ -21,6 +21,28 @@ ginkgolinter [-fix] ./...
 Use the `-fix` flag to apply the fix suggestions to the source code.
 
 ## Linter Checks
+The linter checks the gomega assertions in golang test code. Gomega may be used together with ginkgo tests, For example:
+```go
+It("should test something", func() { // It is ginkgo test case function
+	Expect("abcd").To(HaveLen(4), "the string should have a length of 4") // Expect is the gomega assertion
+})
+```
+or within a classic golang test code, like this:
+```go
+func TestWithGomega(t *testing.T) {
+	g := NewWithT(t)
+	g.Expect("abcd").To(HaveLen(4), "the string should have a length of 4")
+}
+```
+
+In some cases, the gomega will be passed as a variable to function by ginkgo, for example:
+```go
+Eventually(func(g Gomega) error {
+	g.Expect("abcd").To(HaveLen(4), "the string should have a length of 4")
+	return nil
+}).Should(Succeed())
+```
+
 The linter checks the `Expect`, `ExpectWithOffset` and the `Ω` "actual" functions, with the `Should`, `ShouldNot`, `To`, `ToNot` and `NotTo` assertion functions.
 
 It also supports the embedded `Not()` matcher
