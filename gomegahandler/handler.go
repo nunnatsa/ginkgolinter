@@ -76,9 +76,6 @@ func (dotHandler) getFieldType(field *ast.Field) string {
 			return name.Name
 		}
 	}
-	if id, ok := field.Type.(*ast.Ident); ok {
-		return id.Name
-	}
 	return ""
 }
 
