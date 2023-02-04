@@ -2,8 +2,8 @@
 [![Coverage Status](https://coveralls.io/repos/github/nunnatsa/ginkgolinter/badge.svg?branch=main)](https://coveralls.io/github/nunnatsa/ginkgolinter?branch=main)
 ![Build Status](https://github.com/nunnatsa/ginkgolinter/workflows/CI/badge.svg)
 [![License](https://img.shields.io/github/license/nunnatsa/ginkgolinter)](/LICENSE)
-[![Release](https://img.shields.io/github/release/nunnatsa/ginkgolinter.svg)](https://github.com/golangci/nunnatsa/ginkgolinter/latest)
-[![GitHub Releases Stats of golangci-lint](https://img.shields.io/github/downloads/nunnatsa/ginkgolinter/total.svg?logo=github)](https://somsubhra.github.io/github-release-stats/?username=nunnatsa&repository=ginkgolinter)
+[![Release](https://img.shields.io/github/release/nunnatsa/ginkgolinter.svg)](https://github.com/nunnatsa/ginkgolinter/releases/latest)
+[![GitHub Releases Stats of ginkgolinter](https://img.shields.io/github/downloads/nunnatsa/ginkgolinter/total.svg?logo=github)](https://somsubhra.github.io/github-release-stats/?username=nunnatsa&repository=ginkgolinter)
 
 # ginkgo-linter
 [ginkgo](https://onsi.github.io/ginkgo/) is a popular testing framework and [gomega](https://onsi.github.io/gomega/) is its assertion package.
