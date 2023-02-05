@@ -23,8 +23,26 @@ Then add the new executable to your PATH.
 ```shell
 ginkgolinter [-fix] ./...
 ```
+
 Use the `-fix` flag to apply the fix suggestions to the source code.
 
+### golangci-lint
+The ginkgolinter is now part of the popular [golangci-lint](https://golangci-lint.run/), starting from version v0.51.1
+It is not enabled by default, though. There are two ways to run ginkgolinter with golangci-lint:
+
+* From command line:
+  ```shell
+  golangci-lint run -E ginkgolinter ./...
+  ```
+* From configuration:
+  
+  Add ginkgolinter to the enabled linters list in .golangci.reference.yml file in your project. For more details, see
+  the [golangci-lint documentation](https://golangci-lint.run/usage/configuration/); e.g.
+   ```yaml
+   linters:
+     enable:
+       - ginkgolinter
+   ```
 ## Linter Checks
 The linter checks the gomega assertions in golang test code. Gomega may be used together with ginkgo tests, For example:
 ```go
