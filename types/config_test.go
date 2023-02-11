@@ -5,47 +5,47 @@ import (
 )
 
 func TestSuppress_AllTrue(t *testing.T) {
-	s := Suppress{
-		Len: true,
-		Nil: true,
-		Err: true,
+	s := Config{
+		SuppressLen: true,
+		SuppressNil: true,
+		SuppressErr: true,
 	}
 
 	if !s.AllTrue() {
 		t.Error("should be AllTrue")
 	}
 
-	s.Nil = false
+	s.SuppressNil = false
 	if s.AllTrue() {
 		t.Error("should not be AllTrue")
 	}
 
-	s.Len = false
+	s.SuppressLen = false
 	if s.AllTrue() {
 		t.Error("should not be AllTrue")
 	}
 
-	s.Nil = true
+	s.SuppressNil = true
 	if s.AllTrue() {
 		t.Error("should not be AllTrue")
 	}
 
-	s.Len = true
+	s.SuppressLen = true
 	if !s.AllTrue() {
 		t.Error("should be AllTrue")
 	}
 
-	s.Err = false
+	s.SuppressErr = false
 	if s.AllTrue() {
 		t.Error("should not be AllTrue")
 	}
 }
 
 func TestSuppress_Clone(t *testing.T) {
-	s := Suppress{
-		Len: true,
-		Nil: true,
-		Err: true,
+	s := Config{
+		SuppressLen: true,
+		SuppressNil: true,
+		SuppressErr: true,
 	}
 
 	clone := s.Clone()
@@ -53,17 +53,17 @@ func TestSuppress_Clone(t *testing.T) {
 		t.Error("should be AllTrue")
 	}
 
-	s.Len = false
-	s.Err = false
+	s.SuppressLen = false
+	s.SuppressErr = false
 
 	clone = s.Clone()
-	if clone.Len {
-		t.Error("s.Len should be false")
+	if clone.SuppressLen {
+		t.Error("s.SuppressLen should be false")
 	}
-	if !clone.Nil {
-		t.Error("s.Nil should be true")
+	if !clone.SuppressNil {
+		t.Error("s.SuppressNil should be true")
 	}
-	if clone.Err {
-		t.Error("s.Err should be false")
+	if clone.SuppressErr {
+		t.Error("s.SuppressErr should be false")
 	}
 }

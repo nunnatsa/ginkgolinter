@@ -75,7 +75,7 @@ func TestBoolean_Set_nil(t *testing.T) {
 }
 
 func TestBoolean_String(t *testing.T) {
-	if val := Boolean(true).String(); val != "true" {
+	if val := (Boolean(true)).String(); val != "true" {
 		t.Errorf("Boolean(true).String() should return `true`, but it's %s", val)
 	}
 

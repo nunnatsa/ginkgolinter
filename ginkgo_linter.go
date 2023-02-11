@@ -62,16 +62,17 @@ const (
 var Analyzer = NewAnalyzer()
 
 type ginkgoLinter struct {
-	suppress *types.Suppress
+	config *types.Config
 }
 
 // NewAnalyzer returns an Analyzer - the package interface with nogo
 func NewAnalyzer() *analysis.Analyzer {
 	linter := ginkgoLinter{
-		suppress: &types.Suppress{
-			Len: false,
-			Nil: false,
-			Err: false,
+		config: &types.Config{
+			SuppressLen:   false,
+			SuppressNil:   false,
+			SuppressErr:   false,
+			AllowHaveLen0: false,
 		},
 	}
 
@@ -96,26 +97,27 @@ This should be replaced with:
 	}
 
 	a.Flags.Init("ginkgolinter", flag.ExitOnError)
-	a.Flags.Var(&linter.suppress.Len, "suppress-len-assertion", "Suppress warning for wrong length assertions")
-	a.Flags.Var(&linter.suppress.Nil, "suppress-nil-assertion", "Suppress warning for wrong nil assertions")
-	a.Flags.Var(&linter.suppress.Err, "suppress-err-assertion", "Suppress warning for wrong error assertions")
+	a.Flags.Var(&linter.config.SuppressLen, "suppress-len-assertion", "Suppress warning for wrong length assertions")
+	a.Flags.Var(&linter.config.SuppressNil, "suppress-nil-assertion", "Suppress warning for wrong nil assertions")
+	a.Flags.Var(&linter.config.SuppressErr, "suppress-err-assertion", "Suppress warning for wrong error assertions")
+	a.Flags.Var(&linter.config.AllowHaveLen0, "allow-havelen-0", "Do not warn for HaveLen(0); default = false")
 
 	return a
 }
 
 // main assertion function
 func (l *ginkgoLinter) run(pass *analysis.Pass) (interface{}, error) {
-	if l.suppress.AllTrue() {
+	if l.config.AllTrue() {
 		return nil, nil
 	}
 
 	for _, file := range pass.Files {
-		fileSuppress := l.suppress.Clone()
+		fileConfig := l.config.Clone()
 
 		cm := ast.NewCommentMap(pass.Fset, file, file.Comments)
 
-		fileSuppress.UpdateFromFile(cm)
-		if fileSuppress.AllTrue() {
+		fileConfig.UpdateFromFile(cm)
+		if fileConfig.AllTrue() {
 			continue
 		}
 
@@ -131,10 +133,10 @@ func (l *ginkgoLinter) run(pass *analysis.Pass) (interface{}, error) {
 				return true
 			}
 
-			exprSuppress := fileSuppress.Clone()
+			config := fileConfig.Clone()
 
 			if comments, ok := cm[stmt]; ok {
-				exprSuppress.UpdateFromComment(comments)
+				config.UpdateFromComment(comments)
 			}
 
 			// search for function calls
@@ -153,36 +155,36 @@ func (l *ginkgoLinter) run(pass *analysis.Pass) (interface{}, error) {
 				return true
 			}
 
-			return checkExpression(pass, exprSuppress, actualArg, assertionExp, handler)
+			return checkExpression(pass, config, actualArg, assertionExp, handler)
 
 		})
 	}
 	return nil, nil
 }
 
-func checkExpression(pass *analysis.Pass, exprSuppress types.Suppress, actualArg ast.Expr, assertionExp *ast.CallExpr, handler gomegahandler.Handler) bool {
+func checkExpression(pass *analysis.Pass, config types.Config, actualArg ast.Expr, assertionExp *ast.CallExpr, handler gomegahandler.Handler) bool {
 	assertionExp = astcopy.CallExpr(assertionExp)
 	oldExpr := goFmt(pass.Fset, assertionExp)
-	if !bool(exprSuppress.Len) && isActualIsLenFunc(actualArg) {
+	if !bool(config.SuppressLen) && isActualIsLenFunc(actualArg) {
 
 		return checkLengthMatcher(assertionExp, pass, handler, oldExpr)
 	} else {
 		if nilable, compOp := getNilableFromComparison(actualArg); nilable != nil {
 			if isExprError(pass, nilable) {
-				if exprSuppress.Err {
+				if config.SuppressErr {
 					return true
 				}
-			} else if exprSuppress.Nil {
+			} else if config.SuppressNil {
 				return true
 			}
 
 			return checkNilMatcher(assertionExp, pass, nilable, handler, compOp == token.NEQ, oldExpr)
 
 		} else if isExprError(pass, actualArg) {
-			return bool(exprSuppress.Err) || checkNilError(pass, assertionExp, handler, actualArg, oldExpr)
+			return bool(config.SuppressErr) || checkNilError(pass, assertionExp, handler, actualArg, oldExpr)
 
 		} else {
-			return simplifyEqual(pass, exprSuppress, assertionExp, handler, actualArg, oldExpr)
+			return handleAssertionOnly(pass, config, assertionExp, handler, actualArg, oldExpr)
 		}
 	}
 }
@@ -317,8 +319,14 @@ func checkNilError(pass *analysis.Pass, assertionExp *ast.CallExpr, handler gome
 	return false
 }
 
-// handle Equal(nil), Equal(true) and Equal(false)
-func simplifyEqual(pass *analysis.Pass, exprSuppress types.Suppress, assertionExp *ast.CallExpr, handler gomegahandler.Handler, actualArg ast.Expr, oldExpr string) bool {
+// handleAssertionOnly checks use-cases when the actual value is valid, but only the assertion should be fixed
+// it handles:
+//
+//	Equal(nil) => BeNil()
+//	Equal(true) => BeTrue()
+//	Equal(false) => BeFalse()
+//	HaveLen(0) => BeEmpty()
+func handleAssertionOnly(pass *analysis.Pass, config types.Config, assertionExp *ast.CallExpr, handler gomegahandler.Handler, actualArg ast.Expr, oldExpr string) bool {
 	if len(assertionExp.Args) == 0 {
 		return true
 	}
@@ -339,16 +347,16 @@ func simplifyEqual(pass *analysis.Pass, exprSuppress types.Suppress, assertionEx
 			return true
 		}
 
-		token, ok := equalFuncExpr.Args[0].(*ast.Ident)
+		tkn, ok := equalFuncExpr.Args[0].(*ast.Ident)
 		if !ok {
 			return true
 		}
 
 		var replacement string
 		var template string
-		switch token.Name {
+		switch tkn.Name {
 		case "nil":
-			if exprSuppress.Nil {
+			if config.SuppressNil {
 				return true
 			}
 			replacement = beNil
@@ -370,10 +378,28 @@ func simplifyEqual(pass *analysis.Pass, exprSuppress types.Suppress, assertionEx
 
 		return false
 
+	case haveLen:
+		if config.AllowHaveLen0 {
+			return true
+		}
+
+		if len(equalFuncExpr.Args) > 0 {
+			if value, ok := equalFuncExpr.Args[0].(*ast.BasicLit); ok {
+				if value.Kind == token.INT && value.Value == "0" {
+					handler.ReplaceFunction(equalFuncExpr, ast.NewIdent(beEmpty))
+					equalFuncExpr.Args = nil
+					report(pass, assertionExp, wrongLengthWarningTemplate, oldExpr)
+					return false
+				}
+			}
+		}
+
+		return true
+
 	case not:
 		reverseAssertionFuncLogic(assertionExp)
 		assertionExp.Args[0] = assertionExp.Args[0].(*ast.CallExpr).Args[0]
-		return simplifyEqual(pass, exprSuppress, assertionExp, handler, actualArg, oldExpr)
+		return handleAssertionOnly(pass, config, assertionExp, handler, actualArg, oldExpr)
 	default:
 		return true
 	}

@@ -13,6 +13,10 @@ func TestGinkgoLenLinter(t *testing.T) {
 	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/len")
 }
 
+func TestGinkgoHaveLen0Linter(t *testing.T) {
+	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/havelen0")
+}
+
 func TestGinkgoNilLinter(t *testing.T) {
 	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/nil")
 }
@@ -26,7 +30,7 @@ func TestGinkgoEqualBooleanLinter(t *testing.T) {
 }
 
 func TestSuppress(t *testing.T) {
-	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/suppress")
+	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/config")
 }
 
 func TestFlags_suppress_len(t *testing.T) {
@@ -41,6 +45,20 @@ func TestFlags_suppress_len(t *testing.T) {
 
 	a := analyzerFunc()
 	analysistest.Run(t, analysistest.TestData(), a, "a/configlen")
+}
+
+func TestFlags_allowHaveLen0(t *testing.T) {
+	analyzerFunc := func() *analysis.Analyzer {
+		a := ginkgolinter.NewAnalyzer()
+		err := a.Flags.Set("allow-havelen-0", "true")
+		if err != nil {
+			t.Error(err)
+		}
+		return a
+	}
+
+	a := analyzerFunc()
+	analysistest.Run(t, analysistest.TestData(), a, "a/havelen0config")
 }
 
 func TestFlags_suppress_nil(t *testing.T) {
