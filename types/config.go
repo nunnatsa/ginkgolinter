@@ -13,25 +13,27 @@ const (
 	suppressErrAssertionWarning    = suppressPrefix + "ignore-err-assert-warning"
 )
 
-type Suppress struct {
-	Len Boolean
-	Nil Boolean
-	Err Boolean
+type Config struct {
+	SuppressLen   Boolean
+	SuppressNil   Boolean
+	SuppressErr   Boolean
+	AllowHaveLen0 Boolean
 }
 
-func (s Suppress) AllTrue() bool {
-	return bool(s.Len && s.Nil && s.Err)
+func (s *Config) AllTrue() bool {
+	return bool(s.SuppressLen && s.SuppressNil && s.SuppressErr)
 }
 
-func (s Suppress) Clone() Suppress {
-	return Suppress{
-		Len: s.Len,
-		Nil: s.Nil,
-		Err: s.Err,
+func (s *Config) Clone() Config {
+	return Config{
+		SuppressLen:   s.SuppressLen,
+		SuppressNil:   s.SuppressNil,
+		SuppressErr:   s.SuppressErr,
+		AllowHaveLen0: s.AllowHaveLen0,
 	}
 }
 
-func (s *Suppress) UpdateFromComment(commentGroup []*ast.CommentGroup) {
+func (s *Config) UpdateFromComment(commentGroup []*ast.CommentGroup) {
 	for _, cmntList := range commentGroup {
 		if s.AllTrue() {
 			break
@@ -45,15 +47,15 @@ func (s *Suppress) UpdateFromComment(commentGroup []*ast.CommentGroup) {
 				comment = strings.TrimSuffix(comment, "*/")
 				comment = strings.TrimSpace(comment)
 
-				s.Len = s.Len || (comment == suppressLengthAssertionWarning)
-				s.Nil = s.Nil || (comment == suppressNilAssertionWarning)
-				s.Err = s.Err || (comment == suppressErrAssertionWarning)
+				s.SuppressLen = s.SuppressLen || (comment == suppressLengthAssertionWarning)
+				s.SuppressNil = s.SuppressNil || (comment == suppressNilAssertionWarning)
+				s.SuppressErr = s.SuppressErr || (comment == suppressErrAssertionWarning)
 			}
 		}
 	}
 }
 
-func (s *Suppress) UpdateFromFile(cm ast.CommentMap) {
+func (s *Config) UpdateFromFile(cm ast.CommentMap) {
 
 	for key, commentGroup := range cm {
 		if s.AllTrue() {

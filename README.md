@@ -102,6 +102,8 @@ The output of the linter,when finding issues, looks like this:
 ./testdata/src/a/a.go:18:5: ginkgo-linter: wrong length assertion; consider using `Expect("").Should(BeEmpty())` instead
 ./testdata/src/a/a.go:22:5: ginkgo-linter: wrong length assertion; consider using `Expect("").Should(BeEmpty())` instead
 ```
+#### use the `HaveLen(0)` matcher. 
+The linter will also warn about the `HaveLen(0)` matcher, and will suggest to replace it with `BeEmpty()`
 
 ### Wrong `nil` Assertion
 The linter finds assertion of the comparison to nil, with all kind of matchers, instead of using the existing `BeNil()` matcher; We want to assert the item, rather than a comparison result.
@@ -137,7 +139,7 @@ Expect(x).To(Equal(false)) // should be: Expect(x).To(BeFalse())
 ```
 It also supports the embedded `Not()` matcher; e.g.
 
-`Ω(x).Should(Not(Equal(True)))` => `Ω(x).ShouldNot(BeBeTrue())`
+`Ω(x).Should(Not(Equal(True)))` => `Ω(x).ShouldNot(BeTrue())`
 
 ### Wrong Error Assertion
 The linter finds assertion of errors compared with nil, or to be equal nil, or to be nil. The linter suggests to use `Succeed` for functions or `HaveOccurred` for error values..
@@ -162,6 +164,8 @@ It also supports the embedded `Not()` matcher; e.g.
 * Use the `--suppress-len-assertion=true` flag to suppress the wrong length assertion warning
 * Use the `--suppress-nil-assertion=true` flag to suppress the wrong nil assertion warning
 * Use the `--suppress-err-assertion=true` flag to suppress the wrong error assertion warning
+* Use the `--allow-havelen-0=true` flag to avoid warnings about `HaveLen(0)`; Note: this parameter is only supported from
+  command line, and not from a comment.
 
 ### Suppress warning from the code
 To suppress the wrong length assertion warning, add a comment with (only)
