@@ -6,10 +6,10 @@ package noginkgo
 type fakeAssertion struct{}
 
 func (fakeAssertion) Should(_ bool) {
-
+	// no implementation
 }
 
-func Expect(i int) fakeAssertion {
+func Expect(_ int) fakeAssertion {
 	return fakeAssertion{}
 }
 
