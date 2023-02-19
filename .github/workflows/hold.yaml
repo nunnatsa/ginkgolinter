@@ -1,0 +1,18 @@
+name: Check Hold
+
+on:
+  pull_request:
+    types:
+    - opened
+    - labeled
+    - unlabeled
+
+jobs:
+  fail-for-draft:
+    if: contains(github.event.pull_request.labels.*.name, 'hold')
+    runs-on: ubuntu-latest
+    steps:
+    - name: hold merging for the if PR is on hold
+      run: |
+        echo "This PR is currently on hold."
+        exit 1
