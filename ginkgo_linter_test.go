@@ -3,129 +3,105 @@ package ginkgolinter_test
 import (
 	"testing"
 
-	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/analysistest"
 
 	"github.com/nunnatsa/ginkgolinter"
 )
 
-func TestGinkgoLenLinter(t *testing.T) {
-	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/len")
-}
-
-func TestGinkgoHaveLen0Linter(t *testing.T) {
-	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/havelen0")
-}
-
-func TestGinkgoNilLinter(t *testing.T) {
-	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/nil")
-}
-
-func TestGinkgoEqualNilLinter(t *testing.T) {
-	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/equalnil")
-}
-
-func TestGinkgoEqualBooleanLinter(t *testing.T) {
-	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/boolean")
-}
-
-func TestSuppress(t *testing.T) {
-	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/config")
-}
-
-func TestFlags_suppress_len(t *testing.T) {
-	analyzerFunc := func() *analysis.Analyzer {
-		a := ginkgolinter.NewAnalyzer()
-		err := a.Flags.Set("suppress-len-assertion", "true")
-		if err != nil {
-			t.Error(err)
-		}
-		return a
+func TestAllUseCases(t *testing.T) {
+	for _, tc := range []struct {
+		testName string
+		testData string
+	}{
+		{
+			testName: "find wrong length assertion",
+			testData: "a/len",
+		},
+		{
+			testName: "find HaveLen(0)",
+			testData: "a/havelen0",
+		},
+		{
+			testName: "find wrong nil assertion",
+			testData: "a/nil",
+		},
+		{
+			testName: "find Equal(nil)",
+			testData: "a/equalnil",
+		},
+		{
+			testName: "find Equal() with a boolean value",
+			testData: "a/boolean",
+		},
+		{
+			testName: "check suppress comments",
+			testData: "a/suppress",
+		},
+		{
+			testName: "check no gomega import",
+			testData: "a/noginkgo",
+		},
+		{
+			testName: "check no dot-import",
+			testData: "a/nodotimport",
+		},
+		{
+			testName: "find assertions that compare errors to nil",
+			testData: "a/errnil",
+		},
+		{
+			testName: "check gomaga without ginkgo",
+			testData: "a/gomegaonly",
+		},
+	} {
+		t.Run(tc.testName, func(tt *testing.T) {
+			analysistest.Run(tt, analysistest.TestData(), ginkgolinter.NewAnalyzer(), tc.testData)
+		})
 	}
-
-	a := analyzerFunc()
-	analysistest.Run(t, analysistest.TestData(), a, "a/configlen")
 }
 
-func TestFlags_allowHaveLen0(t *testing.T) {
-	analyzerFunc := func() *analysis.Analyzer {
-		a := ginkgolinter.NewAnalyzer()
-		err := a.Flags.Set("allow-havelen-0", "true")
-		if err != nil {
-			t.Error(err)
-		}
-		return a
+func TestFlags(t *testing.T) {
+	for _, tc := range []struct {
+		testName string
+		testData []string
+		flags    []string
+	}{
+		{
+			testName: "test the suppress-len-assertion flag",
+			testData: []string{"a/configlen"},
+			flags:    []string{"suppress-len-assertion"},
+		},
+		{
+			testName: "test the suppress-nil-assertion flag",
+			testData: []string{"a/confignil"},
+			flags:    []string{"suppress-nil-assertion"},
+		},
+		{
+			testName: "test the suppress-err-assertion flag",
+			testData: []string{"a/configerr"},
+			flags:    []string{"suppress-err-assertion"},
+		},
+		{
+			testName: "test the allow-havelen-0 flag",
+			testData: []string{"a/havelen0config"},
+			flags:    []string{"allow-havelen-0"},
+		},
+		{
+			testName: "supress all",
+			testData: []string{"a/configlen", "a/confignil", "a/configerr", "a/havelen0config"},
+			flags:    []string{"suppress-len-assertion", "suppress-nil-assertion", "suppress-err-assertion"},
+		},
+	} {
+		t.Run(tc.testName, func(tt *testing.T) {
+			analyzer := ginkgolinter.NewAnalyzer()
+			for _, flag := range tc.flags {
+				err := analyzer.Flags.Set(flag, "true")
+				if err != nil {
+					tt.Errorf(`failed to set the "%s" flag; %v`, flag, err)
+					return
+				}
+			}
+			analysistest.Run(tt, analysistest.TestData(), analyzer, tc.testData...)
+		})
 	}
-
-	a := analyzerFunc()
-	analysistest.Run(t, analysistest.TestData(), a, "a/havelen0config")
-}
-
-func TestFlags_suppress_nil(t *testing.T) {
-	analyzerFunc := func() *analysis.Analyzer {
-		a := ginkgolinter.NewAnalyzer()
-		err := a.Flags.Set("suppress-nil-assertion", "true")
-		if err != nil {
-			t.Error(err)
-		}
-		return a
-	}
-
-	a := analyzerFunc()
-	analysistest.Run(t, analysistest.TestData(), a, "a/confignil")
-}
-
-func TestFlags_suppress_err(t *testing.T) {
-	analyzerFunc := func() *analysis.Analyzer {
-		a := ginkgolinter.NewAnalyzer()
-		err := a.Flags.Set("suppress-err-assertion", "true")
-		if err != nil {
-			t.Error(err)
-		}
-		return a
-	}
-
-	a := analyzerFunc()
-	analysistest.Run(t, analysistest.TestData(), a, "a/configerr")
-}
-
-func TestFlags_suppress_all(t *testing.T) {
-	analyzerFunc := func() *analysis.Analyzer {
-		a := ginkgolinter.NewAnalyzer()
-
-		err := a.Flags.Set("suppress-len-assertion", "true")
-		if err != nil {
-			t.Error(err)
-		}
-		err = a.Flags.Set("suppress-nil-assertion", "true")
-		if err != nil {
-			t.Error(err)
-		}
-
-		err = a.Flags.Set("suppress-err-assertion", "true")
-		if err != nil {
-			t.Error(err)
-		}
-
-		return a
-	}
-
-	a := analyzerFunc()
-	analysistest.Run(t, analysistest.TestData(), a, "a/configlen", "a/confignil")
-}
-
-func TestNoGinkgo(t *testing.T) {
-	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/noginkgo")
-}
-
-func TestNoDotImport(t *testing.T) {
-	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/nodotimport")
-}
-
-func TestErrNil(t *testing.T) {
-	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/errnil")
-}
-
-func TestGomegaOnly(t *testing.T) {
-	analysistest.Run(t, analysistest.TestData(), ginkgolinter.NewAnalyzer(), "a/gomegaonly")
 }
