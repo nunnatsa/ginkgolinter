@@ -8,7 +8,7 @@ on:
     - unlabeled
 
 jobs:
-  fail-for-draft:
+  hold:
     if: contains(github.event.pull_request.labels.*.name, 'hold')
     runs-on: ubuntu-latest
     steps:
