@@ -14,22 +14,24 @@ const (
 )
 
 type Config struct {
-	SuppressLen   Boolean
-	SuppressNil   Boolean
-	SuppressErr   Boolean
-	AllowHaveLen0 Boolean
+	SuppressLen        Boolean
+	SuppressNil        Boolean
+	SuppressErr        Boolean
+	AllowHaveLen0      Boolean
+	AllowSprintfInDesc Boolean
 }
 
 func (s *Config) AllTrue() bool {
-	return bool(s.SuppressLen && s.SuppressNil && s.SuppressErr)
+	return bool(s.SuppressLen && s.SuppressNil && s.SuppressErr && s.AllowSprintfInDesc)
 }
 
 func (s *Config) Clone() Config {
 	return Config{
-		SuppressLen:   s.SuppressLen,
-		SuppressNil:   s.SuppressNil,
-		SuppressErr:   s.SuppressErr,
-		AllowHaveLen0: s.AllowHaveLen0,
+		SuppressLen:        s.SuppressLen,
+		SuppressNil:        s.SuppressNil,
+		SuppressErr:        s.SuppressErr,
+		AllowHaveLen0:      s.AllowHaveLen0,
+		AllowSprintfInDesc: s.AllowSprintfInDesc,
 	}
 }
 

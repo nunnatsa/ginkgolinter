@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"github.com/nunnatsa/ginkgolinter/sprintfchecker"
 	"go/ast"
 	"go/printer"
 	"go/token"
@@ -40,10 +41,13 @@ import (
 
 const (
 	linterName                 = "ginkgo-linter"
-	wrongLengthWarningTemplate = linterName + ": wrong length assertion; consider using `%s` instead"
-	wrongNilWarningTemplate    = linterName + ": wrong nil assertion; consider using `%s` instead"
-	wrongBoolWarningTemplate   = linterName + ": wrong boolean assertion; consider using `%s` instead"
-	wrongErrWarningTemplate    = linterName + ": wrong error assertion; consider using `%s` instead"
+	wrongLengthWarningTemplate = linterName + ": wrong length assertion\n%sconsider using `%s` instead"
+	wrongNilWarningTemplate    = linterName + ": wrong nil assertion\n%sconsider using `%s` instead"
+	wrongBoolWarningTemplate   = linterName + ": wrong boolean assertion\n%sconsider using `%s` instead"
+	wrongErrWarningTemplate    = linterName + ": wrong error assertion\n%sconsider using `%s` instead"
+	sprintfWarningText         = "the assertion method is a format function. no need to use Sprintf\n"
+	addSprintfWarning          = "also, " + sprintfWarningText
+	sprinfWarningTemplate      = linterName + ": " + sprintfWarningText + "%sconsider using `%s` instead"
 	beEmpty                    = "BeEmpty"
 	beNil                      = "BeNil"
 	beTrue                     = "BeTrue"
@@ -69,10 +73,11 @@ type ginkgoLinter struct {
 func NewAnalyzer() *analysis.Analyzer {
 	linter := ginkgoLinter{
 		config: &types.Config{
-			SuppressLen:   false,
-			SuppressNil:   false,
-			SuppressErr:   false,
-			AllowHaveLen0: false,
+			SuppressLen:        false,
+			SuppressNil:        false,
+			SuppressErr:        false,
+			AllowHaveLen0:      false,
+			AllowSprintfInDesc: true,
 		},
 	}
 
@@ -101,6 +106,7 @@ This should be replaced with:
 	a.Flags.Var(&linter.config.SuppressNil, "suppress-nil-assertion", "Suppress warning for wrong nil assertions")
 	a.Flags.Var(&linter.config.SuppressErr, "suppress-err-assertion", "Suppress warning for wrong error assertions")
 	a.Flags.Var(&linter.config.AllowHaveLen0, "allow-havelen-0", "Do not warn for HaveLen(0); default = false")
+	a.Flags.Var(&linter.config.AllowSprintfInDesc, "allow-sprintf", "Do not warn for fmt.Sprintf in assertion description; default = true")
 
 	return a
 }
@@ -124,6 +130,11 @@ func (l *ginkgoLinter) run(pass *analysis.Pass) (interface{}, error) {
 		handler := gomegahandler.GetGomegaHandler(file)
 		if handler == nil { // no gomega import => no use in gomega in this file; nothing to do here
 			continue
+		}
+
+		var sprntfChk *sprintfchecker.Checker
+		if !l.config.AllowSprintfInDesc {
+			sprntfChk = sprintfchecker.NewSprintfChecker(file)
 		}
 
 		ast.Inspect(file, func(n ast.Node) bool {
@@ -155,19 +166,33 @@ func (l *ginkgoLinter) run(pass *analysis.Pass) (interface{}, error) {
 				return true
 			}
 
-			return checkExpression(pass, config, actualArg, assertionExp, handler)
+			found := checkExpression(pass, config, actualArg, assertionExp, handler, sprntfChk)
+
+			return found
 
 		})
 	}
 	return nil, nil
 }
 
-func checkExpression(pass *analysis.Pass, config types.Config, actualArg ast.Expr, assertionExp *ast.CallExpr, handler gomegahandler.Handler) bool {
+func checkExpression(pass *analysis.Pass, config types.Config, actualArg ast.Expr, assertionExp *ast.CallExpr, handler gomegahandler.Handler, sprintfChk *sprintfchecker.Checker) bool {
 	assertionExp = astcopy.CallExpr(assertionExp)
-	oldExpr := goFmt(pass.Fset, assertionExp)
-	if !bool(config.SuppressLen) && isActualIsLenFunc(actualArg) {
 
-		return checkLengthMatcher(assertionExp, pass, handler, oldExpr)
+	sprintfWarning := sprintfChk.Check(assertionExp)
+
+	// no warnings, but the sprintf warning
+	ok := checkAssertExpression(pass, config, actualArg, assertionExp, handler, sprintfWarning)
+	if ok && sprintfWarning {
+		report(pass, assertionExp, sprinfWarningTemplate, false)
+		return false
+	}
+
+	return ok
+}
+
+func checkAssertExpression(pass *analysis.Pass, config types.Config, actualArg ast.Expr, assertionExp *ast.CallExpr, handler gomegahandler.Handler, sprintfWarning bool) bool {
+	if !bool(config.SuppressLen) && isActualIsLenFunc(actualArg) {
+		return checkLengthMatcher(assertionExp, pass, handler, sprintfWarning)
 	} else {
 		if nilable, compOp := getNilableFromComparison(actualArg); nilable != nil {
 			if isExprError(pass, nilable) {
@@ -178,13 +203,13 @@ func checkExpression(pass *analysis.Pass, config types.Config, actualArg ast.Exp
 				return true
 			}
 
-			return checkNilMatcher(assertionExp, pass, nilable, handler, compOp == token.NEQ, oldExpr)
+			return checkNilMatcher(assertionExp, pass, nilable, handler, compOp == token.NEQ, sprintfWarning)
 
 		} else if isExprError(pass, actualArg) {
-			return bool(config.SuppressErr) || checkNilError(pass, assertionExp, handler, actualArg, oldExpr)
+			return bool(config.SuppressErr) || checkNilError(pass, assertionExp, handler, actualArg, sprintfWarning)
 
 		} else {
-			return handleAssertionOnly(pass, config, assertionExp, handler, actualArg, oldExpr)
+			return handleAssertionOnly(pass, config, assertionExp, handler, actualArg, sprintfWarning)
 		}
 	}
 }
@@ -201,7 +226,7 @@ func isActualIsLenFunc(actualArg ast.Expr) bool {
 }
 
 // Check if matcher function is in one of the patterns we want to avoid
-func checkLengthMatcher(exp *ast.CallExpr, pass *analysis.Pass, handler gomegahandler.Handler, oldExp string) bool {
+func checkLengthMatcher(exp *ast.CallExpr, pass *analysis.Pass, handler gomegahandler.Handler, sprintfWarning bool) bool {
 	matcher, ok := exp.Args[0].(*ast.CallExpr)
 	if !ok {
 		return true
@@ -214,28 +239,29 @@ func checkLengthMatcher(exp *ast.CallExpr, pass *analysis.Pass, handler gomegaha
 
 	switch matcherFuncName {
 	case equal:
-		handleEqualMatcher(matcher, pass, exp, handler, oldExp)
-		return false
+		handleEqualMatcher(matcher, pass, exp, handler, sprintfWarning)
 
 	case "BeZero":
-		handleBeZero(pass, exp, handler, oldExp)
+		handleBeZero(pass, exp, handler, sprintfWarning)
 		return false
 
 	case "BeNumerically":
-		return handleBeNumerically(matcher, pass, exp, handler, oldExp)
+		return handleBeNumerically(matcher, pass, exp, handler, sprintfWarning)
 
 	case not:
 		reverseAssertionFuncLogic(exp)
 		exp.Args[0] = exp.Args[0].(*ast.CallExpr).Args[0]
-		return checkLengthMatcher(exp, pass, handler, oldExp)
+		return checkLengthMatcher(exp, pass, handler, sprintfWarning)
 
 	default:
 		return true
 	}
+
+	return false
 }
 
 // Check if matcher function is in one of the patterns we want to avoid
-func checkNilMatcher(exp *ast.CallExpr, pass *analysis.Pass, nilable ast.Expr, handler gomegahandler.Handler, notEqual bool, oldExp string) bool {
+func checkNilMatcher(exp *ast.CallExpr, pass *analysis.Pass, nilable ast.Expr, handler gomegahandler.Handler, notEqual bool, sprintfWarning bool) bool {
 	matcher, ok := exp.Args[0].(*ast.CallExpr)
 	if !ok {
 		return true
@@ -248,19 +274,19 @@ func checkNilMatcher(exp *ast.CallExpr, pass *analysis.Pass, nilable ast.Expr, h
 
 	switch matcherFuncName {
 	case equal:
-		handleEqualNilMatcher(matcher, pass, exp, handler, nilable, notEqual, oldExp)
+		handleEqualNilMatcher(matcher, pass, exp, handler, nilable, notEqual, sprintfWarning)
 
 	case beTrue:
-		handleNilBeBoolMatcher(pass, exp, handler, nilable, notEqual, oldExp)
+		handleNilBeBoolMatcher(pass, exp, handler, nilable, notEqual, sprintfWarning)
 
 	case beFalse:
 		reverseAssertionFuncLogic(exp)
-		handleNilBeBoolMatcher(pass, exp, handler, nilable, notEqual, oldExp)
+		handleNilBeBoolMatcher(pass, exp, handler, nilable, notEqual, sprintfWarning)
 
 	case not:
 		reverseAssertionFuncLogic(exp)
 		exp.Args[0] = exp.Args[0].(*ast.CallExpr).Args[0]
-		return checkNilMatcher(exp, pass, nilable, handler, notEqual, oldExp)
+		return checkNilMatcher(exp, pass, nilable, handler, notEqual, sprintfWarning)
 
 	default:
 		return true
@@ -268,7 +294,7 @@ func checkNilMatcher(exp *ast.CallExpr, pass *analysis.Pass, nilable ast.Expr, h
 	return false
 }
 
-func checkNilError(pass *analysis.Pass, assertionExp *ast.CallExpr, handler gomegahandler.Handler, actualArg ast.Expr, oldExpr string) bool {
+func checkNilError(pass *analysis.Pass, assertionExp *ast.CallExpr, handler gomegahandler.Handler, actualArg ast.Expr, sprintfWarning bool) bool {
 	if len(assertionExp.Args) == 0 {
 		return true
 	}
@@ -299,7 +325,7 @@ func checkNilError(pass *analysis.Pass, assertionExp *ast.CallExpr, handler gome
 	case not:
 		reverseAssertionFuncLogic(assertionExp)
 		assertionExp.Args[0] = assertionExp.Args[0].(*ast.CallExpr).Args[0]
-		return checkNilError(pass, assertionExp, handler, actualArg, oldExpr)
+		return checkNilError(pass, assertionExp, handler, actualArg, sprintfWarning)
 	default:
 		return true
 	}
@@ -315,7 +341,7 @@ func checkNilError(pass *analysis.Pass, assertionExp *ast.CallExpr, handler gome
 	handler.ReplaceFunction(equalFuncExpr, ast.NewIdent(newFuncName))
 	equalFuncExpr.Args = nil
 
-	report(pass, assertionExp, wrongErrWarningTemplate, oldExpr)
+	report(pass, assertionExp, wrongErrWarningTemplate, sprintfWarning)
 	return false
 }
 
@@ -326,7 +352,7 @@ func checkNilError(pass *analysis.Pass, assertionExp *ast.CallExpr, handler gome
 //	Equal(true) => BeTrue()
 //	Equal(false) => BeFalse()
 //	HaveLen(0) => BeEmpty()
-func handleAssertionOnly(pass *analysis.Pass, config types.Config, assertionExp *ast.CallExpr, handler gomegahandler.Handler, actualArg ast.Expr, oldExpr string) bool {
+func handleAssertionOnly(pass *analysis.Pass, config types.Config, assertionExp *ast.CallExpr, handler gomegahandler.Handler, actualArg ast.Expr, sprintfWarning bool) bool {
 	if len(assertionExp.Args) == 0 {
 		return true
 	}
@@ -374,7 +400,7 @@ func handleAssertionOnly(pass *analysis.Pass, config types.Config, assertionExp 
 		handler.ReplaceFunction(equalFuncExpr, ast.NewIdent(replacement))
 		equalFuncExpr.Args = nil
 
-		report(pass, assertionExp, template, oldExpr)
+		report(pass, assertionExp, template, sprintfWarning)
 
 		return false
 
@@ -388,7 +414,7 @@ func handleAssertionOnly(pass *analysis.Pass, config types.Config, assertionExp 
 				if value.Kind == token.INT && value.Value == "0" {
 					handler.ReplaceFunction(equalFuncExpr, ast.NewIdent(beEmpty))
 					equalFuncExpr.Args = nil
-					report(pass, assertionExp, wrongLengthWarningTemplate, oldExpr)
+					report(pass, assertionExp, wrongLengthWarningTemplate, sprintfWarning)
 					return false
 				}
 			}
@@ -399,7 +425,7 @@ func handleAssertionOnly(pass *analysis.Pass, config types.Config, assertionExp 
 	case not:
 		reverseAssertionFuncLogic(assertionExp)
 		assertionExp.Args[0] = assertionExp.Args[0].(*ast.CallExpr).Args[0]
-		return handleAssertionOnly(pass, config, assertionExp, handler, actualArg, oldExpr)
+		return handleAssertionOnly(pass, config, assertionExp, handler, actualArg, sprintfWarning)
 	default:
 		return true
 	}
@@ -473,7 +499,7 @@ func replaceNilActualArg(actualExpr *ast.CallExpr, handler gomegahandler.Handler
 }
 
 // For the BeNumerically matcher, we want to avoid the assertion of length to be > 0 or >= 1, or just == number
-func handleBeNumerically(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, oldExp string) bool {
+func handleBeNumerically(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, sprintfWarning bool) bool {
 	opExp, ok1 := matcher.Args[0].(*ast.BasicLit)
 	valExp, ok2 := matcher.Args[1].(*ast.BasicLit)
 
@@ -485,17 +511,17 @@ func handleBeNumerically(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.Ca
 			reverseAssertionFuncLogic(exp)
 			handler.ReplaceFunction(exp.Args[0].(*ast.CallExpr), ast.NewIdent(beEmpty))
 			exp.Args[0].(*ast.CallExpr).Args = nil
-			reportLengthAssertion(pass, exp, handler, oldExp)
+			reportLengthAssertion(pass, exp, handler, sprintfWarning)
 			return false
 		} else if op == `"=="` {
 			chooseNumericMatcher(exp, handler, valExp)
-			reportLengthAssertion(pass, exp, handler, oldExp)
+			reportLengthAssertion(pass, exp, handler, sprintfWarning)
 
 			return false
 		} else if op == `"!="` {
 			reverseAssertionFuncLogic(exp)
 			chooseNumericMatcher(exp, handler, valExp)
-			reportLengthAssertion(pass, exp, handler, oldExp)
+			reportLengthAssertion(pass, exp, handler, sprintfWarning)
 
 			return false
 		}
@@ -519,7 +545,7 @@ func reverseAssertionFuncLogic(exp *ast.CallExpr) {
 	assertionFunc.Name = reverseassertion.ChangeAssertionLogic(assertionFunc.Name)
 }
 
-func handleEqualMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, oldExp string) {
+func handleEqualMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, sprintfWarning bool) {
 	equalTo, ok := matcher.Args[0].(*ast.BasicLit)
 	if ok {
 		chooseNumericMatcher(exp, handler, equalTo)
@@ -527,16 +553,16 @@ func handleEqualMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.Cal
 		handler.ReplaceFunction(exp.Args[0].(*ast.CallExpr), ast.NewIdent(haveLen))
 		exp.Args[0].(*ast.CallExpr).Args = []ast.Expr{matcher.Args[0]}
 	}
-	reportLengthAssertion(pass, exp, handler, oldExp)
+	reportLengthAssertion(pass, exp, handler, sprintfWarning)
 }
 
-func handleBeZero(pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, oldExp string) {
+func handleBeZero(pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, sprintfWarning bool) {
 	exp.Args[0].(*ast.CallExpr).Args = nil
 	handler.ReplaceFunction(exp.Args[0].(*ast.CallExpr), ast.NewIdent(beEmpty))
-	reportLengthAssertion(pass, exp, handler, oldExp)
+	reportLengthAssertion(pass, exp, handler, sprintfWarning)
 }
 
-func handleEqualNilMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, nilable ast.Expr, notEqual bool, oldExp string) {
+func handleEqualNilMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, nilable ast.Expr, notEqual bool, sprintfWarning bool) {
 	equalTo, ok := matcher.Args[0].(*ast.Ident)
 	if !ok {
 		return
@@ -553,15 +579,15 @@ func handleEqualNilMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.
 	handler.ReplaceFunction(exp.Args[0].(*ast.CallExpr), ast.NewIdent(newFuncName))
 	exp.Args[0].(*ast.CallExpr).Args = nil
 
-	reportNilAssertion(pass, exp, handler, nilable, notEqual, oldExp, isItError)
+	reportNilAssertion(pass, exp, handler, nilable, notEqual, isItError, sprintfWarning)
 }
 
-func handleNilBeBoolMatcher(pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, nilable ast.Expr, notEqual bool, oldExp string) {
+func handleNilBeBoolMatcher(pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, nilable ast.Expr, notEqual bool, sprintfWarning bool) {
 	newFuncName, isItError := handleNilComparisonErr(pass, exp, nilable)
 	handler.ReplaceFunction(exp.Args[0].(*ast.CallExpr), ast.NewIdent(newFuncName))
 	exp.Args[0].(*ast.CallExpr).Args = nil
 
-	reportNilAssertion(pass, exp, handler, nilable, notEqual, oldExp, isItError)
+	reportNilAssertion(pass, exp, handler, nilable, notEqual, isItError, sprintfWarning)
 }
 
 func handleNilComparisonErr(pass *analysis.Pass, exp *ast.CallExpr, nilable ast.Expr) (string, bool) {
@@ -586,13 +612,13 @@ func isAssertionFunc(name string) bool {
 	return false
 }
 
-func reportLengthAssertion(pass *analysis.Pass, expr *ast.CallExpr, handler gomegahandler.Handler, oldExpr string) {
+func reportLengthAssertion(pass *analysis.Pass, expr *ast.CallExpr, handler gomegahandler.Handler, sprintfWarning bool) {
 	replaceLenActualArg(expr.Fun.(*ast.SelectorExpr).X.(*ast.CallExpr), handler)
 
-	report(pass, expr, wrongLengthWarningTemplate, oldExpr)
+	report(pass, expr, wrongLengthWarningTemplate, sprintfWarning)
 }
 
-func reportNilAssertion(pass *analysis.Pass, expr *ast.CallExpr, handler gomegahandler.Handler, nilable ast.Expr, notEqual bool, oldExpr string, isItError bool) {
+func reportNilAssertion(pass *analysis.Pass, expr *ast.CallExpr, handler gomegahandler.Handler, nilable ast.Expr, notEqual bool, isItError bool, sprintfWarning bool) {
 	changed := replaceNilActualArg(expr.Fun.(*ast.SelectorExpr).X.(*ast.CallExpr), handler, nilable)
 	if !changed {
 		return
@@ -606,17 +632,21 @@ func reportNilAssertion(pass *analysis.Pass, expr *ast.CallExpr, handler gomegah
 		template = wrongErrWarningTemplate
 	}
 
-	report(pass, expr, template, oldExpr)
+	report(pass, expr, template, sprintfWarning)
 }
 
-func report(pass *analysis.Pass, expr *ast.CallExpr, messageTemplate, oldExpr string) {
+func report(pass *analysis.Pass, expr *ast.CallExpr, messageTemplate string, sprintfWarning bool) {
+	additionalMsgText := ""
+	if sprintfWarning {
+		additionalMsgText = addSprintfWarning
+	}
+
 	newExp := goFmt(pass.Fset, expr)
 	pass.Report(analysis.Diagnostic{
 		Pos:     expr.Pos(),
-		Message: fmt.Sprintf(messageTemplate, newExp),
+		Message: fmt.Sprintf(messageTemplate, additionalMsgText, newExp),
 		SuggestedFixes: []analysis.SuggestedFix{
 			{
-				Message: fmt.Sprintf("should replace %s with %s", oldExpr, newExp),
 				TextEdits: []analysis.TextEdit{
 					{
 						Pos:     expr.Pos(),

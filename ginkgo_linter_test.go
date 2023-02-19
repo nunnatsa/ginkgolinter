@@ -64,38 +64,47 @@ func TestFlags(t *testing.T) {
 	for _, tc := range []struct {
 		testName string
 		testData []string
-		flags    []string
+		flags    map[string]string
 	}{
 		{
 			testName: "test the suppress-len-assertion flag",
 			testData: []string{"a/configlen"},
-			flags:    []string{"suppress-len-assertion"},
+			flags:    map[string]string{"suppress-len-assertion": "true"},
 		},
 		{
 			testName: "test the suppress-nil-assertion flag",
 			testData: []string{"a/confignil"},
-			flags:    []string{"suppress-nil-assertion"},
+			flags:    map[string]string{"suppress-nil-assertion": "true"},
 		},
 		{
 			testName: "test the suppress-err-assertion flag",
 			testData: []string{"a/configerr"},
-			flags:    []string{"suppress-err-assertion"},
+			flags:    map[string]string{"suppress-err-assertion": "true"},
 		},
 		{
 			testName: "test the allow-havelen-0 flag",
 			testData: []string{"a/havelen0config"},
-			flags:    []string{"allow-havelen-0"},
+			flags:    map[string]string{"allow-havelen-0": "true"},
+		},
+		{
+			testName: "check Springf message",
+			testData: []string{"a/sprintfmsg"},
+			flags:    map[string]string{"allow-sprintf": "false"},
 		},
 		{
 			testName: "supress all",
 			testData: []string{"a/configlen", "a/confignil", "a/configerr", "a/havelen0config"},
-			flags:    []string{"suppress-len-assertion", "suppress-nil-assertion", "suppress-err-assertion"},
+			flags: map[string]string{
+				"suppress-len-assertion": "true",
+				"suppress-nil-assertion": "true",
+				"suppress-err-assertion": "true",
+			},
 		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
 			analyzer := ginkgolinter.NewAnalyzer()
-			for _, flag := range tc.flags {
-				err := analyzer.Flags.Set(flag, "true")
+			for flag, value := range tc.flags {
+				err := analyzer.Flags.Set(flag, value)
 				if err != nil {
 					tt.Errorf(`failed to set the "%s" flag; %v`, flag, err)
 					return

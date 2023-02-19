@@ -10,8 +10,8 @@ var _ = Describe("Check Equal(nil)", func() {
 		var x *int
 		var y = 5
 		var py = &y
-		Expect(x).Should(Equal(nil))                    // want `ginkgo-linter: wrong nil assertion; consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
-		Expect(py).Should(Not(Equal(nil)))              // want `ginkgo-linter: wrong nil assertion; consider using .Expect\(py\)\.ShouldNot\(BeNil\(\)\). instead`
-		ExpectWithOffset(1, py).Should(Not(Equal(nil))) // want `ginkgo-linter: wrong nil assertion; consider using .ExpectWithOffset\(1, py\)\.ShouldNot\(BeNil\(\)\). instead`
+		Expect(x).Should(Equal(nil))                    // want `ginkgo-linter: wrong nil assertion\nconsider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+		Expect(py).Should(Not(Equal(nil)))              // want `ginkgo-linter: wrong nil assertion\nconsider using .Expect\(py\)\.ShouldNot\(BeNil\(\)\). instead`
+		ExpectWithOffset(1, py).Should(Not(Equal(nil))) // want `ginkgo-linter: wrong nil assertion\nconsider using .ExpectWithOffset\(1, py\)\.ShouldNot\(BeNil\(\)\). instead`
 	})
 })
