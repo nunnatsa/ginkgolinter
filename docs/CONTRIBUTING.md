@@ -1,6 +1,6 @@
 # contributing Guide
 
-Thanks for contributing to the ginkgo-linter, and help us improve it!
+Thanks for contributing to the ginkgolinter project, and helping us improve it!
 
 ## Reporting a bugs
 Please let us know if you have any issue using the ginkgolinter. Under the "issues" tab, click on the "New Issue" button, then click on the "Get Started" button in the "Bug Report" section. Fill the details and submit the new issue. 
