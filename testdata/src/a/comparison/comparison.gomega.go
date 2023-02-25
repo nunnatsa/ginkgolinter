@@ -29,8 +29,9 @@ var _ = Describe("remove comparison", func() {
 
 			exampleInt = 0
 
-			g.Expect(exampleInt == 0).To(g.Equal(true)) // want `ginkgo-linter: wrong comparison assertion; consider using .g\.Expect\(exampleInt\)\.To\(g\.BeZero\(\)\). instead`
-			g.Expect(exampleInt == 0).To(g.BeTrue())    // want `ginkgo-linter: wrong comparison assertion; consider using .g\.Expect\(exampleInt\)\.To\(g\.BeZero\(\)\). instead`
+			g.Expect(exampleInt == 0).To(g.Equal(true))            // want `ginkgo-linter: wrong comparison assertion; consider using .g\.Expect\(exampleInt\)\.To\(g\.BeZero\(\)\). instead`
+			g.Expect(exampleInt == 0).To(g.BeTrue())               // want `ginkgo-linter: wrong comparison assertion; consider using .g\.Expect\(exampleInt\)\.To\(g\.BeZero\(\)\). instead`
+			g.Expect(exampleInt == 0).WithOffset(5).To(g.BeTrue()) // want `ginkgo-linter: wrong comparison assertion; consider using .g.Expect\(exampleInt\)\.WithOffset\(5\)\.To\(g\.BeZero\(\)\). instead`
 		})
 		It("should find comparison assertions", func() {
 			g.Expect(exampleInt == 1).To(g.BeTrue())  // want `ginkgo-linter: wrong comparison assertion; consider using .g\.Expect\(exampleInt\)\.To\(g\.Equal\(1\)\). instead`
@@ -50,7 +51,8 @@ var _ = Describe("remove comparison", func() {
 			g.Expect(exampleFloat32 == constOne).To(g.BeTrue()) // want `ginkgo-linter: wrong comparison assertion; consider using .g\.Expect\(exampleFloat32\)\.To\(g\.Equal\(constOne\)\). instead`
 		})
 		It("imported const", func() {
-			g.Expect(time.Millisecond == 1000000).To(g.BeTrue()) // want `ginkgo-linter: wrong comparison assertion; consider using .g\.Expect\(time.Millisecond\)\.To\(g\.Equal\(1000000\)\). instead`
+			g.Expect(time.Millisecond == 1000000).To(g.BeTrue())               // want `ginkgo-linter: wrong comparison assertion; consider using .g\.Expect\(time.Millisecond\)\.To\(g\.Equal\(1000000\)\). instead`
+			g.Expect(time.Millisecond == 1000000).WithOffset(6).To(g.BeTrue()) // want `ginkgo-linter: wrong comparison assertion; consider using .g\.Expect\(time.Millisecond\)\.WithOffset\(6\)\.To\(g\.Equal\(1000000\)\). instead`
 		})
 	})
 

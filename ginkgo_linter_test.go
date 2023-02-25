@@ -61,6 +61,10 @@ func TestAllUseCases(t *testing.T) {
 			testName: "pointers",
 			testData: "a/pointers",
 		},
+		{
+			testName: "function call in Eventually",
+			testData: "a/eventually",
+		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
 			analysistest.Run(tt, analysistest.TestData(), ginkgolinter.NewAnalyzer(), tc.testData)
@@ -100,9 +104,14 @@ func TestFlags(t *testing.T) {
 			flags:    []string{"allow-havelen-0"},
 		},
 		{
+			testName: "test the suppress-async-assertion flag",
+			testData: []string{"a/asyncconfig"},
+			flags:    []string{"suppress-async-assertion"},
+		},
+		{
 			testName: "supress all",
 			testData: []string{"a/configlen", "a/confignil", "a/configerr", "a/havelen0config"},
-			flags:    []string{"suppress-len-assertion", "suppress-nil-assertion", "suppress-err-assertion", "suppress-compare-assertion"},
+			flags:    []string{"suppress-len-assertion", "suppress-nil-assertion", "suppress-err-assertion", "suppress-compare-assertion", "suppress-async-assertion"},
 		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {

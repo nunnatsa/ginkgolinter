@@ -9,7 +9,8 @@ var _ = Describe("test data for the ginkgo-linter", func() {
 	Context("test Expect", func() {
 		Context("test Should", func() {
 			It("should suggest HaveLen", func() {
-				Expect(len("abcd")).Should(Equal(4)) // want `ginkgo-linter: wrong length assertion; consider using .Expect\("abcd"\)\.Should\(HaveLen\(4\)\). instead`
+				Expect(len("abcd")).Should(Equal(4))               // want `ginkgo-linter: wrong length assertion; consider using .Expect\("abcd"\)\.Should\(HaveLen\(4\)\). instead`
+				Expect(len("abcd")).WithOffset(1).Should(Equal(4)) // want `ginkgo-linter: wrong length assertion; consider using .Expect\("abcd"\)\.WithOffset\(1\)\.Should\(HaveLen\(4\)\). instead`
 			})
 
 			It("should suggest BeEmpty", func() {

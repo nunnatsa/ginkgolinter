@@ -46,6 +46,7 @@ var _ = Describe("check Expect(err).To(BeNil())", func() {
 		ExpectWithOffset(1, err).To(BeNil())            // want `ginkgo-linter: wrong error assertion; consider using .ExpectWithOffset\(1, err\)\.ToNot\(HaveOccurred\(\)\). instead`
 		Expect(err).To(Not(BeNil()))                    // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.To\(HaveOccurred\(\)\). instead`
 		Expect(err).ToNot(BeNil())                      // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.To\(HaveOccurred\(\)\). instead`
+		Expect(err).WithOffset(1).ToNot(BeNil())        // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.WithOffset\(1\)\.To\(HaveOccurred\(\)\). instead`
 
 		Expect(tt.err).To(BeNil()) // want `ginkgo-linter: wrong error assertion; consider using .Expect\(tt\.err\)\.ToNot\(HaveOccurred\(\)\). instead`
 
@@ -59,10 +60,11 @@ var _ = Describe("check Expect(err).To(BeNil())", func() {
 		Expect(tt.typeNoErrorFunc()).ToNot(Equal(1))
 	})
 	It("check Expect(err).To(Equal(nil))", func() {
-		Expect(err).To(Equal(nil))      // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.ToNot\(HaveOccurred\(\)\). instead`
-		Expect(err).To(Not(Equal(nil))) // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.To\(HaveOccurred\(\)\). instead`
-		Expect(err).ToNot(Equal(nil))   // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.To\(HaveOccurred\(\)\). instead`
-		Expect(tt.err).To(Equal(nil))   // want `ginkgo-linter: wrong error assertion; consider using .Expect\(tt\.err\)\.ToNot\(HaveOccurred\(\)\). instead`
+		Expect(err).To(Equal(nil))                  // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.ToNot\(HaveOccurred\(\)\). instead`
+		Expect(err).To(Not(Equal(nil)))             // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.To\(HaveOccurred\(\)\). instead`
+		Expect(err).ToNot(Equal(nil))               // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.To\(HaveOccurred\(\)\). instead`
+		Expect(tt.err).To(Equal(nil))               // want `ginkgo-linter: wrong error assertion; consider using .Expect\(tt\.err\)\.ToNot\(HaveOccurred\(\)\). instead`
+		Expect(tt.err).WithOffset(1).To(Equal(nil)) // want `ginkgo-linter: wrong error assertion; consider using .Expect\(tt\.err\)\.WithOffset\(1\)\.ToNot\(HaveOccurred\(\)\). instead`
 
 		Expect(errFunc()).To(Equal(nil))      // want `ginkgo-linter: wrong error assertion; consider using .Expect\(errFunc\(\)\)\.To\(Succeed\(\)\). instead`
 		Expect(errFunc()).To(Not(Equal(nil))) // want `ginkgo-linter: wrong error assertion; consider using .Expect\(errFunc\(\)\)\.ToNot\(Succeed\(\)\). instead`
@@ -77,18 +79,20 @@ var _ = Describe("check Expect(err).To(BeNil())", func() {
 	})
 
 	It("check err == nil", func() {
-		Expect(err == nil).To(Equal(true))       // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.ToNot\(HaveOccurred\(\)\). instead`
-		Expect(err == nil).To(Equal(false))      // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.To\(HaveOccurred\(\)\). instead`
-		Expect(err != nil).To(Equal(true))       // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.To\(HaveOccurred\(\)\). instead`
-		Expect(err != nil).To(Equal(false))      // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.ToNot\(HaveOccurred\(\)\). instead`
-		Expect(nil == err).To(Equal(true))       // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.ToNot\(HaveOccurred\(\)\). instead`
-		Expect(nil == errFunc()).To(Equal(true)) // want `ginkgo-linter: wrong error assertion; consider using .Expect\(errFunc\(\)\)\.To\(Succeed\(\)\). instead`
-		Expect(errFunc() != nil).To(Equal(true)) // want `ginkgo-linter: wrong error assertion; consider using .Expect\(errFunc\(\)\)\.ToNot\(Succeed\(\)\). instead`
+		Expect(err == nil).To(Equal(true))               // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.ToNot\(HaveOccurred\(\)\). instead`
+		Expect(err == nil).To(Equal(false))              // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.To\(HaveOccurred\(\)\). instead`
+		Expect(err != nil).To(Equal(true))               // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.To\(HaveOccurred\(\)\). instead`
+		Expect(err != nil).To(Equal(false))              // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.ToNot\(HaveOccurred\(\)\). instead`
+		Expect(nil == err).To(Equal(true))               // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.ToNot\(HaveOccurred\(\)\). instead`
+		Expect(nil == err).WithOffset(1).To(Equal(true)) // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.WithOffset\(1\)\.ToNot\(HaveOccurred\(\)\). instead`
+		Expect(nil == errFunc()).To(Equal(true))         // want `ginkgo-linter: wrong error assertion; consider using .Expect\(errFunc\(\)\)\.To\(Succeed\(\)\). instead`
+		Expect(errFunc() != nil).To(Equal(true))         // want `ginkgo-linter: wrong error assertion; consider using .Expect\(errFunc\(\)\)\.ToNot\(Succeed\(\)\). instead`
 
-		Expect(err == nil).To(BeTrue())        // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.ToNot\(HaveOccurred\(\)\). instead`
-		Expect(err != nil).To(BeFalse())       // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.ToNot\(HaveOccurred\(\)\). instead`
-		Expect(nil == err).To(BeTrue())        // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.ToNot\(HaveOccurred\(\)\). instead`
-		Expect(nil == errFunc()).To(BeTrue())  // want `ginkgo-linter: wrong error assertion; consider using .Expect\(errFunc\(\)\)\.To\(Succeed\(\)\). instead`
-		Expect(errFunc() != nil).To(BeFalse()) // want `ginkgo-linter: wrong error assertion; consider using .Expect\(errFunc\(\)\)\.To\(Succeed\(\)\). instead`
+		Expect(err == nil).To(BeTrue())                      // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.ToNot\(HaveOccurred\(\)\). instead`
+		Expect(err != nil).To(BeFalse())                     // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.ToNot\(HaveOccurred\(\)\). instead`
+		Expect(nil == err).To(BeTrue())                      // want `ginkgo-linter: wrong error assertion; consider using .Expect\(err\)\.ToNot\(HaveOccurred\(\)\). instead`
+		Expect(nil == errFunc()).To(BeTrue())                // want `ginkgo-linter: wrong error assertion; consider using .Expect\(errFunc\(\)\)\.To\(Succeed\(\)\). instead`
+		Expect(errFunc() != nil).To(BeFalse())               // want `ginkgo-linter: wrong error assertion; consider using .Expect\(errFunc\(\)\)\.To\(Succeed\(\)\). instead`
+		Expect(errFunc() != nil).WithOffset(1).To(BeFalse()) // want `ginkgo-linter: wrong error assertion; consider using .Expect\(errFunc\(\)\)\.WithOffset\(1\)\.To\(Succeed\(\)\). instead`
 	})
 })

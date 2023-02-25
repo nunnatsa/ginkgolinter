@@ -11,6 +11,8 @@ var _ = Describe("suppress file", func() {
 		// ginkgo-linter:ignore-nil-assert-warning
 		// ginkgo-linter:ignore-len-assert-warning
 		// ginkgo-linter:ignore-err-assert-warning
+		// ginkgo-linter:ignore-compare-assert-warning
+		// ginkgo-linter:ignore-async-assert-warning
 		// check that linter is suppressed when all flags are true
 		Expect(len(x)).Should(Equal(4))
 	})
