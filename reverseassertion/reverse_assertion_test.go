@@ -1,6 +1,7 @@
 package reverseassertion_test
 
 import (
+	"go/token"
 	"testing"
 
 	"github.com/nunnatsa/ginkgolinter/reverseassertion"
@@ -41,5 +42,25 @@ func TestChangeAssertionLogicWithUnknown(t *testing.T) {
 	rev := reverseassertion.ChangeAssertionLogic("unknown")
 	if rev != "unknown" {
 		t.Errorf("reverced function of unknown should be the same, but it's %s", rev)
+	}
+}
+
+func TestChangeCompareOperator(t *testing.T) {
+	for _, tc := range []struct {
+		testName string
+		checked  token.Token
+		expected token.Token
+	}{
+		{"check less than", token.LSS, token.GTR},
+		{"check greater than", token.GTR, token.LSS},
+		{"check less than or equal to", token.LEQ, token.GEQ},
+		{"check greater than or equal to", token.GEQ, token.LEQ},
+		{"check non-supported token", token.ILLEGAL, token.ILLEGAL},
+	} {
+		t.Run(tc.testName, func(tt *testing.T) {
+			if reverseassertion.ChangeCompareOperator(tc.checked) != tc.expected {
+				tt.Errorf("expected %v to become %v", tc.checked, tc.expected)
+			}
+		})
 	}
 }

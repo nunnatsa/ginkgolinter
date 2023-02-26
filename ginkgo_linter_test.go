@@ -53,6 +53,10 @@ func TestAllUseCases(t *testing.T) {
 			testName: "check gomaga without ginkgo",
 			testData: "a/gomegaonly",
 		},
+		{
+			testName: "comparison",
+			testData: "a/comparison",
+		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
 			analysistest.Run(tt, analysistest.TestData(), ginkgolinter.NewAnalyzer(), tc.testData)
@@ -82,6 +86,11 @@ func TestFlags(t *testing.T) {
 			flags:    []string{"suppress-err-assertion"},
 		},
 		{
+			testName: "test the suppress-compare-assertion flag",
+			testData: []string{"a/configcompare"},
+			flags:    []string{"suppress-compare-assertion"},
+		},
+		{
 			testName: "test the allow-havelen-0 flag",
 			testData: []string{"a/havelen0config"},
 			flags:    []string{"allow-havelen-0"},
@@ -89,7 +98,7 @@ func TestFlags(t *testing.T) {
 		{
 			testName: "supress all",
 			testData: []string{"a/configlen", "a/confignil", "a/configerr", "a/havelen0config"},
-			flags:    []string{"suppress-len-assertion", "suppress-nil-assertion", "suppress-err-assertion"},
+			flags:    []string{"suppress-len-assertion", "suppress-nil-assertion", "suppress-err-assertion", "suppress-compare-assertion"},
 		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {

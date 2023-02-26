@@ -1597,10 +1597,5 @@ var _ = Describe("", func() {
 			var x *int
 			Expect(x == nil).To(BeElementOf([]bool{true, false}))
 		})
-
-		It("should not trigger warning", func() {
-			var x = 5
-			Expect(x > 3).To(BeTrue())
-		})
 	})
 })

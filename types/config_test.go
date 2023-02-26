@@ -6,9 +6,10 @@ import (
 
 func TestSuppress_AllTrue(t *testing.T) {
 	s := Config{
-		SuppressLen: true,
-		SuppressNil: true,
-		SuppressErr: true,
+		SuppressLen:     true,
+		SuppressNil:     true,
+		SuppressErr:     true,
+		SuppressCompare: true,
 	}
 
 	if !s.AllTrue() {
@@ -43,9 +44,10 @@ func TestSuppress_AllTrue(t *testing.T) {
 
 func TestSuppress_Clone(t *testing.T) {
 	s := Config{
-		SuppressLen: true,
-		SuppressNil: true,
-		SuppressErr: true,
+		SuppressLen:     true,
+		SuppressNil:     true,
+		SuppressErr:     true,
+		SuppressCompare: true,
 	}
 
 	clone := s.Clone()
