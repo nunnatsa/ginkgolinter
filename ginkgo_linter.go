@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"github.com/go-toolsmith/astcopy"
 	"go/ast"
+	"go/constant"
 	"go/printer"
 	"go/token"
 	gotypes "go/types"
-
-	"github.com/go-toolsmith/astcopy"
 	"golang.org/x/tools/go/analysis"
 
 	"github.com/nunnatsa/ginkgolinter/gomegahandler"
@@ -19,43 +19,29 @@ import (
 
 // The ginkgolinter enforces standards of using ginkgo and gomega.
 //
-// The current checks are:
-// * enforce right length assertion - warn for assertion of len(something):
-//
-//   This check finds the following patterns and suggests an alternative
-//   * Expect(len(something)).To(Equal(number)) ===> Expect(x).To(HaveLen(number))
-//   * ExpectWithOffset(1, len(something)).ShouldNot(Equal(0)) ===> ExpectWithOffset(1, something).ShouldNot(BeEmpty())
-//   * Ω(len(something)).NotTo(BeZero()) ===> Ω(something).NotTo(BeEmpty())
-//   * Expect(len(something)).To(BeNumerically(">", 0)) ===> Expect(something).ToNot(BeEmpty())
-//   * Expect(len(something)).To(BeNumerically(">=", 1)) ===> Expect(something).ToNot(BeEmpty())
-//   * Expect(len(something)).To(BeNumerically("==", number)) ===> Expect(something).To(HaveLen(number))
-//
-// * enforce right nil assertion - warn for assertion of x == nil:
-//   This check finds the following patterns and suggests an alternative
-//   * Expect(x == nil).Should(Equal(true)) ===> Expect(x).Should(BeNil())
-//   * Expect(nil == x).Should(BeTrue()) ===> Expect(x).Should(BeNil())
-//   * Expect(x != nil).Should(Equal(false)) ===> Expect(x).Should(BeNil())
-//   * Expect(nil == x).Should(BeFalse()) ===> Expect(x).Should(BeNil())
-//   * Expect(x).Should(Equal(nil) // ===> Expect(x).Should(BeNil())
+// For more details, look at the README.md file
 
 const (
-	linterName                 = "ginkgo-linter"
-	wrongLengthWarningTemplate = linterName + ": wrong length assertion; consider using `%s` instead"
-	wrongNilWarningTemplate    = linterName + ": wrong nil assertion; consider using `%s` instead"
-	wrongBoolWarningTemplate   = linterName + ": wrong boolean assertion; consider using `%s` instead"
-	wrongErrWarningTemplate    = linterName + ": wrong error assertion; consider using `%s` instead"
-	beEmpty                    = "BeEmpty"
-	beNil                      = "BeNil"
-	beTrue                     = "BeTrue"
-	beFalse                    = "BeFalse"
-	equal                      = "Equal"
-	not                        = "Not"
-	haveLen                    = "HaveLen"
-	succeed                    = "Succeed"
-	haveOccurred               = "HaveOccurred"
-	expect                     = "Expect"
-	omega                      = "Ω"
-	expectWithOffset           = "ExpectWithOffset"
+	linterName                  = "ginkgo-linter"
+	wrongLengthWarningTemplate  = linterName + ": wrong length assertion; consider using `%s` instead"
+	wrongNilWarningTemplate     = linterName + ": wrong nil assertion; consider using `%s` instead"
+	wrongBoolWarningTemplate    = linterName + ": wrong boolean assertion; consider using `%s` instead"
+	wrongErrWarningTemplate     = linterName + ": wrong error assertion; consider using `%s` instead"
+	wrongCompareWarningTemplate = linterName + ": wrong comparison assertion; consider using `%s` instead"
+	beEmpty                     = "BeEmpty"
+	beNil                       = "BeNil"
+	beTrue                      = "BeTrue"
+	beFalse                     = "BeFalse"
+	beZero                      = "BeZero"
+	beNumerically               = "BeNumerically"
+	equal                       = "Equal"
+	not                         = "Not"
+	haveLen                     = "HaveLen"
+	succeed                     = "Succeed"
+	haveOccurred                = "HaveOccurred"
+	expect                      = "Expect"
+	omega                       = "Ω"
+	expectWithOffset            = "ExpectWithOffset"
 )
 
 // Analyzer is the interface to go_vet
@@ -69,17 +55,34 @@ type ginkgoLinter struct {
 func NewAnalyzer() *analysis.Analyzer {
 	linter := ginkgoLinter{
 		config: &types.Config{
-			SuppressLen:   false,
-			SuppressNil:   false,
-			SuppressErr:   false,
-			AllowHaveLen0: false,
+			SuppressLen:     false,
+			SuppressNil:     false,
+			SuppressErr:     false,
+			SuppressCompare: false,
+			AllowHaveLen0:   false,
 		},
 	}
 
 	a := &analysis.Analyzer{
-		Name: "ginkgolinter",
-		Doc: `enforces standards of using ginkgo and gomega
+		Name:             "ginkgolinter",
+		Doc:              doc,
+		Run:              linter.run,
+		RunDespiteErrors: true,
+	}
+
+	a.Flags.Init("ginkgolinter", flag.ExitOnError)
+	a.Flags.Var(&linter.config.SuppressLen, "suppress-len-assertion", "Suppress warning for wrong length assertions")
+	a.Flags.Var(&linter.config.SuppressNil, "suppress-nil-assertion", "Suppress warning for wrong nil assertions")
+	a.Flags.Var(&linter.config.SuppressErr, "suppress-err-assertion", "Suppress warning for wrong error assertions")
+	a.Flags.Var(&linter.config.SuppressCompare, "suppress-compare-assertion", "Suppress warning for wrong comparison assertions")
+	a.Flags.Var(&linter.config.AllowHaveLen0, "allow-havelen-0", "Do not warn for HaveLen(0); default = false")
+
+	return a
+}
+
+const doc = `enforces standards of using ginkgo and gomega
 currently, the linter searches for following:
+
 * wrong length assertions. We want to assert the item rather than its length.
 For example:
 	Expect(len(x)).Should(Equal(1))
@@ -91,19 +94,21 @@ For example:
 	Expect(x == nil).Should(BeTrue())
 This should be replaced with:
 	Expect(x).Should(BeNil())
-	`,
-		Run:              linter.run,
-		RunDespiteErrors: true,
-	}
 
-	a.Flags.Init("ginkgolinter", flag.ExitOnError)
-	a.Flags.Var(&linter.config.SuppressLen, "suppress-len-assertion", "Suppress warning for wrong length assertions")
-	a.Flags.Var(&linter.config.SuppressNil, "suppress-nil-assertion", "Suppress warning for wrong nil assertions")
-	a.Flags.Var(&linter.config.SuppressErr, "suppress-err-assertion", "Suppress warning for wrong error assertions")
-	a.Flags.Var(&linter.config.AllowHaveLen0, "allow-havelen-0", "Do not warn for HaveLen(0); default = false")
+* wrong error assertions. For example:
+	Expect(err == nil).Should(BeTrue())
+This should be replaced with:
+	Expect(err).ShouldNot(HaveOccurred())
 
-	return a
-}
+* wrong boolean comparison, for example:
+	Expect(x == 8).Should(BeTrue())
+This should be replaced with:
+	Expect(x).Should(BeEqual(8))
+
+* replaces Equal(true/false) with BeTrue()/BeFalse()
+
+* replaces HaveLen(0) with BeEmpty()
+`
 
 // main assertion function
 func (l *ginkgoLinter) run(pass *analysis.Pass) (interface{}, error) {
@@ -180,12 +185,93 @@ func checkExpression(pass *analysis.Pass, config types.Config, actualArg ast.Exp
 
 			return checkNilMatcher(assertionExp, pass, nilable, handler, compOp == token.NEQ, oldExpr)
 
+		} else if first, second, op, ok := isComparison(pass, actualArg); ok {
+			return bool(config.SuppressCompare) || checkComparison(assertionExp, pass, handler, first, second, op, oldExpr)
+
 		} else if isExprError(pass, actualArg) {
 			return bool(config.SuppressErr) || checkNilError(pass, assertionExp, handler, actualArg, oldExpr)
 
 		} else {
 			return handleAssertionOnly(pass, config, assertionExp, handler, actualArg, oldExpr)
 		}
+	}
+}
+
+func checkComparison(exp *ast.CallExpr, pass *analysis.Pass, handler gomegahandler.Handler, first ast.Expr, second ast.Expr, op token.Token, oldExp string) bool {
+	matcher, ok := exp.Args[0].(*ast.CallExpr)
+	if !ok {
+		return true
+	}
+
+	matcherFuncName, ok := handler.GetActualFuncName(matcher)
+	if !ok {
+		return true
+	}
+
+	switch matcherFuncName {
+	case beTrue:
+	case beFalse:
+		reverseAssertionFuncLogic(exp)
+	case equal:
+		boolean, found := matcher.Args[0].(*ast.Ident)
+		if !found {
+			return true
+		}
+
+		if boolean.Name == "false" {
+			reverseAssertionFuncLogic(exp)
+		} else if boolean.Name != "true" {
+			return true
+		}
+
+	case not:
+		reverseAssertionFuncLogic(exp)
+		exp.Args[0] = exp.Args[0].(*ast.CallExpr).Args[0]
+		return checkComparison(exp, pass, handler, first, second, op, oldExp)
+
+	default:
+		return true
+	}
+
+	fun, ok := exp.Fun.(*ast.SelectorExpr)
+	if !ok {
+		return true
+	}
+
+	call, ok := fun.X.(*ast.CallExpr)
+	if !ok {
+		return true
+	}
+
+	call.Args = []ast.Expr{first}
+	switch op {
+	case token.EQL:
+		handleEqualComparison(pass, matcher, second, handler)
+
+	case token.NEQ:
+		reverseAssertionFuncLogic(exp)
+		handleEqualComparison(pass, matcher, second, handler)
+	case token.GTR, token.GEQ, token.LSS, token.LEQ:
+		handler.ReplaceFunction(matcher, ast.NewIdent(beNumerically))
+		matcher.Args = []ast.Expr{
+			&ast.BasicLit{Kind: token.STRING, Value: fmt.Sprintf(`"%s"`, op.String())},
+			second,
+		}
+	default:
+		return true
+	}
+
+	report(pass, exp, wrongCompareWarningTemplate, oldExp)
+	return false
+}
+
+func handleEqualComparison(pass *analysis.Pass, matcher *ast.CallExpr, second ast.Expr, handler gomegahandler.Handler) {
+	if isZero(pass, second) {
+		handler.ReplaceFunction(matcher, ast.NewIdent(beZero))
+		matcher.Args = nil
+	} else {
+		handler.ReplaceFunction(matcher, ast.NewIdent(equal))
+		matcher.Args = []ast.Expr{second}
 	}
 }
 
@@ -217,11 +303,11 @@ func checkLengthMatcher(exp *ast.CallExpr, pass *analysis.Pass, handler gomegaha
 		handleEqualMatcher(matcher, pass, exp, handler, oldExp)
 		return false
 
-	case "BeZero":
+	case beZero:
 		handleBeZero(pass, exp, handler, oldExp)
 		return false
 
-	case "BeNumerically":
+	case beNumerically:
 		return handleBeNumerically(matcher, pass, exp, handler, oldExp)
 
 	case not:
@@ -384,13 +470,11 @@ func handleAssertionOnly(pass *analysis.Pass, config types.Config, assertionExp 
 		}
 
 		if len(equalFuncExpr.Args) > 0 {
-			if value, ok := equalFuncExpr.Args[0].(*ast.BasicLit); ok {
-				if value.Kind == token.INT && value.Value == "0" {
-					handler.ReplaceFunction(equalFuncExpr, ast.NewIdent(beEmpty))
-					equalFuncExpr.Args = nil
-					report(pass, assertionExp, wrongLengthWarningTemplate, oldExpr)
-					return false
-				}
+			if isZero(pass, equalFuncExpr.Args[0]) {
+				handler.ReplaceFunction(equalFuncExpr, ast.NewIdent(beEmpty))
+				equalFuncExpr.Args = nil
+				report(pass, assertionExp, wrongLengthWarningTemplate, oldExpr)
+				return false
 			}
 		}
 
@@ -403,6 +487,30 @@ func handleAssertionOnly(pass *analysis.Pass, config types.Config, assertionExp 
 	default:
 		return true
 	}
+}
+
+func isZero(pass *analysis.Pass, arg ast.Expr) bool {
+	if val, ok := arg.(*ast.BasicLit); ok && val.Kind == token.INT && val.Value == "0" {
+		return true
+	}
+	info, ok := pass.TypesInfo.Types[arg]
+	if ok {
+		if t, ok := info.Type.(*gotypes.Basic); ok && t.Kind() == gotypes.Int && info.Value != nil {
+			if i, ok := constant.Int64Val(info.Value); ok && i == 0 {
+				return true
+			}
+		}
+	} else if val, ok := arg.(*ast.Ident); ok && val.Obj != nil && val.Obj.Kind == ast.Con {
+		if spec, ok := val.Obj.Decl.(*ast.ValueSpec); ok {
+			if len(spec.Values) == 1 {
+				if value, ok := spec.Values[0].(*ast.BasicLit); ok && value.Kind == token.INT && value.Value == "0" {
+					return true
+				}
+			}
+		}
+	}
+
+	return false
 }
 
 // checks that the function is an assertion's actual function and return the "actual" parameter. If the function
@@ -488,13 +596,13 @@ func handleBeNumerically(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.Ca
 			reportLengthAssertion(pass, exp, handler, oldExp)
 			return false
 		} else if op == `"=="` {
-			chooseNumericMatcher(exp, handler, valExp)
+			chooseNumericMatcher(pass, exp, handler, valExp)
 			reportLengthAssertion(pass, exp, handler, oldExp)
 
 			return false
 		} else if op == `"!="` {
 			reverseAssertionFuncLogic(exp)
-			chooseNumericMatcher(exp, handler, valExp)
+			chooseNumericMatcher(pass, exp, handler, valExp)
 			reportLengthAssertion(pass, exp, handler, oldExp)
 
 			return false
@@ -503,9 +611,9 @@ func handleBeNumerically(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.Ca
 	return true
 }
 
-func chooseNumericMatcher(exp *ast.CallExpr, handler gomegahandler.Handler, valExp *ast.BasicLit) {
+func chooseNumericMatcher(pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, valExp ast.Expr) {
 	caller := exp.Args[0].(*ast.CallExpr)
-	if valExp.Value == "0" {
+	if isZero(pass, valExp) {
 		handler.ReplaceFunction(caller, ast.NewIdent(beEmpty))
 		exp.Args[0].(*ast.CallExpr).Args = nil
 	} else {
@@ -522,7 +630,7 @@ func reverseAssertionFuncLogic(exp *ast.CallExpr) {
 func handleEqualMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, oldExp string) {
 	equalTo, ok := matcher.Args[0].(*ast.BasicLit)
 	if ok {
-		chooseNumericMatcher(exp, handler, equalTo)
+		chooseNumericMatcher(pass, exp, handler, equalTo)
 	} else {
 		handler.ReplaceFunction(exp.Args[0].(*ast.CallExpr), ast.NewIdent(haveLen))
 		exp.Args[0].(*ast.CallExpr).Args = []ast.Expr{matcher.Args[0]}
@@ -649,6 +757,44 @@ func getNilableFromComparison(actualArg ast.Expr) (ast.Expr, token.Token) {
 func isNil(expr ast.Expr) bool {
 	nilObject, ok := expr.(*ast.Ident)
 	return ok && nilObject.Name == "nil" && nilObject.Obj == nil
+}
+
+func isComparison(pass *analysis.Pass, actualArg ast.Expr) (ast.Expr, ast.Expr, token.Token, bool) {
+	bin, ok := actualArg.(*ast.BinaryExpr)
+	if !ok {
+		return nil, nil, token.ILLEGAL, false
+	}
+
+	first, second, op := bin.X, bin.Y, bin.Op
+	replace := false
+	switch realFirst := first.(type) {
+	case *ast.Ident: // check if const
+		info, ok := pass.TypesInfo.Types[realFirst]
+		if ok {
+			if _, ok := info.Type.(*gotypes.Basic); ok && info.Value != nil {
+				replace = true
+			}
+		}
+
+	case *ast.BasicLit:
+		replace = true
+	}
+
+	if replace {
+		first, second = second, first
+	}
+
+	switch op {
+	case token.EQL:
+	case token.NEQ:
+	case token.GTR, token.GEQ, token.LSS, token.LEQ:
+		if replace {
+			op = reverseassertion.ChangeCompareOperator(op)
+		}
+	default:
+		return nil, nil, token.ILLEGAL, false
+	}
+	return first, second, op, true
 }
 
 func goFmt(fset *token.FileSet, x ast.Expr) string {

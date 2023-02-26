@@ -7,29 +7,32 @@ import (
 )
 
 const (
-	suppressPrefix                 = "ginkgo-linter:"
-	suppressLengthAssertionWarning = suppressPrefix + "ignore-len-assert-warning"
-	suppressNilAssertionWarning    = suppressPrefix + "ignore-nil-assert-warning"
-	suppressErrAssertionWarning    = suppressPrefix + "ignore-err-assert-warning"
+	suppressPrefix                  = "ginkgo-linter:"
+	suppressLengthAssertionWarning  = suppressPrefix + "ignore-len-assert-warning"
+	suppressNilAssertionWarning     = suppressPrefix + "ignore-nil-assert-warning"
+	suppressErrAssertionWarning     = suppressPrefix + "ignore-err-assert-warning"
+	suppressCompareAssertionWarning = suppressPrefix + "ignore-compare-assert-warning"
 )
 
 type Config struct {
-	SuppressLen   Boolean
-	SuppressNil   Boolean
-	SuppressErr   Boolean
-	AllowHaveLen0 Boolean
+	SuppressLen     Boolean
+	SuppressNil     Boolean
+	SuppressErr     Boolean
+	SuppressCompare Boolean
+	AllowHaveLen0   Boolean
 }
 
 func (s *Config) AllTrue() bool {
-	return bool(s.SuppressLen && s.SuppressNil && s.SuppressErr)
+	return bool(s.SuppressLen && s.SuppressNil && s.SuppressErr && s.SuppressCompare)
 }
 
 func (s *Config) Clone() Config {
 	return Config{
-		SuppressLen:   s.SuppressLen,
-		SuppressNil:   s.SuppressNil,
-		SuppressErr:   s.SuppressErr,
-		AllowHaveLen0: s.AllowHaveLen0,
+		SuppressLen:     s.SuppressLen,
+		SuppressNil:     s.SuppressNil,
+		SuppressErr:     s.SuppressErr,
+		SuppressCompare: s.SuppressCompare,
+		AllowHaveLen0:   s.AllowHaveLen0,
 	}
 }
 
@@ -50,6 +53,7 @@ func (s *Config) UpdateFromComment(commentGroup []*ast.CommentGroup) {
 				s.SuppressLen = s.SuppressLen || (comment == suppressLengthAssertionWarning)
 				s.SuppressNil = s.SuppressNil || (comment == suppressNilAssertionWarning)
 				s.SuppressErr = s.SuppressErr || (comment == suppressErrAssertionWarning)
+				s.SuppressCompare = s.SuppressCompare || (comment == suppressCompareAssertionWarning)
 			}
 		}
 	}

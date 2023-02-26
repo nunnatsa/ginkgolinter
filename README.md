@@ -159,11 +159,51 @@ It also supports the embedded `Not()` matcher; e.g.
 
 `Ω(err == nil).Should(Not(BeTrue()))` => `Ω(x).Should(HaveOccurred())`
 
+### Wrong Comparison Assertion
+The linter finds assertion of boolean comparisons, which are already supported by existing gomega matchers. 
+
+The linter assumes that when compared something to literals or constants, these values should be used for the assertion,
+and it will do its best to suggest the right assertion expression accordingly. 
+
+There are several wrong patterns:
+```go
+var x = 10
+var s = "abcd"
+
+...
+
+Expect(x == 10).Should(BeTrue()) // should be Expect(x).Should(Equal(10))
+Expect(10 == x).Should(BeTrue()) // should be Expect(x).Should(Equal(10))
+Expect(x != 5).Should(Equal(true)) // should be Expect(x).ShouldNot(Equal(5))
+Expect(x != 0).Should(Equal(true)) // should be Expect(x).ShouldNot(BeZero())
+
+Expect(s != "abcd").Should(BeFalse()) // should be Expect(s).Should(Equal("abcd"))
+Expect("abcd" != s).Should(BeFalse()) // should be Expect(s).Should(Equal("abcd"))
+```
+Or non-equal comparisons:
+```go
+Expect(x > 10).To(BeTrue()) // ==> Expect(x).To(BeNumerically(">", 10))
+Expect(x >= 15).To(BeTrue()) // ==> Expect(x).To(BeNumerically(">=", 15))
+Expect(3 > y).To(BeTrue()) // ==> Expect(y).To(BeNumerically("<", 3))
+// and so on ...
+```
+
+This check included a limited support in constant values. For example:
+```go
+const c1 = 5
+
+...
+
+Expect(x1 == c1).Should(BeTrue()) // ==> Expect(x1).Should(Equal(c1))
+Expect(c1 == x1).Should(BeTrue()) // ==> Expect(x1).Should(Equal(c1))
+```
+
 ## Suppress the linter
 ### Suppress warning from command line
 * Use the `--suppress-len-assertion=true` flag to suppress the wrong length assertion warning
 * Use the `--suppress-nil-assertion=true` flag to suppress the wrong nil assertion warning
 * Use the `--suppress-err-assertion=true` flag to suppress the wrong error assertion warning
+* Use the `--suppress-compare-assertion=true` flag to suppress the wrong comparison assertion warning
 * Use the `--allow-havelen-0=true` flag to avoid warnings about `HaveLen(0)`; Note: this parameter is only supported from
   command line, and not from a comment.
 
@@ -179,6 +219,10 @@ To suppress the wrong nil assertion warning, add a comment with (only)
 To suppress the wrong error assertion warning, add a comment with (only)
 
 `ginkgo-linter:ignore-err-assert-warning`. 
+
+To suppress the wrong comparison assertion warning, add a comment with (only)
+
+`ginkgo-linter:ignore-compare-assert-warning`. 
 
 There are two options to use these comments:
 1. If the comment is at the top of the file, supress the warning for the whole file; e.g.:
