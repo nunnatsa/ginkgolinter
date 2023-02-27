@@ -34,6 +34,7 @@ const (
 	beFalse                     = "BeFalse"
 	beZero                      = "BeZero"
 	beNumerically               = "BeNumerically"
+	beIdenticalTo               = "BeIdenticalTo"
 	equal                       = "Equal"
 	not                         = "Not"
 	haveLen                     = "HaveLen"
@@ -246,11 +247,11 @@ func checkComparison(exp *ast.CallExpr, pass *analysis.Pass, handler gomegahandl
 	call.Args = []ast.Expr{first}
 	switch op {
 	case token.EQL:
-		handleEqualComparison(pass, matcher, second, handler)
+		handleEqualComparison(pass, matcher, first, second, handler)
 
 	case token.NEQ:
 		reverseAssertionFuncLogic(exp)
-		handleEqualComparison(pass, matcher, second, handler)
+		handleEqualComparison(pass, matcher, first, second, handler)
 	case token.GTR, token.GEQ, token.LSS, token.LEQ:
 		handler.ReplaceFunction(matcher, ast.NewIdent(beNumerically))
 		matcher.Args = []ast.Expr{
@@ -265,12 +266,20 @@ func checkComparison(exp *ast.CallExpr, pass *analysis.Pass, handler gomegahandl
 	return false
 }
 
-func handleEqualComparison(pass *analysis.Pass, matcher *ast.CallExpr, second ast.Expr, handler gomegahandler.Handler) {
+func handleEqualComparison(pass *analysis.Pass, matcher *ast.CallExpr, first ast.Expr, second ast.Expr, handler gomegahandler.Handler) {
 	if isZero(pass, second) {
 		handler.ReplaceFunction(matcher, ast.NewIdent(beZero))
 		matcher.Args = nil
 	} else {
-		handler.ReplaceFunction(matcher, ast.NewIdent(equal))
+		t := pass.TypesInfo.TypeOf(first)
+		if gotypes.IsInterface(t) {
+			handler.ReplaceFunction(matcher, ast.NewIdent(beIdenticalTo))
+		} else if _, ok := t.(*gotypes.Pointer); ok {
+			handler.ReplaceFunction(matcher, ast.NewIdent(beIdenticalTo))
+		} else {
+			handler.ReplaceFunction(matcher, ast.NewIdent(equal))
+		}
+
 		matcher.Args = []ast.Expr{second}
 	}
 }
