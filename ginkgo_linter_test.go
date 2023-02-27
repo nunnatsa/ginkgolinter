@@ -57,6 +57,10 @@ func TestAllUseCases(t *testing.T) {
 			testName: "comparison",
 			testData: "a/comparison",
 		},
+		{
+			testName: "pointers",
+			testData: "a/pointers",
+		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
 			analysistest.Run(tt, analysistest.TestData(), ginkgolinter.NewAnalyzer(), tc.testData)
