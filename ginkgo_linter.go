@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"github.com/go-toolsmith/astcopy"
 	"go/ast"
 	"go/constant"
 	"go/printer"
 	"go/token"
 	gotypes "go/types"
+
+	"github.com/go-toolsmith/astcopy"
 	"golang.org/x/tools/go/analysis"
 
 	"github.com/nunnatsa/ginkgolinter/gomegahandler"
@@ -156,21 +157,26 @@ func (l *ginkgoLinter) run(pass *analysis.Pass) (interface{}, error) {
 				return true
 			}
 
-			actualArg := getActualArg(assertionFunc, handler)
-			if actualArg == nil {
+			actualExpr := handler.GetActualExpr(assertionFunc)
+			if actualExpr == nil {
 				return true
 			}
 
-			return checkExpression(pass, config, actualArg, assertionExp, handler)
-
+			return checkExpression(pass, config, assertionExp, actualExpr, handler)
 		})
 	}
 	return nil, nil
 }
 
-func checkExpression(pass *analysis.Pass, config types.Config, actualArg ast.Expr, assertionExp *ast.CallExpr, handler gomegahandler.Handler) bool {
+func checkExpression(pass *analysis.Pass, config types.Config, assertionExp *ast.CallExpr, actualExpr *ast.CallExpr, handler gomegahandler.Handler) bool {
 	assertionExp = astcopy.CallExpr(assertionExp)
 	oldExpr := goFmt(pass.Fset, assertionExp)
+
+	actualArg := getActualArg(actualExpr, handler)
+	if actualArg == nil {
+		return true
+	}
+
 	if !bool(config.SuppressLen) && isActualIsLenFunc(actualArg) {
 
 		return checkLengthMatcher(assertionExp, pass, handler, oldExpr)
@@ -239,12 +245,11 @@ func checkComparison(exp *ast.CallExpr, pass *analysis.Pass, handler gomegahandl
 		return true
 	}
 
-	call, ok := fun.X.(*ast.CallExpr)
-	if !ok {
+	call := handler.GetActualExpr(fun)
+	if call == nil {
 		return true
 	}
 
-	call.Args = []ast.Expr{first}
 	switch op {
 	case token.EQL:
 		handleEqualComparison(pass, matcher, first, second, handler)
@@ -262,6 +267,7 @@ func checkComparison(exp *ast.CallExpr, pass *analysis.Pass, handler gomegahandl
 		return true
 	}
 
+	call.Args = []ast.Expr{first}
 	report(pass, exp, wrongCompareWarningTemplate, oldExp)
 	return false
 }
@@ -522,14 +528,9 @@ func isZero(pass *analysis.Pass, arg ast.Expr) bool {
 	return false
 }
 
-// checks that the function is an assertion's actual function and return the "actual" parameter. If the function
-// is not assertion's actual function, return nil.
-func getActualArg(assertionFunc *ast.SelectorExpr, handler gomegahandler.Handler) ast.Expr {
-	actualExpr, ok := assertionFunc.X.(*ast.CallExpr)
-	if !ok {
-		return nil
-	}
-
+// getActualArg checks that the function is an assertion's actual function and return the "actual" parameter. If the
+// function is not assertion's actual function, return nil.
+func getActualArg(actualExpr *ast.CallExpr, handler gomegahandler.Handler) ast.Expr {
 	funcName, ok := handler.GetActualFuncName(actualExpr)
 	if !ok {
 		return nil
@@ -704,13 +705,15 @@ func isAssertionFunc(name string) bool {
 }
 
 func reportLengthAssertion(pass *analysis.Pass, expr *ast.CallExpr, handler gomegahandler.Handler, oldExpr string) {
-	replaceLenActualArg(expr.Fun.(*ast.SelectorExpr).X.(*ast.CallExpr), handler)
+	actualExpr := handler.GetActualExpr(expr.Fun.(*ast.SelectorExpr))
+	replaceLenActualArg(actualExpr, handler)
 
 	report(pass, expr, wrongLengthWarningTemplate, oldExpr)
 }
 
 func reportNilAssertion(pass *analysis.Pass, expr *ast.CallExpr, handler gomegahandler.Handler, nilable ast.Expr, notEqual bool, oldExpr string, isItError bool) {
-	changed := replaceNilActualArg(expr.Fun.(*ast.SelectorExpr).X.(*ast.CallExpr), handler, nilable)
+	actualExpr := handler.GetActualExpr(expr.Fun.(*ast.SelectorExpr))
+	changed := replaceNilActualArg(actualExpr, handler, nilable)
 	if !changed {
 		return
 	}
