@@ -29,8 +29,9 @@ var _ = Describe("remove comparison", func() {
 
 			exampleInt = 0
 
-			g.Expect(exampleInt == 0).To(g.Equal(true)) // want `ginkgo-linter: wrong comparison assertion; consider using .g\.Expect\(exampleInt\)\.To\(g\.BeZero\(\)\). instead`
-			g.Expect(exampleInt == 0).To(g.BeTrue())    // want `ginkgo-linter: wrong comparison assertion; consider using .g\.Expect\(exampleInt\)\.To\(g\.BeZero\(\)\). instead`
+			g.Expect(exampleInt == 0).To(g.Equal(true))            // want `ginkgo-linter: wrong comparison assertion; consider using .g\.Expect\(exampleInt\)\.To\(g\.BeZero\(\)\). instead`
+			g.Expect(exampleInt == 0).To(g.BeTrue())               // want `ginkgo-linter: wrong comparison assertion; consider using .g\.Expect\(exampleInt\)\.To\(g\.BeZero\(\)\). instead`
+			g.Expect(exampleInt == 0).WithOffset(5).To(g.BeTrue()) // want `ginkgo-linter: wrong comparison assertion; consider using .g.Expect\(exampleInt\)\.WithOffset\(5\)\.To\(g\.BeZero\(\)\). instead`
 		})
 		It("should find comparison assertions", func() {
 			g.Expect(exampleInt == 1).To(g.BeTrue())  // want `ginkgo-linter: wrong comparison assertion; consider using .g\.Expect\(exampleInt\)\.To\(g\.Equal\(1\)\). instead`

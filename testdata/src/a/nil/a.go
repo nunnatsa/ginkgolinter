@@ -24,8 +24,9 @@ var _ = Describe("", func() {
 		Context("test Should", func() {
 			Context("test BeTrue", func() {
 				It("test nil value", func() {
-					Expect(x == nil).Should(BeTrue()) // want `ginkgo-linter: wrong nil assertion; consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
-					Expect(nil == x).Should(BeTrue()) // want `ginkgo-linter: wrong nil assertion; consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+					Expect(x == nil).Should(BeTrue())               // want `ginkgo-linter: wrong nil assertion; consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+					Expect(x == nil).WithOffset(1).Should(BeTrue()) // want `ginkgo-linter: wrong nil assertion; consider using .Expect\(x\)\.WithOffset\(1\)\.Should\(BeNil\(\)\). instead`
+					Expect(nil == x).Should(BeTrue())               // want `ginkgo-linter: wrong nil assertion; consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
 				})
 				It("test non-nil value", func() {
 					Expect(y != nil).Should(BeTrue()) // want `ginkgo-linter: wrong nil assertion; consider using .Expect\(y\)\.ShouldNot\(BeNil\(\)\). instead`
