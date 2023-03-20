@@ -51,7 +51,8 @@ var _ = Describe("remove comparison", func() {
 			g.Expect(exampleFloat32 == constOne).To(g.BeTrue()) // want `ginkgo-linter: wrong comparison assertion; consider using .g\.Expect\(exampleFloat32\)\.To\(g\.Equal\(constOne\)\). instead`
 		})
 		It("imported const", func() {
-			g.Expect(time.Millisecond == 1000000).To(g.BeTrue()) // want `ginkgo-linter: wrong comparison assertion; consider using .g\.Expect\(time.Millisecond\)\.To\(g\.Equal\(1000000\)\). instead`
+			g.Expect(time.Millisecond == 1000000).To(g.BeTrue())               // want `ginkgo-linter: wrong comparison assertion; consider using .g\.Expect\(time.Millisecond\)\.To\(g\.Equal\(1000000\)\). instead`
+			g.Expect(time.Millisecond == 1000000).WithOffset(6).To(g.BeTrue()) // want `ginkgo-linter: wrong comparison assertion; consider using .g\.Expect\(time.Millisecond\)\.WithOffset\(6\)\.To\(g\.Equal\(1000000\)\). instead`
 		})
 	})
 

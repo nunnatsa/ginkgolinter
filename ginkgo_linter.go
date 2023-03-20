@@ -30,6 +30,7 @@ const (
 	wrongErrWarningTemplate       = linterName + ": wrong error assertion; consider using `%s` instead"
 	wrongCompareWarningTemplate   = linterName + ": wrong comparison assertion; consider using `%s` instead"
 	doubleNegativeWarningTemplate = linterName + ": avoid double negative assertion; consider using `%s` instead"
+	valueInEventually             = linterName + ": use a function call in %s. This actually checks nothing, because %s receives the function returned value, instead of function itself, and this value is never changed"
 	beEmpty                       = "BeEmpty"
 	beNil                         = "BeNil"
 	beTrue                        = "BeTrue"
@@ -78,6 +79,7 @@ func NewAnalyzer() *analysis.Analyzer {
 	a.Flags.Var(&linter.config.SuppressNil, "suppress-nil-assertion", "Suppress warning for wrong nil assertions")
 	a.Flags.Var(&linter.config.SuppressErr, "suppress-err-assertion", "Suppress warning for wrong error assertions")
 	a.Flags.Var(&linter.config.SuppressCompare, "suppress-compare-assertion", "Suppress warning for wrong comparison assertions")
+	a.Flags.Var(&linter.config.SuppressAsync, "suppress-async-assertion", "Suppress warning for function call in async assertion, like Eventually")
 	a.Flags.Var(&linter.config.AllowHaveLen0, "allow-havelen-0", "Do not warn for HaveLen(0); default = false")
 
 	return a
@@ -111,6 +113,10 @@ This should be replaced with:
 * replaces Equal(true/false) with BeTrue()/BeFalse()
 
 * replaces HaveLen(0) with BeEmpty()
+
+* trigger a warning when using Eventually or Constantly with a function call. This is in order to prevent the case when 
+  using a function call instead of a function. Function call returns a value only once, and so the original value
+  is tested again and again and is never changed.
 `
 
 // main assertion function
@@ -135,7 +141,6 @@ func (l *ginkgoLinter) run(pass *analysis.Pass) (interface{}, error) {
 		}
 
 		ast.Inspect(file, func(n ast.Node) bool {
-
 			stmt, ok := n.(*ast.ExprStmt)
 			if !ok {
 				return true
@@ -173,13 +178,16 @@ func checkExpression(pass *analysis.Pass, config types.Config, assertionExp *ast
 	assertionExp = astcopy.CallExpr(assertionExp)
 	oldExpr := goFmt(pass.Fset, assertionExp)
 
+	if checkAsyncAssertion(pass, config, assertionExp, actualExpr, handler, oldExpr) {
+		return true
+	}
+
 	actualArg := getActualArg(actualExpr, handler)
 	if actualArg == nil {
 		return true
 	}
 
 	if !bool(config.SuppressLen) && isActualIsLenFunc(actualArg) {
-
 		return checkLengthMatcher(assertionExp, pass, handler, oldExpr)
 	} else {
 		if nilable, compOp := getNilableFromComparison(actualArg); nilable != nil {
@@ -209,9 +217,76 @@ func checkExpression(pass *analysis.Pass, config types.Config, assertionExp *ast
 			return bool(config.SuppressErr) || checkNilError(pass, assertionExp, handler, actualArg, oldExpr)
 
 		} else {
-			return handleAssertionOnly(pass, config, assertionExp, handler, actualArg, oldExpr)
+			return handleAssertionOnly(pass, config, assertionExp, handler, actualArg, oldExpr, true)
 		}
 	}
+}
+
+// check async assertion does not assert function call. This is a real bug in the test. In this case, the assertion is
+// done on the returned value, instead of polling the result of a function, for instance.
+func checkAsyncAssertion(pass *analysis.Pass, config types.Config, expr *ast.CallExpr, actualExpr *ast.CallExpr, handler gomegahandler.Handler, oldExpr string) bool {
+	funcName, ok := handler.GetActualFuncName(actualExpr)
+	if !ok {
+		return false
+	}
+
+	var funcIndex int
+	switch funcName {
+	case "Eventually", "Consistently":
+		funcIndex = 0
+	case "EventuallyWithOffset", "ConsistentlyWithOffset":
+		funcIndex = 1
+	default:
+		return false
+	}
+
+	if !config.SuppressAsync && len(actualExpr.Args) > funcIndex {
+		t := pass.TypesInfo.TypeOf(actualExpr.Args[funcIndex])
+
+		// skip context variable, if used as first argument
+		if "context.Context" == t.String() {
+			funcIndex++
+		}
+
+		if len(actualExpr.Args) > funcIndex {
+			if fun, funcCall := actualExpr.Args[funcIndex].(*ast.CallExpr); funcCall {
+				t = pass.TypesInfo.TypeOf(fun)
+				switch t.(type) {
+				// allow functions that return function or channel.
+				case *gotypes.Signature, *gotypes.Chan:
+				default:
+					actualExpr = handler.GetActualExpr(expr.Fun.(*ast.SelectorExpr))
+
+					if len(fun.Args) > 0 {
+						origArgs := actualExpr.Args
+						origFunc := actualExpr.Fun
+						actualExpr.Args = fun.Args
+
+						origArgs[funcIndex] = fun.Fun
+						call := &ast.SelectorExpr{
+							Sel: ast.NewIdent("WithArguments"),
+							X: &ast.CallExpr{
+								Fun:  origFunc,
+								Args: origArgs,
+							},
+						}
+
+						actualExpr.Fun = call
+						actualExpr.Args = fun.Args
+					} else {
+						actualExpr.Args[funcIndex] = fun.Fun
+					}
+
+					handleAssertionOnly(pass, config, expr, handler, actualExpr, oldExpr, false)
+					report(pass, expr, fmt.Sprintf(valueInEventually, funcName, funcName)+"; consider using `%s` instead", oldExpr)
+					return true
+				}
+			}
+		}
+	}
+
+	handleAssertionOnly(pass, config, expr, handler, actualExpr, oldExpr, true)
+	return true
 }
 
 func startCheckComparison(exp *ast.CallExpr, handler gomegahandler.Handler) (*ast.CallExpr, bool) {
@@ -472,7 +547,7 @@ func checkNilError(pass *analysis.Pass, assertionExp *ast.CallExpr, handler gome
 //	Equal(true) => BeTrue()
 //	Equal(false) => BeFalse()
 //	HaveLen(0) => BeEmpty()
-func handleAssertionOnly(pass *analysis.Pass, config types.Config, assertionExp *ast.CallExpr, handler gomegahandler.Handler, actualArg ast.Expr, oldExpr string) bool {
+func handleAssertionOnly(pass *analysis.Pass, config types.Config, assertionExp *ast.CallExpr, handler gomegahandler.Handler, actualArg ast.Expr, oldExpr string, shouldReport bool) bool {
 	if len(assertionExp.Args) == 0 {
 		return true
 	}
@@ -525,7 +600,9 @@ func handleAssertionOnly(pass *analysis.Pass, config types.Config, assertionExp 
 		handler.ReplaceFunction(equalFuncExpr, ast.NewIdent(replacement))
 		equalFuncExpr.Args = nil
 
-		report(pass, assertionExp, template, oldExpr)
+		if shouldReport {
+			report(pass, assertionExp, template, oldExpr)
+		}
 
 		return false
 
@@ -533,7 +610,9 @@ func handleAssertionOnly(pass *analysis.Pass, config types.Config, assertionExp 
 		if isNegativeAssertion(assertionExp) {
 			reverseAssertionFuncLogic(assertionExp)
 			handler.ReplaceFunction(equalFuncExpr, ast.NewIdent(beTrue))
-			report(pass, assertionExp, doubleNegativeWarningTemplate, oldExpr)
+			if shouldReport {
+				report(pass, assertionExp, doubleNegativeWarningTemplate, oldExpr)
+			}
 		}
 		return false
 
@@ -546,7 +625,9 @@ func handleAssertionOnly(pass *analysis.Pass, config types.Config, assertionExp 
 			if isZero(pass, equalFuncExpr.Args[0]) {
 				handler.ReplaceFunction(equalFuncExpr, ast.NewIdent(beEmpty))
 				equalFuncExpr.Args = nil
-				report(pass, assertionExp, wrongLengthWarningTemplate, oldExpr)
+				if shouldReport {
+					report(pass, assertionExp, wrongLengthWarningTemplate, oldExpr)
+				}
 				return false
 			}
 		}
@@ -556,7 +637,7 @@ func handleAssertionOnly(pass *analysis.Pass, config types.Config, assertionExp 
 	case not:
 		reverseAssertionFuncLogic(assertionExp)
 		assertionExp.Args[0] = assertionExp.Args[0].(*ast.CallExpr).Args[0]
-		return handleAssertionOnly(pass, config, assertionExp, handler, actualArg, oldExpr)
+		return handleAssertionOnly(pass, config, assertionExp, handler, actualArg, oldExpr, shouldReport)
 	default:
 		return true
 	}
@@ -759,6 +840,7 @@ func handleNilComparisonErr(pass *analysis.Pass, exp *ast.CallExpr, nilable ast.
 
 	return newFuncName, isItError
 }
+
 func isAssertionFunc(name string) bool {
 	switch name {
 	case "To", "ToNot", "NotTo", "Should", "ShouldNot":
