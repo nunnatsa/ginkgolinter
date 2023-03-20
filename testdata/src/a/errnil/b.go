@@ -17,6 +17,7 @@ var _ = Describe("check Expect(err).To(BeNil())", func() {
 		gomega.ExpectWithOffset(1, err).To(gomega.BeNil())            // want `ginkgo-linter: wrong error assertion; consider using .gomega\.ExpectWithOffset\(1, err\)\.ToNot\(gomega\.HaveOccurred\(\)\). instead`
 		gomega.Expect(err).To(gomega.Not(gomega.BeNil()))             // want `ginkgo-linter: wrong error assertion; consider using .gomega\.Expect\(err\)\.To\(gomega\.HaveOccurred\(\)\). instead`
 		gomega.Expect(err).ToNot(gomega.BeNil())                      // want `ginkgo-linter: wrong error assertion; consider using .gomega\.Expect\(err\)\.To\(gomega\.HaveOccurred\(\)\). instead`
+		gomega.Expect(err).ToNot(gomega.Equal(nil))                   // want `ginkgo-linter: wrong error assertion; consider using .gomega\.Expect\(err\)\.To\(gomega\.HaveOccurred\(\)\). instead`
 
 		gomega.Expect(tt.err).To(gomega.BeNil()) // want `ginkgo-linter: wrong error assertion; consider using .gomega\.Expect\(tt\.err\)\.ToNot\(gomega\.HaveOccurred\(\)\). instead`
 
@@ -25,16 +26,18 @@ var _ = Describe("check Expect(err).To(BeNil())", func() {
 		gomega.Expect(tupleFunc()).ToNot(gomega.BeNil())        // want `ginkgo-linter: wrong error assertion; consider using .gomega\.Expect\(tupleFunc\(\)\)\.ToNot\(gomega\.Succeed\(\)\). instead`
 		gomega.Expect(noErrorFunc()).ToNot(gomega.Equal(1))
 
-		gomega.Expect(tt.typeErrorFunc()).ToNot(gomega.BeNil()) // want `ginkgo-linter: wrong error assertion; consider using .gomega\.Expect\(tt\.typeErrorFunc\(\)\)\.ToNot\(gomega\.Succeed\(\)\). instead`
-		gomega.Expect(tt.typeTupleFunc()).ToNot(gomega.BeNil()) // want `ginkgo-linter: wrong error assertion; consider using .gomega\.Expect\(tt\.typeTupleFunc\(\)\)\.ToNot\(gomega\.Succeed\(\)\). instead`
+		gomega.Expect(tt.typeErrorFunc()).ToNot(gomega.BeNil())               // want `ginkgo-linter: wrong error assertion; consider using .gomega\.Expect\(tt\.typeErrorFunc\(\)\)\.ToNot\(gomega\.Succeed\(\)\). instead`
+		gomega.Expect(tt.typeTupleFunc()).ToNot(gomega.BeNil())               // want `ginkgo-linter: wrong error assertion; consider using .gomega\.Expect\(tt\.typeTupleFunc\(\)\)\.ToNot\(gomega\.Succeed\(\)\). instead`
+		gomega.Expect(tt.typeTupleFunc()).WithOffset(1).ToNot(gomega.BeNil()) // want `ginkgo-linter: wrong error assertion; consider using .gomega\.Expect\(tt\.typeTupleFunc\(\)\)\.WithOffset\(1\)\.ToNot\(gomega\.Succeed\(\)\). instead`
 		gomega.Expect(tt.typeNoErrorFunc()).ToNot(gomega.Equal(1))
 	})
 
 	It("check err == nil", func() {
-		gomega.Expect(err == nil).To(gomega.BeTrue())        // want `ginkgo-linter: wrong error assertion; consider using .gomega\.Expect\(err\)\.ToNot\(gomega\.HaveOccurred\(\)\). instead`
-		gomega.Expect(err != nil).To(gomega.BeFalse())       // want `ginkgo-linter: wrong error assertion; consider using .gomega\.Expect\(err\)\.ToNot\(gomega\.HaveOccurred\(\)\). instead`
-		gomega.Expect(nil == err).To(gomega.BeTrue())        // want `ginkgo-linter: wrong error assertion; consider using .gomega\.Expect\(err\)\.ToNot\(gomega\.HaveOccurred\(\)\). instead`
-		gomega.Expect(nil == errFunc()).To(gomega.BeTrue())  // want `ginkgo-linter: wrong error assertion; consider using .gomega\.Expect\(errFunc\(\)\)\.To\(gomega\.Succeed\(\)\). instead`
-		gomega.Expect(errFunc() != nil).To(gomega.BeFalse()) // want `ginkgo-linter: wrong error assertion; consider using .gomega\.Expect\(errFunc\(\)\)\.To\(gomega\.Succeed\(\)\). instead`
+		gomega.Expect(err == nil).To(gomega.BeTrue())               // want `ginkgo-linter: wrong error assertion; consider using .gomega\.Expect\(err\)\.ToNot\(gomega\.HaveOccurred\(\)\). instead`
+		gomega.Expect(err == nil).WithOffset(1).To(gomega.BeTrue()) // want `ginkgo-linter: wrong error assertion; consider using .gomega\.Expect\(err\)\.WithOffset\(1\)\.ToNot\(gomega\.HaveOccurred\(\)\). instead`
+		gomega.Expect(err != nil).To(gomega.BeFalse())              // want `ginkgo-linter: wrong error assertion; consider using .gomega\.Expect\(err\)\.ToNot\(gomega\.HaveOccurred\(\)\). instead`
+		gomega.Expect(nil == err).To(gomega.BeTrue())               // want `ginkgo-linter: wrong error assertion; consider using .gomega\.Expect\(err\)\.ToNot\(gomega\.HaveOccurred\(\)\). instead`
+		gomega.Expect(nil == errFunc()).To(gomega.BeTrue())         // want `ginkgo-linter: wrong error assertion; consider using .gomega\.Expect\(errFunc\(\)\)\.To\(gomega\.Succeed\(\)\). instead`
+		gomega.Expect(errFunc() != nil).To(gomega.BeFalse())        // want `ginkgo-linter: wrong error assertion; consider using .gomega\.Expect\(errFunc\(\)\)\.To\(gomega\.Succeed\(\)\). instead`
 	})
 })

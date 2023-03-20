@@ -9,6 +9,7 @@ func TestSuppress_AllTrue(t *testing.T) {
 		SuppressLen:     true,
 		SuppressNil:     true,
 		SuppressErr:     true,
+		SuppressAsync:   true,
 		SuppressCompare: true,
 	}
 
@@ -48,6 +49,7 @@ func TestSuppress_Clone(t *testing.T) {
 		SuppressNil:     true,
 		SuppressErr:     true,
 		SuppressCompare: true,
+		SuppressAsync:   true,
 	}
 
 	clone := s.Clone()
