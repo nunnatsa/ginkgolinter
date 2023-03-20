@@ -23,27 +23,28 @@ import (
 // For more details, look at the README.md file
 
 const (
-	linterName                  = "ginkgo-linter"
-	wrongLengthWarningTemplate  = linterName + ": wrong length assertion; consider using `%s` instead"
-	wrongNilWarningTemplate     = linterName + ": wrong nil assertion; consider using `%s` instead"
-	wrongBoolWarningTemplate    = linterName + ": wrong boolean assertion; consider using `%s` instead"
-	wrongErrWarningTemplate     = linterName + ": wrong error assertion; consider using `%s` instead"
-	wrongCompareWarningTemplate = linterName + ": wrong comparison assertion; consider using `%s` instead"
-	beEmpty                     = "BeEmpty"
-	beNil                       = "BeNil"
-	beTrue                      = "BeTrue"
-	beFalse                     = "BeFalse"
-	beZero                      = "BeZero"
-	beNumerically               = "BeNumerically"
-	beIdenticalTo               = "BeIdenticalTo"
-	equal                       = "Equal"
-	not                         = "Not"
-	haveLen                     = "HaveLen"
-	succeed                     = "Succeed"
-	haveOccurred                = "HaveOccurred"
-	expect                      = "Expect"
-	omega                       = "Ω"
-	expectWithOffset            = "ExpectWithOffset"
+	linterName                    = "ginkgo-linter"
+	wrongLengthWarningTemplate    = linterName + ": wrong length assertion; consider using `%s` instead"
+	wrongNilWarningTemplate       = linterName + ": wrong nil assertion; consider using `%s` instead"
+	wrongBoolWarningTemplate      = linterName + ": wrong boolean assertion; consider using `%s` instead"
+	wrongErrWarningTemplate       = linterName + ": wrong error assertion; consider using `%s` instead"
+	wrongCompareWarningTemplate   = linterName + ": wrong comparison assertion; consider using `%s` instead"
+	doubleNegativeWarningTemplate = linterName + ": avoid double negative assertion; consider using `%s` instead"
+	beEmpty                       = "BeEmpty"
+	beNil                         = "BeNil"
+	beTrue                        = "BeTrue"
+	beFalse                       = "BeFalse"
+	beZero                        = "BeZero"
+	beNumerically                 = "BeNumerically"
+	beIdenticalTo                 = "BeIdenticalTo"
+	equal                         = "Equal"
+	not                           = "Not"
+	haveLen                       = "HaveLen"
+	succeed                       = "Succeed"
+	haveOccurred                  = "HaveOccurred"
+	expect                        = "Expect"
+	omega                         = "Ω"
+	expectWithOffset              = "ExpectWithOffset"
 )
 
 // Analyzer is the interface to go_vet
@@ -466,7 +467,12 @@ func handleAssertionOnly(pass *analysis.Pass, config types.Config, assertionExp 
 			replacement = beTrue
 			template = wrongBoolWarningTemplate
 		case "false":
-			replacement = beFalse
+			if isNegativeAssertion(assertionExp) {
+				reverseAssertionFuncLogic(assertionExp)
+				replacement = beTrue
+			} else {
+				replacement = beFalse
+			}
 			template = wrongBoolWarningTemplate
 		default:
 			return true
@@ -477,6 +483,14 @@ func handleAssertionOnly(pass *analysis.Pass, config types.Config, assertionExp 
 
 		report(pass, assertionExp, template, oldExpr)
 
+		return false
+
+	case beFalse:
+		if isNegativeAssertion(assertionExp) {
+			reverseAssertionFuncLogic(assertionExp)
+			handler.ReplaceFunction(equalFuncExpr, ast.NewIdent(beTrue))
+			report(pass, assertionExp, doubleNegativeWarningTemplate, oldExpr)
+		}
 		return false
 
 	case haveLen:
@@ -635,6 +649,11 @@ func chooseNumericMatcher(pass *analysis.Pass, exp *ast.CallExpr, handler gomega
 func reverseAssertionFuncLogic(exp *ast.CallExpr) {
 	assertionFunc := exp.Fun.(*ast.SelectorExpr).Sel
 	assertionFunc.Name = reverseassertion.ChangeAssertionLogic(assertionFunc.Name)
+}
+
+func isNegativeAssertion(exp *ast.CallExpr) bool {
+	assertionFunc := exp.Fun.(*ast.SelectorExpr).Sel
+	return reverseassertion.IsNegativeLogic(assertionFunc.Name)
 }
 
 func handleEqualMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, oldExp string) {
