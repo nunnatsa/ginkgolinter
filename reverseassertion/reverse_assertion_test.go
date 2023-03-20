@@ -64,3 +64,21 @@ func TestChangeCompareOperator(t *testing.T) {
 		})
 	}
 }
+
+func TestIsNegativeLogic(t *testing.T) {
+	for _, funcName := range []string{"ToNot", "NotTo", "ShouldNot"} {
+		t.Run("check "+funcName, func(tt *testing.T) {
+			if !reverseassertion.IsNegativeLogic(funcName) {
+				tt.Errorf("%s should be a negative function", funcName)
+			}
+		})
+	}
+
+	for _, methodName := range []string{"To", "Should", "Unsupported"} {
+		t.Run("check "+methodName, func(tt *testing.T) {
+			if reverseassertion.IsNegativeLogic(methodName) {
+				tt.Errorf("%s should be a positive method", methodName)
+			}
+		})
+	}
+}
