@@ -41,10 +41,10 @@ jobs:
         cp ginkgolinter testdata/src/a
         cd testdata/src/a
 
-        [[ $(./ginkgolinter ./... 2>&1 | wc -l) == 2223 ]]
+        [[ $(./ginkgolinter ./... 2>&1 | wc -l) == 2236 ]]
         [[ $(./ginkgolinter --suppress-len-assertion=true --suppress-err-assertion=true --suppress-compare-assertion=true ./... 2>&1 | wc -l) == 1384 ]]
-        [[ $(./ginkgolinter --suppress-nil-assertion=true --suppress-err-assertion=true --suppress-compare-assertion=true ./... 2>&1 | wc -l) == 644 ]]
+        [[ $(./ginkgolinter --suppress-nil-assertion=true --suppress-err-assertion=true --suppress-compare-assertion=true ./... 2>&1 | wc -l) == 649 ]]
         [[ $(./ginkgolinter --suppress-nil-assertion=true --suppress-len-assertion=true --suppress-compare-assertion=true ./... 2>&1 | wc -l) == 137 ]]
-        [[ $(./ginkgolinter --suppress-nil-assertion=true --suppress-err-assertion=true --suppress-len-assertion=true ./... 2>&1 | wc -l) == 124 ]]
-        [[ $(./ginkgolinter --allow-havelen-0=true ./... 2>&1 | wc -l) == 2211 ]]
+        [[ $(./ginkgolinter --suppress-nil-assertion=true --suppress-err-assertion=true --suppress-len-assertion=true ./... 2>&1 | wc -l) == 137 ]]
+        [[ $(./ginkgolinter --allow-havelen-0=true ./... 2>&1 | wc -l) == 2224 ]]
         [[ $(./ginkgolinter --suppress-nil-assertion=true --suppress-len-assertion=true --suppress-err-assertion=true --suppress-compare-assertion=true ./... 2>&1 | wc -l) == 0 ]]

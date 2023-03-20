@@ -194,7 +194,16 @@ func checkExpression(pass *analysis.Pass, config types.Config, assertionExp *ast
 			return checkNilMatcher(assertionExp, pass, nilable, handler, compOp == token.NEQ, oldExpr)
 
 		} else if first, second, op, ok := isComparison(pass, actualArg); ok {
-			return bool(config.SuppressCompare) || checkComparison(assertionExp, pass, handler, first, second, op, oldExpr)
+			matcher, shouldContinue := startCheckComparison(assertionExp, handler)
+			if !shouldContinue {
+				return false
+			}
+			if !bool(config.SuppressLen) && isActualIsLenFunc(first) {
+				if handleLenComparison(pass, assertionExp, matcher, first, second, op, handler, oldExpr) {
+					return false
+				}
+			}
+			return bool(config.SuppressCompare) || checkComparison(assertionExp, pass, matcher, handler, first, second, op, oldExpr)
 
 		} else if isExprError(pass, actualArg) {
 			return bool(config.SuppressErr) || checkNilError(pass, assertionExp, handler, actualArg, oldExpr)
@@ -205,15 +214,15 @@ func checkExpression(pass *analysis.Pass, config types.Config, assertionExp *ast
 	}
 }
 
-func checkComparison(exp *ast.CallExpr, pass *analysis.Pass, handler gomegahandler.Handler, first ast.Expr, second ast.Expr, op token.Token, oldExp string) bool {
+func startCheckComparison(exp *ast.CallExpr, handler gomegahandler.Handler) (*ast.CallExpr, bool) {
 	matcher, ok := exp.Args[0].(*ast.CallExpr)
 	if !ok {
-		return true
+		return nil, false
 	}
 
 	matcherFuncName, ok := handler.GetActualFuncName(matcher)
 	if !ok {
-		return true
+		return nil, false
 	}
 
 	switch matcherFuncName {
@@ -223,24 +232,28 @@ func checkComparison(exp *ast.CallExpr, pass *analysis.Pass, handler gomegahandl
 	case equal:
 		boolean, found := matcher.Args[0].(*ast.Ident)
 		if !found {
-			return true
+			return nil, false
 		}
 
 		if boolean.Name == "false" {
 			reverseAssertionFuncLogic(exp)
 		} else if boolean.Name != "true" {
-			return true
+			return nil, false
 		}
 
 	case not:
 		reverseAssertionFuncLogic(exp)
 		exp.Args[0] = exp.Args[0].(*ast.CallExpr).Args[0]
-		return checkComparison(exp, pass, handler, first, second, op, oldExp)
+		return startCheckComparison(exp, handler)
 
 	default:
-		return true
+		return nil, false
 	}
 
+	return matcher, true
+}
+
+func checkComparison(exp *ast.CallExpr, pass *analysis.Pass, matcher *ast.CallExpr, handler gomegahandler.Handler, first ast.Expr, second ast.Expr, op token.Token, oldExp string) bool {
 	fun, ok := exp.Fun.(*ast.SelectorExpr)
 	if !ok {
 		return true
@@ -289,6 +302,37 @@ func handleEqualComparison(pass *analysis.Pass, matcher *ast.CallExpr, first ast
 
 		matcher.Args = []ast.Expr{second}
 	}
+}
+
+func handleLenComparison(pass *analysis.Pass, exp *ast.CallExpr, matcher *ast.CallExpr, first ast.Expr, second ast.Expr, op token.Token, handler gomegahandler.Handler, oldExpr string) bool {
+	switch op {
+	case token.EQL:
+	case token.NEQ:
+		reverseAssertionFuncLogic(exp)
+	default:
+		return false
+	}
+
+	var eql *ast.Ident
+	if isZero(pass, second) {
+		eql = ast.NewIdent(beEmpty)
+	} else {
+		eql = ast.NewIdent(haveLen)
+		matcher.Args = []ast.Expr{second}
+	}
+
+	handler.ReplaceFunction(matcher, eql)
+	firstLen, ok := first.(*ast.CallExpr) // assuming it's len()
+	if !ok {
+		return false // should never happen
+	}
+
+	val := firstLen.Args[0]
+	fun := handler.GetActualExpr(exp.Fun.(*ast.SelectorExpr))
+	fun.Args = []ast.Expr{val}
+
+	report(pass, exp, wrongLengthWarningTemplate, oldExpr)
+	return true
 }
 
 // Check if the "actual" argument is a call to the golang built-in len() function
