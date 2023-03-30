@@ -65,6 +65,10 @@ func TestAllUseCases(t *testing.T) {
 			testName: "function call in Eventually",
 			testData: "a/eventually",
 		},
+		{
+			testName: "compare pointer to value",
+			testData: "a/pointerval",
+		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
 			analysistest.Run(tt, analysistest.TestData(), ginkgolinter.NewAnalyzer(), tc.testData)
