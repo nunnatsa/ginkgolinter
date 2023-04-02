@@ -269,6 +269,9 @@ func checkPointerComparison(pass *analysis.Pass, config types.Config, origExp *a
 		if isNil(arg) {
 			return false
 		}
+		if isInterface(pass, arg) {
+			return false
+		}
 	case beFalse, beTrue, beNumerically:
 	default:
 		return false
@@ -1056,5 +1059,11 @@ func isExprError(pass *analysis.Pass, expr ast.Expr) bool {
 func isPointer(pass *analysis.Pass, expr ast.Expr) bool {
 	t := pass.TypesInfo.TypeOf(expr)
 	_, ok := t.(*gotypes.Pointer)
+	return ok
+}
+
+func isInterface(pass *analysis.Pass, expr ast.Expr) bool {
+	t := pass.TypesInfo.TypeOf(expr)
+	_, ok := t.(*gotypes.Named)
 	return ok
 }
