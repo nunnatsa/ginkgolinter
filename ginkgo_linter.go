@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"github.com/nunnatsa/ginkgolinter/version"
 	"go/ast"
 	"go/constant"
 	"go/printer"
@@ -74,9 +75,8 @@ func NewAnalyzer() *analysis.Analyzer {
 
 	a := &analysis.Analyzer{
 		Name: "ginkgolinter",
-		Doc:  doc,
+		Doc:  fmt.Sprintf(doc, version.Version()),
 		Run:  linter.run,
-		//RunDespiteErrors: true,
 	}
 
 	a.Flags.Init("ginkgolinter", flag.ExitOnError)
@@ -91,8 +91,13 @@ func NewAnalyzer() *analysis.Analyzer {
 }
 
 const doc = `enforces standards of using ginkgo and gomega
-currently, the linter searches for following:
 
+or
+       ginkgolinter version
+
+version: %s
+
+currently, the linter searches for following:
 * wrong length assertions. We want to assert the item rather than its length.
 For example:
 	Expect(len(x)).Should(Equal(1))
