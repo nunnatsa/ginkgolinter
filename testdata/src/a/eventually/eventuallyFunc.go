@@ -76,7 +76,7 @@ var _ = Describe("Eventually with function", func() {
 		Eventually(retChan()).Should(BeClosed()) // valid. retChan returns a channel
 	})
 	Context("Two errors in one assertion", func() {
-		Eventually(func() *test { return nil }()).Should(Equal(nil))        // want `ginkgo-linter: use a function call in Eventually. This actually checks nothing, because Eventually receives the function returned value, instead of function itself, and this value is never changed; consider using .Eventually\(func\(\) \*test { return nil }\)\.Should\(BeNil\(\)\). instead`
+		Eventually(func() *test { return nil }()).Should(BeNil())
 		Eventually(func() []int { return nil }()).Should(HaveLen(0))        // want `ginkgo-linter: use a function call in Eventually. This actually checks nothing, because Eventually receives the function returned value, instead of function itself, and this value is never changed; consider using .Eventually\(func\(\) \[\]int { return nil }\)\.Should\(BeEmpty\(\)\). instead`
 		Eventually(func() []int { return nil }).Should(HaveLen(0))          // want `ginkgo-linter: wrong length assertion; consider using .Eventually\(func\(\) \[\]int { return nil }\).Should\(BeEmpty\(\)\). instead`
 		Eventually(func() bool { return true }()).Should(Equal(true))       // want `ginkgo-linter: use a function call in Eventually. This actually checks nothing, because Eventually receives the function returned value, instead of function itself, and this value is never changed; consider using .Eventually\(func\(\) bool { return true }\).Should\(BeTrue\(\)\). instead`
