@@ -9,6 +9,14 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+type GetFunc[T any] func(ctx context.Context) (T, error)
+
+func retFuncType() GetFunc[int] {
+	return func(_ context.Context) (int, error) {
+		return 1, nil
+	}
+}
+
 func slowInt() int {
 	time.Sleep(time.Second)
 	return 42
@@ -46,6 +54,10 @@ func retChan() chan int {
 
 var _ = Describe("Eventually with function", func() {
 	Context("Eventually", func() {
+		It("should not trigger warning", func() {
+			Eventually(retFuncType()).Should(Equal(1))
+		})
+
 		Eventually(retFunc(5)).Should(Equal(5)) // valid. retFunc returns a function
 		ch := make(chan int)
 		Eventually(ch).Should(BeClosed())                                                                                        // valid
