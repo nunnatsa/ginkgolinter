@@ -27,7 +27,7 @@ ginkgolinter [-fix] ./...
 Use the `-fix` flag to apply the fix suggestions to the source code.
 
 ### Use ginkgolinter with golangci-lint
-The ginkgolinter is now part of the popular [golangci-lint](https://golangci-lint.run/), starting from version `v0.51.1`.
+The ginkgolinter is now part of the popular [golangci-lint](https://golangci-lint.run/), starting from version `v1.51.1`.
 
 It is not enabled by default, though. There are two ways to run ginkgolinter with golangci-lint:
 
