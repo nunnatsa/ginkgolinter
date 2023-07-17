@@ -73,6 +73,10 @@ func TestAllUseCases(t *testing.T) {
 			testName: "no assertion",
 			testData: "a/noassersion",
 		},
+		{
+			testName: "focus",
+			testData: "a/focus",
+		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
 			analysistest.Run(tt, analysistest.TestData(), ginkgolinter.NewAnalyzer(), tc.testData)
@@ -115,6 +119,11 @@ func TestFlags(t *testing.T) {
 			testName: "test the suppress-async-assertion flag",
 			testData: []string{"a/asyncconfig"},
 			flags:    []string{"suppress-async-assertion"},
+		},
+		{
+			testName: "test the suppress-focus-container flag",
+			testData: []string{"a/focusconfig"},
+			flags:    []string{"suppress-focus-container"},
 		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
