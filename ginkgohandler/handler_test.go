@@ -110,3 +110,120 @@ func TestGetGinkgoHandler_no_ginkgo(t *testing.T) {
 		t.Fatalf("should return nil")
 	}
 }
+
+func TestDotHandler_GetFocusContainerName_happy(t *testing.T) {
+	exp := &ast.CallExpr{
+		Fun: ast.NewIdent("FIt"),
+	}
+
+	h := dotHandler{}
+
+	isFocus, name := h.GetFocusContainerName(exp)
+
+	if !isFocus {
+		t.Error("h.GetFocusContainerName(exp) should return true")
+	}
+
+	if name == nil {
+		t.Error("should return valid ast.Ident object")
+	} else if name.Name != "FIt" {
+		t.Error("function name should be 'FIt'")
+	}
+}
+
+func TestDotHandler_GetFocusContainerName_no_focus(t *testing.T) {
+	exp := &ast.CallExpr{
+		Fun: ast.NewIdent("It"),
+	}
+
+	h := dotHandler{}
+	isFocus, name := h.GetFocusContainerName(exp)
+	if isFocus {
+		t.Error("h.GetFocusContainerName(exp) should return false")
+	}
+
+	if name == nil {
+		t.Error("should return valid ast.Ident object")
+	} else if name.Name != "It" {
+		t.Error("function name should be 'It'")
+	}
+}
+
+func TestDotHandler_GetFocusContainerName_selector(t *testing.T) {
+	exp := &ast.CallExpr{
+		Fun: &ast.SelectorExpr{
+			Sel: ast.NewIdent("ginkgo"),
+			X: &ast.CallExpr{
+				Fun: ast.NewIdent("FIt"),
+			},
+		},
+	}
+
+	h := dotHandler{}
+	isFocus, name := h.GetFocusContainerName(exp)
+	if isFocus {
+		t.Error("h.GetFocusContainerName(exp) should return false")
+	}
+
+	if name != nil {
+		t.Error("should return nil")
+	}
+}
+
+func TestNameHandler_GetFocusContainerName_happy(t *testing.T) {
+	exp := &ast.CallExpr{
+		Fun: &ast.SelectorExpr{
+			Sel: ast.NewIdent("FIt"),
+			X:   ast.NewIdent("ginkgo"),
+		},
+	}
+
+	h := nameHandler("ginkgo")
+	isFocus, name := h.GetFocusContainerName(exp)
+	if !isFocus {
+		t.Error("h.GetFocusContainerName(exp) should return true")
+	}
+
+	if name == nil {
+		t.Error("should return a valid ast.Ident object")
+	} else if name.Name != "FIt" {
+		t.Error("function name should be 'FIt'")
+	}
+}
+
+func TestNameHandler_GetFocusContainerName_no_focus(t *testing.T) {
+	exp := &ast.CallExpr{
+		Fun: &ast.SelectorExpr{
+			Sel: ast.NewIdent("It"),
+			X:   ast.NewIdent("ginkgo"),
+		},
+	}
+
+	h := nameHandler("ginkgo")
+	isFocus, name := h.GetFocusContainerName(exp)
+	if isFocus {
+		t.Error("h.GetFocusContainerName(exp) should return false")
+	}
+
+	if name == nil {
+		t.Error("should return a valid ast.Ident object")
+	} else if name.Name != "It" {
+		t.Error("function name should be 'FIt'")
+	}
+}
+
+func TestNameHandler_GetFocusContainerName_ident(t *testing.T) {
+	exp := &ast.CallExpr{
+		Fun: ast.NewIdent("FIt"),
+	}
+
+	h := nameHandler("ginkgo")
+	isFocus, name := h.GetFocusContainerName(exp)
+	if isFocus {
+		t.Error("h.GetFocusContainerName(exp) should return false")
+	}
+
+	if name != nil {
+		t.Error("should return nil")
+	}
+}
