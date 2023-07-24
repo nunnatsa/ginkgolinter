@@ -122,7 +122,7 @@ func TestFlags(t *testing.T) {
 		},
 		{
 			testName: "test the forbid-focus-container flag",
-			testData: []string{"a/focus"},
+			testData: []string{"a/focusconfig"},
 			flags:    map[string]string{"forbid-focus-container": "true"},
 		},
 	} {
