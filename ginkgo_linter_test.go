@@ -88,48 +88,48 @@ func TestFlags(t *testing.T) {
 	for _, tc := range []struct {
 		testName string
 		testData []string
-		flags    []string
+		flags    map[string]string
 	}{
 		{
 			testName: "test the suppress-len-assertion flag",
 			testData: []string{"a/configlen"},
-			flags:    []string{"suppress-len-assertion"},
+			flags:    map[string]string{"suppress-len-assertion": "true"},
 		},
 		{
 			testName: "test the suppress-nil-assertion flag",
 			testData: []string{"a/confignil"},
-			flags:    []string{"suppress-nil-assertion"},
+			flags:    map[string]string{"suppress-nil-assertion": "true"},
 		},
 		{
 			testName: "test the suppress-err-assertion flag",
 			testData: []string{"a/configerr"},
-			flags:    []string{"suppress-err-assertion"},
+			flags:    map[string]string{"suppress-err-assertion": "true"},
 		},
 		{
 			testName: "test the suppress-compare-assertion flag",
 			testData: []string{"a/configcompare"},
-			flags:    []string{"suppress-compare-assertion"},
+			flags:    map[string]string{"suppress-compare-assertion": "true"},
 		},
 		{
 			testName: "test the allow-havelen-0 flag",
 			testData: []string{"a/havelen0config"},
-			flags:    []string{"allow-havelen-0"},
+			flags:    map[string]string{"allow-havelen-0": "true"},
 		},
 		{
 			testName: "test the suppress-async-assertion flag",
 			testData: []string{"a/asyncconfig"},
-			flags:    []string{"suppress-async-assertion"},
+			flags:    map[string]string{"suppress-async-assertion": "true"},
 		},
 		{
-			testName: "test the suppress-focus-container flag",
-			testData: []string{"a/focusconfig"},
-			flags:    []string{"suppress-focus-container"},
+			testName: "test the forbid-focus-container flag",
+			testData: []string{"a/focus"},
+			flags:    map[string]string{"forbid-focus-container": "true"},
 		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
 			analyzer := ginkgolinter.NewAnalyzer()
-			for _, flag := range tc.flags {
-				err := analyzer.Flags.Set(flag, "true")
+			for flag, value := range tc.flags {
+				err := analyzer.Flags.Set(flag, value)
 				if err != nil {
 					tt.Errorf(`failed to set the "%s" flag; %v`, flag, err)
 					return

@@ -80,6 +80,7 @@ func NewAnalyzer() *analysis.Analyzer {
 			SuppressNil:     false,
 			SuppressErr:     false,
 			SuppressCompare: false,
+			SuppressFocus:   true,
 			AllowHaveLen0:   false,
 		},
 	}
@@ -90,14 +91,17 @@ func NewAnalyzer() *analysis.Analyzer {
 		Run:  linter.run,
 	}
 
+	var ignored bool
 	a.Flags.Init("ginkgolinter", flag.ExitOnError)
 	a.Flags.Var(&linter.config.SuppressLen, "suppress-len-assertion", "Suppress warning for wrong length assertions")
 	a.Flags.Var(&linter.config.SuppressNil, "suppress-nil-assertion", "Suppress warning for wrong nil assertions")
 	a.Flags.Var(&linter.config.SuppressErr, "suppress-err-assertion", "Suppress warning for wrong error assertions")
 	a.Flags.Var(&linter.config.SuppressCompare, "suppress-compare-assertion", "Suppress warning for wrong comparison assertions")
 	a.Flags.Var(&linter.config.SuppressAsync, "suppress-async-assertion", "Suppress warning for function call in async assertion, like Eventually")
-	a.Flags.Var(&linter.config.SuppressFocus, "suppress-focus-container", "Suppress warning for ginkgo focus containers like FDescribe, FContext, FWhen or FIt")
 	a.Flags.Var(&linter.config.AllowHaveLen0, "allow-havelen-0", "Do not warn for HaveLen(0); default = false")
+
+	a.Flags.BoolVar(&ignored, "suppress-focus-container", true, "Suppress warning for ginkgo focus containers like FDescribe, FContext, FWhen or FIt. Deprecated and ignored: use --forbid-focus-container instead")
+	a.Flags.Var(&linter.config.SuppressFocus, "forbid-focus-container", "trigger a warning for ginkgo focus containers like FDescribe, FContext, FWhen or FIt; default = false.")
 
 	return a
 }
