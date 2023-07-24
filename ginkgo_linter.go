@@ -80,7 +80,7 @@ func NewAnalyzer() *analysis.Analyzer {
 			SuppressNil:     false,
 			SuppressErr:     false,
 			SuppressCompare: false,
-			SuppressFocus:   true,
+			ForbidFocus:     false,
 			AllowHaveLen0:   false,
 		},
 	}
@@ -101,7 +101,7 @@ func NewAnalyzer() *analysis.Analyzer {
 	a.Flags.Var(&linter.config.AllowHaveLen0, "allow-havelen-0", "Do not warn for HaveLen(0); default = false")
 
 	a.Flags.BoolVar(&ignored, "suppress-focus-container", true, "Suppress warning for ginkgo focus containers like FDescribe, FContext, FWhen or FIt. Deprecated and ignored: use --forbid-focus-container instead")
-	a.Flags.Var(&linter.config.SuppressFocus, "forbid-focus-container", "trigger a warning for ginkgo focus containers like FDescribe, FContext, FWhen or FIt; default = false.")
+	a.Flags.Var(&linter.config.ForbidFocus, "forbid-focus-container", "trigger a warning for ginkgo focus containers like FDescribe, FContext, FWhen or FIt; default = false.")
 
 	return a
 }
@@ -169,7 +169,7 @@ func (l *ginkgoLinter) run(pass *analysis.Pass) (interface{}, error) {
 		}
 
 		ast.Inspect(file, func(n ast.Node) bool {
-			if ginkgoHndlr != nil && !fileConfig.SuppressFocus {
+			if ginkgoHndlr != nil && fileConfig.ForbidFocus {
 				spec, ok := n.(*ast.ValueSpec)
 				if ok {
 					for _, val := range spec.Values {
@@ -199,7 +199,7 @@ func (l *ginkgoLinter) run(pass *analysis.Pass) (interface{}, error) {
 				return true
 			}
 
-			if ginkgoHndlr != nil && !bool(config.SuppressFocus) && checkFocusContainer(pass, ginkgoHndlr, assertionExp) {
+			if ginkgoHndlr != nil && bool(config.ForbidFocus) && checkFocusContainer(pass, ginkgoHndlr, assertionExp) {
 				return true
 			}
 

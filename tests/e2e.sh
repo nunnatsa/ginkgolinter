@@ -18,8 +18,8 @@ cd testdata/src/a
 # suppress all but async
 [[ $(./ginkgolinter --suppress-nil-assertion=true --suppress-err-assertion=true --suppress-len-assertion=true --suppress-compare-assertion=true a/... 2>&1 | wc -l) == 119 ]]
 # suppress all but focus
-[[ $(./ginkgolinter --suppress-nil-assertion=true --suppress-err-assertion=true --suppress-len-assertion=true --suppress-compare-assertion=true --suppress-async-assertion=true --forbid-focus-container=false a/... 2>&1 | wc -l) == 112 ]]
+[[ $(./ginkgolinter --suppress-nil-assertion=true --suppress-err-assertion=true --suppress-len-assertion=true --suppress-compare-assertion=true --suppress-async-assertion=true --forbid-focus-container=true a/... 2>&1 | wc -l) == 112 ]]
 # allow HaveLen(0)
 [[ $(./ginkgolinter --allow-havelen-0=true a/... 2>&1 | wc -l) == 2361 ]]
 # suppress all - should only return the few non-suppressble
-[[ $(./ginkgolinter --suppress-nil-assertion=true --suppress-len-assertion=true --suppress-err-assertion=true --suppress-compare-assertion=true --suppress-async-assertion=true --forbid-focus-container=false a/... 2>&1 | wc -l) == 112 ]]
+[[ $(./ginkgolinter --suppress-nil-assertion=true --suppress-len-assertion=true --suppress-err-assertion=true --suppress-compare-assertion=true --suppress-async-assertion=true --forbid-focus-container=false a/... 2>&1 | wc -l) == 88 ]]

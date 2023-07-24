@@ -11,7 +11,7 @@ func TestSuppress_AllTrue(t *testing.T) {
 		SuppressErr:     true,
 		SuppressAsync:   true,
 		SuppressCompare: true,
-		SuppressFocus:   true,
+		ForbidFocus:     false,
 	}
 
 	if !s.AllTrue() {
@@ -51,7 +51,7 @@ func TestSuppress_Clone(t *testing.T) {
 		SuppressErr:     true,
 		SuppressCompare: true,
 		SuppressAsync:   true,
-		SuppressFocus:   true,
+		ForbidFocus:     false,
 	}
 
 	clone := s.Clone()
