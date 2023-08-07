@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/go-toolsmith/astcopy v1.1.0
-	golang.org/x/tools v0.11.0
+	golang.org/x/tools v0.11.1
 )
 
 require (
