@@ -86,7 +86,7 @@ var _ = Describe("", Label("pointers1"), func() {
 			Expect(s3.field).Should(HaveValue(Equal(c))) // valid
 			Expect(s3.field).Should(Equal(c))            // want `ginkgo-linter: comparing a pointer to a value will always fail. consider using .Expect\(s3\.field\)\.Should\(HaveValue\(Equal\(c\)\)\). instead`
 			Expect(s3.field).Should(BeIdenticalTo(p))
-			Expect(s3.field).ShouldNot(BeIdenticalTo(retStringer()))
+			Expect(s3.field).ShouldNot(BeIdenticalTo(retStringer())) // want `ginkgo-linter: use BeIdenticalTo with different types: Comparing \*string with fmt.Stringer; either change the expected value type if possible, or use the BeEquivalentTo\(\) matcher, instead of BeIdenticalTo\(\)`
 		})
 		It("pointer struct with pointer field", func() {
 			Expect(*s4.field).Should(Equal(c))           // valid
@@ -101,16 +101,16 @@ var _ = Describe("", Label("pointers1"), func() {
 		s2 := &strIfs{field: &sv}
 
 		It("struct with pointer field", func() {
-			Expect(s1.field).Should(HaveValue(Equal(c))) // valid
-			Expect(s1.field).Should(Equal(c))            // kind of valid. For interfaces, we can't tell for sure if they are pointers or not
-			Expect(s1.field).Should(BeIdenticalTo(sv))   // kind of valid. For interfaces, we can't tell for sure if they are pointers or not
+			Expect(s1.field).Should(HaveValue(Equal(c))) // want `ginkgo-linter: use Equal with different types: Comparing fmt.Stringer with string; either change the expected value type if possible, or use the BeEquivalentTo\(\) matcher, instead of Equal\(\)`
+			Expect(s1.field).Should(Equal(c))            // want `ginkgo-linter: use Equal with different types: Comparing fmt.Stringer with string; either change the expected value type if possible, or use the BeEquivalentTo\(\) matcher, instead of Equal\(\)`
+			Expect(s1.field).Should(BeIdenticalTo(sv))   // want `ginkgo-linter: use BeIdenticalTo with different types: Comparing fmt.Stringer with a/pointerval.str; either change the expected value type if possible, or use the BeEquivalentTo\(\) matcher, instead of BeIdenticalTo\(\)`
 		})
 		It("pointer struct with pointer field", func() {
-			Expect(s2.field).Should(HaveValue(Equal(c))) // valid
-			Expect(s2.field).Should(Equal(c))            // kind of valid. For interfaces, we can't tell for sure if they are pointers or not
+			Expect(s2.field).Should(HaveValue(Equal(c))) // want `ginkgo-linter: use Equal with different types: Comparing fmt.Stringer with string; either change the expected value type if possible, or use the BeEquivalentTo\(\) matcher, instead of Equal\(\)`
+			Expect(s2.field).Should(Equal(c))            // want `ginkgo-linter: use Equal with different types: Comparing fmt.Stringer with string; either change the expected value type if possible, or use the BeEquivalentTo\(\) matcher, instead of Equal\(\)`
 		})
 		It("compare to interface", func() {
-			Expect(&sv).Should(Equal(retStringer())) // kind of valid. For interfaces, we can't tell for sure if they are pointers or not
+			Expect(&sv).Should(Equal(retStringer()))
 		})
 	})
 
@@ -164,9 +164,9 @@ var _ = Describe("", Label("pointers1"), func() {
 			Expect(px1).ShouldNot(BeEquivalentTo(nil)) // valid
 		})
 		It("BeIdenticalTo", func() {
-			Expect(px1).ShouldNot(BeIdenticalTo(5))   // want `ginkgo-linter: comparing a pointer to a value will always fail. consider using .Expect\(px1\)\.ShouldNot\(HaveValue\(BeIdenticalTo\(5\)\)\). instead`
-			Expect(px1).ShouldNot(BeIdenticalTo(px2)) // valid
-			Expect(px1).ShouldNot(BeIdenticalTo(nil))
+			Expect(px1).ShouldNot(BeIdenticalTo(5))       // want `ginkgo-linter: comparing a pointer to a value will always fail. consider using .Expect\(px1\)\.ShouldNot\(HaveValue\(BeIdenticalTo\(5\)\)\). instead`
+			Expect(px1).ShouldNot(BeIdenticalTo(px2))     // valid
+			Expect(px1).ShouldNot(BeIdenticalTo(nil))     // want `ginkgo-linter: use BeIdenticalTo with different types: Comparing \*float64 with untyped nil; either change the expected value type if possible, or use the BeEquivalentTo\(\) matcher, instead of BeIdenticalTo\(\)`
 			Expect(px1).Should(BeIdenticalTo(float64(5))) // want `ginkgo-linter: comparing a pointer to a value will always fail. consider using .Expect\(px1\)\.Should\(HaveValue\(BeIdenticalTo\(float64\(5\)\)\)\). instead`
 		})
 		It("", func() {

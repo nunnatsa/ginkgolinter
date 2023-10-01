@@ -23,8 +23,8 @@ var _ = Describe("suppress file", func() {
 		c := &b
 
 		// ginkgo-linter:ignore-nil-assert-warning
-		Expect(a).To(Equal(nil))
+		Expect(a).To(Equal(nil)) // want `ginkgo-linter: use Equal with different types: Comparing \*int with untyped nil; either change the expected value type if possible, or use the BeEquivalentTo\(\) matcher, instead of Equal\(\)`
 		// ginkgo-linter:ignore-nil-assert-warning
-		Expect(c).To(Not(Equal(nil)))
+		Expect(c).To(Not(Equal(nil))) // want `ginkgo-linter: use Equal with different types: Comparing \*int with untyped nil; either change the expected value type if possible, or use the BeEquivalentTo\(\) matcher, instead of Equal\(\)`
 	})
 })
