@@ -77,6 +77,10 @@ func TestAllUseCases(t *testing.T) {
 			testName: "focus",
 			testData: "a/focus",
 		},
+		{
+			testName: "equal with different type",
+			testData: "a/comparetypes",
+		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
 			analysistest.Run(tt, analysistest.TestData(), ginkgolinter.NewAnalyzer(), tc.testData)
@@ -124,6 +128,11 @@ func TestFlags(t *testing.T) {
 			testName: "test the forbid-focus-container flag",
 			testData: []string{"a/focusconfig"},
 			flags:    map[string]string{"forbid-focus-container": "true"},
+		},
+		{
+			testName: "test the suppress-type-compare-assertion flag",
+			testData: []string{"a/comparetypesconfig"},
+			flags:    map[string]string{"suppress-type-compare-assertion": "true"},
 		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
