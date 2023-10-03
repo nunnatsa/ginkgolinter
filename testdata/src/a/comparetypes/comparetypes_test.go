@@ -5,6 +5,10 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+func uint2int(u uint) int {
+	return int(u)
+}
+
 var _ = Describe("compare different types", func() {
 	It("find false positive check", func() {
 		a := 5
@@ -53,5 +57,15 @@ var _ = Describe("compare different types", func() {
 		)
 		Expect(a).Should(Equal(b))
 		Expect(b).Should(Equal(a))
+	})
+
+	It("test WithTransform", func() {
+		a := uint(5)
+		Expect(uint(5)).Should(WithTransform(func(i uint) int { return int(i) }, Equal(5)))
+		Expect(uint(5)).Should(WithTransform(func(i uint) uint64 { return uint64(i) }, Equal(5))) // want `ginkgo-linter: use Equal with different types: Comparing uint64 with int; either change the expected value type if possible, or use the BeEquivalentTo\(\) matcher, instead of Equal\(\)`
+		Expect(a).Should(WithTransform(func(i uint) int { return int(i) }, Equal(5)))
+		Expect(a).Should(WithTransform(uint2int, Equal(5)))
+		Expect(a).Should(WithTransform(uint2int, Equal(uint64(5)))) // want `ginkgo-linter: use Equal with different types: Comparing int with uint64; either change the expected value type if possible, or use the BeEquivalentTo\(\) matcher, instead of Equal\(\)`
+		Expect(5).Should(WithTransform(func(i int) myinf { return imp1(i) }, Equal(imp1(5))))
 	})
 })

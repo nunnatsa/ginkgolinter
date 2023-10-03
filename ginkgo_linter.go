@@ -333,6 +333,8 @@ func checkEqualDifferentTypes(pass *analysis.Pass, matcher *ast.CallExpr, actual
 		return false
 	}
 
+	actualType := pass.TypesInfo.TypeOf(actualArg)
+
 	switch matcherFuncName {
 	case equal, beIdenticalTo: // continue
 	case and, or:
@@ -354,7 +356,16 @@ func checkEqualDifferentTypes(pass *analysis.Pass, matcher *ast.CallExpr, actual
 			return false
 		}
 
-		return checkEqualDifferentTypes(pass, nested, actualArg, handler, old, parentPointer)
+		if t := getFuncType(pass, matcher.Args[0]); t != nil {
+			actualType = t
+			matcher = nested
+			matcherFuncName, ok = handler.GetActualFuncName(nested)
+			if !ok {
+				return false
+			}
+		} else {
+			return checkEqualDifferentTypes(pass, nested, actualArg, handler, old, parentPointer)
+		}
 
 	case not:
 		nested, ok := matcher.Args[0].(*ast.CallExpr)
@@ -376,8 +387,6 @@ func checkEqualDifferentTypes(pass *analysis.Pass, matcher *ast.CallExpr, actual
 	}
 
 	matcherValue := matcher.Args[0]
-
-	actualType := pass.TypesInfo.TypeOf(actualArg)
 
 	switch act := actualType.(type) {
 	case *gotypes.Tuple:
@@ -401,6 +410,22 @@ func checkEqualDifferentTypes(pass *analysis.Pass, matcher *ast.CallExpr, actual
 	}
 
 	return false
+}
+
+func getFuncType(pass *analysis.Pass, expr ast.Expr) gotypes.Type {
+	switch f := expr.(type) {
+	case *ast.FuncLit:
+		if f.Type != nil && f.Type.Results != nil && len(f.Type.Results.List) > 0 {
+			return pass.TypesInfo.TypeOf(f.Type.Results.List[0].Type)
+		}
+	case *ast.Ident:
+		a := pass.TypesInfo.TypeOf(f)
+		if sig, ok := a.(*gotypes.Signature); ok && sig.Results().Len() > 0 {
+			return sig.Results().At(0).Type()
+		}
+	}
+
+	return nil
 }
 
 func isImplementing(ifs, impl gotypes.Type) bool {
