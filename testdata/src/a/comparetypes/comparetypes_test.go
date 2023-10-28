@@ -1,6 +1,7 @@
 package comparetypes_test
 
 import (
+	"fmt"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -10,6 +11,7 @@ func uint2int(u uint) int {
 }
 
 var _ = Describe("compare different types", func() {
+
 	It("find false positive check", func() {
 		a := 5
 		Expect(multi()).ShouldNot(Equal(4)) // want `ginkgo-linter: use Equal with different types: Comparing int64 with int; either change the expected value type if possible, or use the BeEquivalentTo\(\) matcher, instead of Equal\(\)`
@@ -65,7 +67,18 @@ var _ = Describe("compare different types", func() {
 		Expect(uint(5)).Should(WithTransform(func(i uint) uint64 { return uint64(i) }, Equal(5))) // want `ginkgo-linter: use Equal with different types: Comparing uint64 with int; either change the expected value type if possible, or use the BeEquivalentTo\(\) matcher, instead of Equal\(\)`
 		Expect(a).Should(WithTransform(func(i uint) int { return int(i) }, Equal(5)))
 		Expect(a).Should(WithTransform(uint2int, Equal(5)))
-		Expect(a).Should(WithTransform(uint2int, Equal(uint64(5)))) // want `ginkgo-linter: use Equal with different types: Comparing int with uint64; either change the expected value type if possible, or use the BeEquivalentTo\(\) matcher, instead of Equal\(\)`
+		Expect(a).Should(WithTransform(uint2int, Equal(uint64(5))))      // want `ginkgo-linter: use Equal with different types: Comparing int with uint64; either change the expected value type if possible, or use the BeEquivalentTo\(\) matcher, instead of Equal\(\)`
+		Expect(a).Should(WithTransform(uint2int, Not(Equal(uint64(5))))) // want `ginkgo-linter: use Equal with different types: Comparing uint with uint64; either change the expected value type if possible, or use the BeEquivalentTo\(\) matcher, instead of Equal\(\)`
 		Expect(5).Should(WithTransform(func(i int) myinf { return imp1(i) }, Equal(imp1(5))))
+	})
+
+	It("issue 115", func() {
+		Expect([]int{42, 23}).Should(WithTransform(func(v []int) []string {
+			ret := make([]string, 0, len(v))
+			for _, i := range v {
+				ret = append(ret, fmt.Sprintf("%v", i))
+			}
+			return ret
+		}, ContainElement("42")))
 	})
 })
