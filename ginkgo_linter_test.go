@@ -81,6 +81,10 @@ func TestAllUseCases(t *testing.T) {
 			testName: "equal with different type",
 			testData: "a/comparetypes",
 		},
+		{
+			testName: "MatchError",
+			testData: "a/matcherror",
+		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
 			analysistest.Run(tt, analysistest.TestData(), ginkgolinter.NewAnalyzer(), tc.testData)
