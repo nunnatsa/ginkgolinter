@@ -85,6 +85,10 @@ func TestAllUseCases(t *testing.T) {
 			testName: "MatchError",
 			testData: "a/matcherror",
 		},
+		{
+			testName: "issue 124: custom matcher form other packages",
+			testData: "a/issue-124",
+		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
 			analysistest.Run(tt, analysistest.TestData(), ginkgolinter.NewAnalyzer(), tc.testData)
