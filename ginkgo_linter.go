@@ -188,15 +188,14 @@ func (l *ginkgoLinter) run(pass *analysis.Pass) (interface{}, error) {
 			continue
 		}
 
-		//gomegaMatcher = getMatcherInterface(pass, file)
-
 		ast.Inspect(file, func(n ast.Node) bool {
 			if ginkgoHndlr != nil && fileConfig.ForbidFocus {
 				spec, ok := n.(*ast.ValueSpec)
 				if ok {
 					for _, val := range spec.Values {
 						if exp, ok := val.(*ast.CallExpr); ok {
-							if checkFocusContainer(pass, ginkgoHndlr, exp) {
+							if found, diag := checkFocusContainer(pass, ginkgoHndlr, exp); found {
+								report(pass, diag)
 								return true
 							}
 						}
@@ -221,8 +220,11 @@ func (l *ginkgoLinter) run(pass *analysis.Pass) (interface{}, error) {
 				return true
 			}
 
-			if ginkgoHndlr != nil && bool(config.ForbidFocus) && checkFocusContainer(pass, ginkgoHndlr, assertionExp) {
-				return true
+			if ginkgoHndlr != nil && bool(config.ForbidFocus) {
+				if found, diags := checkFocusContainer(pass, ginkgoHndlr, assertionExp); found {
+					report(pass, diags)
+					return true
+				}
 			}
 
 			// no more ginkgo checks. From here it's only gomega. So if there is no gomega handler, exit here. This is
@@ -233,12 +235,12 @@ func (l *ginkgoLinter) run(pass *analysis.Pass) (interface{}, error) {
 
 			assertionFunc, ok := assertionExp.Fun.(*ast.SelectorExpr)
 			if !ok {
-				checkNoAssertion(pass, assertionExp, gomegaHndlr)
+				report(pass, checkNoAssertion(assertionExp, gomegaHndlr))
 				return true
 			}
 
 			if !isAssertionFunc(assertionFunc.Sel.Name) {
-				checkNoAssertion(pass, assertionExp, gomegaHndlr)
+				report(pass, checkNoAssertion(assertionExp, gomegaHndlr))
 				return true
 			}
 
@@ -253,35 +255,38 @@ func (l *ginkgoLinter) run(pass *analysis.Pass) (interface{}, error) {
 	return nil, nil
 }
 
-func checkFocusContainer(pass *analysis.Pass, ginkgoHndlr ginkgohandler.Handler, exp *ast.CallExpr) bool {
+func checkFocusContainer(pass *analysis.Pass, ginkgoHndlr ginkgohandler.Handler, exp *ast.CallExpr) (bool, []analysis.Diagnostic) {
 	foundFocus := false
+	var diagnostics []analysis.Diagnostic
 	isFocus, id := ginkgoHndlr.GetFocusContainerName(exp)
 	if isFocus {
-		reportNewName(pass, id, id.Name[1:], focusContainerFound, id.Name)
+		diagnostics = append(diagnostics, reportNewName(id, id.Name[1:], focusContainerFound, id.Name))
 		foundFocus = true
 	}
 
 	if id != nil && ginkgohandler.IsContainer(id) {
 		for _, arg := range exp.Args {
 			if ginkgoHndlr.IsFocusSpec(arg) {
-				reportNoFix(pass, arg.Pos(), focusSpecFound)
+				diagnostics = append(diagnostics, reportNoFix(arg.Pos(), focusSpecFound))
 				foundFocus = true
 			} else if callExp, ok := arg.(*ast.CallExpr); ok {
-				if checkFocusContainer(pass, ginkgoHndlr, callExp) { // handle table entries
+				if found, diags := checkFocusContainer(pass, ginkgoHndlr, callExp); found { // handle table entries
 					foundFocus = true
+					diagnostics = append(diagnostics, diags...)
 				}
 			}
 		}
 	}
 
-	return foundFocus
+	return foundFocus, diagnostics
 }
 
 func checkExpression(pass *analysis.Pass, config types.Config, assertionExp *ast.CallExpr, actualExpr *ast.CallExpr, handler gomegahandler.Handler) bool {
 	expr := astcopy.CallExpr(assertionExp)
 	oldExpr := goFmt(pass.Fset, expr)
 
-	if checkAsyncAssertion(pass, config, expr, actualExpr, handler, oldExpr) {
+	if found, diags := checkAsyncAssertion(pass, config, expr, actualExpr, handler, oldExpr); found {
+		report(pass, diags)
 		return true
 	}
 
@@ -290,15 +295,24 @@ func checkExpression(pass *analysis.Pass, config types.Config, assertionExp *ast
 		return true
 	}
 
+	goNested, diags := doCheckExpression(pass, config, assertionExp, actualArg, expr, handler, oldExpr)
+	if len(diags) > 0 {
+		report(pass, diags)
+	}
+
+	return goNested
+}
+
+func doCheckExpression(pass *analysis.Pass, config types.Config, assertionExp *ast.CallExpr, actualArg ast.Expr, expr *ast.CallExpr, handler gomegahandler.Handler, oldExpr string) (bool, []analysis.Diagnostic) {
 	if !bool(config.SuppressLen) && isActualIsLenFunc(actualArg) {
 		return checkLengthMatcher(expr, pass, handler, oldExpr)
 	} else if nilable, compOp := getNilableFromComparison(actualArg); nilable != nil {
 		if isExprError(pass, nilable) {
 			if config.SuppressErr {
-				return true
+				return true, nil
 			}
 		} else if config.SuppressNil {
-			return true
+			return true, nil
 		}
 
 		return checkNilMatcher(expr, pass, nilable, handler, compOp == token.NEQ, oldExpr)
@@ -306,78 +320,90 @@ func checkExpression(pass *analysis.Pass, config types.Config, assertionExp *ast
 	} else if first, second, op, ok := isComparison(pass, actualArg); ok {
 		matcher, shouldContinue := startCheckComparison(expr, handler)
 		if !shouldContinue {
-			return false
+			return false, nil
 		}
 		if !bool(config.SuppressLen) && isActualIsLenFunc(first) {
-			if handleLenComparison(pass, expr, matcher, first, second, op, handler, oldExpr) {
-				return false
+			if found, diags := handleLenComparison(pass, expr, matcher, first, second, op, handler, oldExpr); found {
+				return false, diags
 			}
 		}
-		return bool(config.SuppressCompare) || checkComparison(expr, pass, matcher, handler, first, second, op, oldExpr)
+		if config.SuppressCompare {
+			return true, nil
+		}
+		return checkComparison(expr, pass, matcher, handler, first, second, op, oldExpr)
 
-	} else if checkMatchError(pass, assertionExp, actualArg, handler, oldExpr) {
-		return false
+	} else if goNested, diags := checkMatchError(pass, assertionExp, actualArg, handler, oldExpr); goNested {
+		return false, diags
 	} else if isExprError(pass, actualArg) {
-		return bool(config.SuppressErr) || checkNilError(pass, expr, handler, actualArg, oldExpr)
+		if config.SuppressErr {
+			return true, nil
+		}
+		return checkNilError(pass, expr, handler, actualArg, oldExpr)
 
-	} else if checkPointerComparison(pass, config, assertionExp, expr, actualArg, handler, oldExpr) {
-		return false
-	} else if !handleAssertionOnly(pass, config, expr, handler, actualArg, oldExpr, true) {
-		return false
+	} else if goNested, diags = checkPointerComparison(pass, config, assertionExp, expr, actualArg, handler, oldExpr); goNested {
+		return false, diags
+	} else if valid, diags := handleAssertionOnly(pass, config, expr, handler, actualArg, oldExpr, true); !valid {
+		return false, diags
 	} else if !config.SuppressTypeCompare {
-		return !checkEqualWrongType(pass, assertionExp, actualArg, handler, oldExpr)
+		if found, diags := checkEqualWrongType(pass, assertionExp, actualArg, handler, oldExpr); found {
+			return false, diags
+		}
 	}
 
-	return true
+	return true, nil
 }
 
-func checkMatchError(pass *analysis.Pass, origExp *ast.CallExpr, actualArg ast.Expr, handler gomegahandler.Handler, oldExpr string) bool {
+func checkMatchError(pass *analysis.Pass, origExp *ast.CallExpr, actualArg ast.Expr, handler gomegahandler.Handler, oldExpr string) (bool, []analysis.Diagnostic) {
 	matcher, ok := origExp.Args[0].(*ast.CallExpr)
 	if !ok {
-		return false
+		return false, nil
 	}
 
 	return doCheckMatchError(pass, origExp, matcher, actualArg, handler, oldExpr)
 }
 
-func doCheckMatchError(pass *analysis.Pass, origExp *ast.CallExpr, matcher *ast.CallExpr, actualArg ast.Expr, handler gomegahandler.Handler, oldExpr string) bool {
+func doCheckMatchError(pass *analysis.Pass, origExp *ast.CallExpr, matcher *ast.CallExpr, actualArg ast.Expr, handler gomegahandler.Handler, oldExpr string) (bool, []analysis.Diagnostic) {
 	name, ok := handler.GetActualFuncName(matcher)
 	if !ok {
-		return false
+		return false, nil
 	}
 	switch name {
 	case matchError:
 	case not:
 		nested, ok := matcher.Args[0].(*ast.CallExpr)
 		if !ok {
-			return false
+			return false, nil
 		}
 
 		return doCheckMatchError(pass, origExp, nested, actualArg, handler, oldExpr)
 	case and, or:
-		res := true
+		res := false
+		var diagnostics []analysis.Diagnostic
 		for _, arg := range matcher.Args {
 			if nested, ok := arg.(*ast.CallExpr); ok {
-				if !doCheckMatchError(pass, origExp, nested, actualArg, handler, oldExpr) {
-					res = false
+				if valid, diag := doCheckMatchError(pass, origExp, nested, actualArg, handler, oldExpr); valid {
+					res = true
+					if len(diag) > 0 {
+						diagnostics = append(diagnostics, diag...)
+					}
 				}
 			}
 		}
-		return res
+		return res, diagnostics
 	default:
-		return false
+		return false, nil
 	}
 
+	var diagnostics []analysis.Diagnostic
 	if !isExprError(pass, actualArg) {
-		reportNoFix(pass, origExp.Pos(), matchErrorArgWrongType, goFmt(pass.Fset, actualArg))
+		diagnostics = append(diagnostics, reportNoFix(origExp.Pos(), matchErrorArgWrongType, goFmt(pass.Fset, actualArg)))
 	}
 
 	expr := astcopy.CallExpr(matcher)
 
 	validAssertion, requiredParams := checkMatchErrorAssertion(pass, matcher)
 	if !validAssertion {
-		reportNoFix(pass, expr.Pos(), matchErrorWrongTypeAssertion, goFmt(pass.Fset, matcher.Args[0]))
-		return false
+		return true, append(diagnostics, reportNoFix(expr.Pos(), matchErrorWrongTypeAssertion, goFmt(pass.Fset, matcher.Args[0])))
 	}
 
 	numParams := len(matcher.Args)
@@ -385,16 +411,14 @@ func doCheckMatchError(pass *analysis.Pass, origExp *ast.CallExpr, matcher *ast.
 		if numParams == 2 {
 			t := pass.TypesInfo.TypeOf(matcher.Args[1])
 			if !gotypes.Identical(t, gotypes.Typ[gotypes.String]) {
-				pass.Reportf(expr.Pos(), matchErrorNoFuncDescription)
-				return false
+				return true, append(diagnostics, analysis.Diagnostic{Pos: expr.Pos(), Message: matchErrorNoFuncDescription})
 			}
 		}
-		return true
+		return true, diagnostics
 	}
 
 	if requiredParams == 2 && numParams == 1 {
-		reportNoFix(pass, expr.Pos(), matchErrorMissingDescription)
-		return false
+		return true, append(diagnostics, reportNoFix(expr.Pos(), matchErrorMissingDescription))
 	}
 
 	var newArgsSuggestion = []ast.Expr{expr.Args[0]}
@@ -402,8 +426,8 @@ func doCheckMatchError(pass *analysis.Pass, origExp *ast.CallExpr, matcher *ast.
 		newArgsSuggestion = append(newArgsSuggestion, expr.Args[1])
 	}
 	expr.Args = newArgsSuggestion
-	report(pass, expr, matchErrorRedundantArg, oldExpr)
-	return false
+
+	return true, append(diagnostics, prepareReport(pass, expr, matchErrorRedundantArg, oldExpr)...)
 }
 
 func checkMatchErrorAssertion(pass *analysis.Pass, matcher *ast.CallExpr) (bool, int) {
@@ -455,19 +479,19 @@ func isErrorMatcherValidArg(pass *analysis.Pass, arg ast.Expr) bool {
 	return interfaces.ImplementsGomegaMatcher(t)
 }
 
-func checkEqualWrongType(pass *analysis.Pass, origExp *ast.CallExpr, actualArg ast.Expr, handler gomegahandler.Handler, old string) bool {
+func checkEqualWrongType(pass *analysis.Pass, origExp *ast.CallExpr, actualArg ast.Expr, handler gomegahandler.Handler, old string) (bool, []analysis.Diagnostic) {
 	matcher, ok := origExp.Args[0].(*ast.CallExpr)
 	if !ok {
-		return false
+		return false, nil
 	}
 
 	return checkEqualDifferentTypes(pass, matcher, actualArg, handler, old, false)
 }
 
-func checkEqualDifferentTypes(pass *analysis.Pass, matcher *ast.CallExpr, actualArg ast.Expr, handler gomegahandler.Handler, old string, parentPointer bool) bool {
+func checkEqualDifferentTypes(pass *analysis.Pass, matcher *ast.CallExpr, actualArg ast.Expr, handler gomegahandler.Handler, old string, parentPointer bool) (bool, []analysis.Diagnostic) {
 	matcherFuncName, ok := handler.GetActualFuncName(matcher)
 	if !ok {
-		return false
+		return false, nil
 	}
 
 	actualType := pass.TypesInfo.TypeOf(actualArg)
@@ -476,21 +500,25 @@ func checkEqualDifferentTypes(pass *analysis.Pass, matcher *ast.CallExpr, actual
 	case equal, beIdenticalTo: // continue
 	case and, or:
 		foundIssue := false
+		var diagnostics []analysis.Diagnostic
 		for _, nestedExp := range matcher.Args {
 			nested, ok := nestedExp.(*ast.CallExpr)
 			if !ok {
 				continue
 			}
-			if checkEqualDifferentTypes(pass, nested, actualArg, handler, old, parentPointer) {
+			if found, diags := checkEqualDifferentTypes(pass, nested, actualArg, handler, old, parentPointer); found {
+				if len(diags) > 0 {
+					diagnostics = append(diagnostics, diags...)
+				}
 				foundIssue = true
 			}
 		}
 
-		return foundIssue
+		return foundIssue, diagnostics
 	case withTransform:
 		nested, ok := matcher.Args[1].(*ast.CallExpr)
 		if !ok {
-			return false
+			return false, nil
 		}
 
 		matcherFuncName, ok = handler.GetActualFuncName(nested)
@@ -499,7 +527,7 @@ func checkEqualDifferentTypes(pass *analysis.Pass, matcher *ast.CallExpr, actual
 		case not:
 			return checkEqualDifferentTypes(pass, nested, actualArg, handler, old, parentPointer)
 		default:
-			return false
+			return false, nil
 		}
 
 		if t := getFuncType(pass, matcher.Args[0]); t != nil {
@@ -507,7 +535,7 @@ func checkEqualDifferentTypes(pass *analysis.Pass, matcher *ast.CallExpr, actual
 			matcher = nested
 
 			if !ok {
-				return false
+				return false, nil
 			}
 		} else {
 			return checkEqualDifferentTypes(pass, nested, actualArg, handler, old, parentPointer)
@@ -516,7 +544,7 @@ func checkEqualDifferentTypes(pass *analysis.Pass, matcher *ast.CallExpr, actual
 	case not:
 		nested, ok := matcher.Args[0].(*ast.CallExpr)
 		if !ok {
-			return false
+			return false, nil
 		}
 
 		return checkEqualDifferentTypes(pass, nested, actualArg, handler, old, parentPointer)
@@ -524,12 +552,12 @@ func checkEqualDifferentTypes(pass *analysis.Pass, matcher *ast.CallExpr, actual
 	case haveValue:
 		nested, ok := matcher.Args[0].(*ast.CallExpr)
 		if !ok {
-			return false
+			return false, nil
 		}
 
 		return checkEqualDifferentTypes(pass, nested, actualArg, handler, old, true)
 	default:
-		return false
+		return false, nil
 	}
 
 	matcherValue := matcher.Args[0]
@@ -548,14 +576,13 @@ func checkEqualDifferentTypes(pass *analysis.Pass, matcher *ast.CallExpr, actual
 	if !reflect.DeepEqual(matcherType, actualType) {
 		// Equal can handle comparison of interface and a value that implements it
 		if isImplementing(matcherType, actualType) || isImplementing(actualType, matcherType) {
-			return false
+			return false, nil
 		}
 
-		reportNoFix(pass, matcher.Pos(), compareDifferentTypes, matcherFuncName, actualType, matcherType)
-		return true
+		return true, []analysis.Diagnostic{reportNoFix(matcher.Pos(), compareDifferentTypes, matcherFuncName, actualType, matcherType)}
 	}
 
-	return false
+	return false, nil
 }
 
 func getFuncType(pass *analysis.Pass, expr ast.Expr) gotypes.Type {
@@ -596,18 +623,18 @@ func isImplementing(ifs, impl gotypes.Type) bool {
 }
 
 // be careful - never change origExp!!! only modify its clone, expr!!!
-func checkPointerComparison(pass *analysis.Pass, config types.Config, origExp *ast.CallExpr, expr *ast.CallExpr, actualArg ast.Expr, handler gomegahandler.Handler, oldExpr string) bool {
+func checkPointerComparison(pass *analysis.Pass, config types.Config, origExp *ast.CallExpr, expr *ast.CallExpr, actualArg ast.Expr, handler gomegahandler.Handler, oldExpr string) (bool, []analysis.Diagnostic) {
 	if !isPointer(pass, actualArg) {
-		return false
+		return false, nil
 	}
 	matcher, ok := origExp.Args[0].(*ast.CallExpr)
 	if !ok {
-		return false
+		return false, nil
 	}
 
 	matcherFuncName, ok := handler.GetActualFuncName(matcher)
 	if !ok {
-		return false
+		return false, nil
 	}
 
 	// not using recurse here, since we need the original expression, in order to get the TypeInfo, while we should not
@@ -617,12 +644,12 @@ func checkPointerComparison(pass *analysis.Pass, config types.Config, origExp *a
 		expr.Args[0] = expr.Args[0].(*ast.CallExpr).Args[0]
 		matcher, ok = matcher.Args[0].(*ast.CallExpr)
 		if !ok {
-			return false
+			return false, nil
 		}
 
 		matcherFuncName, ok = handler.GetActualFuncName(matcher)
 		if !ok {
-			return false
+			return false, nil
 		}
 	}
 
@@ -630,17 +657,17 @@ func checkPointerComparison(pass *analysis.Pass, config types.Config, origExp *a
 	case equal, beIdenticalTo, beEquivalentTo:
 		arg := matcher.Args[0]
 		if isPointer(pass, arg) {
-			return false
+			return false, nil
 		}
 		if isNil(arg) {
-			return false
+			return false, nil
 		}
 		if isInterface(pass, arg) {
-			return false
+			return false, nil
 		}
 	case beFalse, beTrue, beNumerically:
 	default:
-		return false
+		return false, nil
 	}
 
 	handleAssertionOnly(pass, config, expr, handler, actualArg, oldExpr, false)
@@ -648,18 +675,16 @@ func checkPointerComparison(pass *analysis.Pass, config types.Config, origExp *a
 	args := []ast.Expr{astcopy.CallExpr(expr.Args[0].(*ast.CallExpr))}
 	handler.ReplaceFunction(expr.Args[0].(*ast.CallExpr), ast.NewIdent(haveValue))
 	expr.Args[0].(*ast.CallExpr).Args = args
-	report(pass, expr, comparePointerToValue, oldExpr)
 
-	return true
-
+	return true, prepareReport(pass, expr, comparePointerToValue, oldExpr)
 }
 
 // check async assertion does not assert function call. This is a real bug in the test. In this case, the assertion is
 // done on the returned value, instead of polling the result of a function, for instance.
-func checkAsyncAssertion(pass *analysis.Pass, config types.Config, expr *ast.CallExpr, actualExpr *ast.CallExpr, handler gomegahandler.Handler, oldExpr string) bool {
+func checkAsyncAssertion(pass *analysis.Pass, config types.Config, expr *ast.CallExpr, actualExpr *ast.CallExpr, handler gomegahandler.Handler, oldExpr string) (bool, []analysis.Diagnostic) {
 	funcName, ok := handler.GetActualFuncName(actualExpr)
 	if !ok {
-		return false
+		return false, nil
 	}
 
 	var funcIndex int
@@ -669,7 +694,7 @@ func checkAsyncAssertion(pass *analysis.Pass, config types.Config, expr *ast.Cal
 	case eventuallyWithOffset, consistentlyWithOffset:
 		funcIndex = 1
 	default:
-		return false
+		return false, nil
 	}
 
 	if !config.SuppressAsync && len(actualExpr.Args) > funcIndex {
@@ -706,16 +731,16 @@ func checkAsyncAssertion(pass *analysis.Pass, config types.Config, expr *ast.Cal
 						actualExpr.Args[funcIndex] = fun.Fun
 					}
 
-					handleAssertionOnly(pass, config, expr, handler, actualExpr, oldExpr, false)
-					report(pass, expr, fmt.Sprintf(valueInEventually, funcName, funcName)+"; consider using `%s` instead", oldExpr)
-					return true
+					_, diags := handleAssertionOnly(pass, config, expr, handler, actualExpr, oldExpr, false)
+					diags = append(diags, prepareReport(pass, expr, fmt.Sprintf(valueInEventually, funcName, funcName)+"; consider using `%s` instead", oldExpr)...)
+					return true, diags
 				}
 			}
 		}
 	}
 
-	handleAssertionOnly(pass, config, expr, handler, actualExpr, oldExpr, true)
-	return true
+	_, diags := handleAssertionOnly(pass, config, expr, handler, actualExpr, oldExpr, false)
+	return true, diags
 }
 
 func isValidAsyncValueType(t gotypes.Type) bool {
@@ -769,15 +794,15 @@ func startCheckComparison(exp *ast.CallExpr, handler gomegahandler.Handler) (*as
 	return matcher, true
 }
 
-func checkComparison(exp *ast.CallExpr, pass *analysis.Pass, matcher *ast.CallExpr, handler gomegahandler.Handler, first ast.Expr, second ast.Expr, op token.Token, oldExp string) bool {
+func checkComparison(exp *ast.CallExpr, pass *analysis.Pass, matcher *ast.CallExpr, handler gomegahandler.Handler, first ast.Expr, second ast.Expr, op token.Token, oldExp string) (bool, []analysis.Diagnostic) {
 	fun, ok := exp.Fun.(*ast.SelectorExpr)
 	if !ok {
-		return true
+		return true, nil
 	}
 
 	call := handler.GetActualExpr(fun)
 	if call == nil {
-		return true
+		return true, nil
 	}
 
 	switch op {
@@ -789,7 +814,7 @@ func checkComparison(exp *ast.CallExpr, pass *analysis.Pass, matcher *ast.CallEx
 		handleEqualComparison(pass, matcher, first, second, handler)
 	case token.GTR, token.GEQ, token.LSS, token.LEQ:
 		if !isNumeric(pass, first) {
-			return true
+			return true, nil
 		}
 		handler.ReplaceFunction(matcher, ast.NewIdent(beNumerically))
 		matcher.Args = []ast.Expr{
@@ -797,12 +822,11 @@ func checkComparison(exp *ast.CallExpr, pass *analysis.Pass, matcher *ast.CallEx
 			second,
 		}
 	default:
-		return true
+		return true, nil
 	}
 
 	call.Args = []ast.Expr{first}
-	report(pass, exp, wrongCompareWarningTemplate, oldExp)
-	return false
+	return false, prepareReport(pass, exp, wrongCompareWarningTemplate, oldExp)
 }
 
 func handleEqualComparison(pass *analysis.Pass, matcher *ast.CallExpr, first ast.Expr, second ast.Expr, handler gomegahandler.Handler) {
@@ -823,13 +847,13 @@ func handleEqualComparison(pass *analysis.Pass, matcher *ast.CallExpr, first ast
 	}
 }
 
-func handleLenComparison(pass *analysis.Pass, exp *ast.CallExpr, matcher *ast.CallExpr, first ast.Expr, second ast.Expr, op token.Token, handler gomegahandler.Handler, oldExpr string) bool {
+func handleLenComparison(pass *analysis.Pass, exp *ast.CallExpr, matcher *ast.CallExpr, first ast.Expr, second ast.Expr, op token.Token, handler gomegahandler.Handler, oldExpr string) (bool, []analysis.Diagnostic) {
 	switch op {
 	case token.EQL:
 	case token.NEQ:
 		reverseAssertionFuncLogic(exp)
 	default:
-		return false
+		return false, nil
 	}
 
 	var eql *ast.Ident
@@ -843,15 +867,14 @@ func handleLenComparison(pass *analysis.Pass, exp *ast.CallExpr, matcher *ast.Ca
 	handler.ReplaceFunction(matcher, eql)
 	firstLen, ok := first.(*ast.CallExpr) // assuming it's len()
 	if !ok {
-		return false // should never happen
+		return false, nil // should never happen
 	}
 
 	val := firstLen.Args[0]
 	fun := handler.GetActualExpr(exp.Fun.(*ast.SelectorExpr))
 	fun.Args = []ast.Expr{val}
 
-	report(pass, exp, wrongLengthWarningTemplate, oldExpr)
-	return true
+	return true, prepareReport(pass, exp, wrongLengthWarningTemplate, oldExpr)
 }
 
 // Check if the "actual" argument is a call to the golang built-in len() function
@@ -866,25 +889,23 @@ func isActualIsLenFunc(actualArg ast.Expr) bool {
 }
 
 // Check if matcher function is in one of the patterns we want to avoid
-func checkLengthMatcher(exp *ast.CallExpr, pass *analysis.Pass, handler gomegahandler.Handler, oldExp string) bool {
+func checkLengthMatcher(exp *ast.CallExpr, pass *analysis.Pass, handler gomegahandler.Handler, oldExp string) (bool, []analysis.Diagnostic) {
 	matcher, ok := exp.Args[0].(*ast.CallExpr)
 	if !ok {
-		return true
+		return true, nil
 	}
 
 	matcherFuncName, ok := handler.GetActualFuncName(matcher)
 	if !ok {
-		return true
+		return true, nil
 	}
 
 	switch matcherFuncName {
 	case equal:
-		handleEqualMatcher(matcher, pass, exp, handler, oldExp)
-		return false
+		return false, handleEqualMatcher(matcher, pass, exp, handler, oldExp)
 
 	case beZero:
-		handleBeZero(pass, exp, handler, oldExp)
-		return false
+		return false, handleBeZero(pass, exp, handler, oldExp)
 
 	case beNumerically:
 		return handleBeNumerically(matcher, pass, exp, handler, oldExp)
@@ -895,32 +916,33 @@ func checkLengthMatcher(exp *ast.CallExpr, pass *analysis.Pass, handler gomegaha
 		return checkLengthMatcher(exp, pass, handler, oldExp)
 
 	default:
-		return true
+		return true, nil
 	}
 }
 
 // Check if matcher function is in one of the patterns we want to avoid
-func checkNilMatcher(exp *ast.CallExpr, pass *analysis.Pass, nilable ast.Expr, handler gomegahandler.Handler, notEqual bool, oldExp string) bool {
+func checkNilMatcher(exp *ast.CallExpr, pass *analysis.Pass, nilable ast.Expr, handler gomegahandler.Handler, notEqual bool, oldExp string) (bool, []analysis.Diagnostic) {
 	matcher, ok := exp.Args[0].(*ast.CallExpr)
 	if !ok {
-		return true
+		return true, nil
 	}
 
 	matcherFuncName, ok := handler.GetActualFuncName(matcher)
 	if !ok {
-		return true
+		return true, nil
 	}
 
+	var diagnostics []analysis.Diagnostic
 	switch matcherFuncName {
 	case equal:
-		handleEqualNilMatcher(matcher, pass, exp, handler, nilable, notEqual, oldExp)
+		diagnostics = handleEqualNilMatcher(matcher, pass, exp, handler, nilable, notEqual, oldExp)
 
 	case beTrue:
-		handleNilBeBoolMatcher(pass, exp, handler, nilable, notEqual, oldExp)
+		diagnostics = handleNilBeBoolMatcher(pass, exp, handler, nilable, notEqual, oldExp)
 
 	case beFalse:
 		reverseAssertionFuncLogic(exp)
-		handleNilBeBoolMatcher(pass, exp, handler, nilable, notEqual, oldExp)
+		diagnostics = handleNilBeBoolMatcher(pass, exp, handler, nilable, notEqual, oldExp)
 
 	case not:
 		reverseAssertionFuncLogic(exp)
@@ -928,24 +950,24 @@ func checkNilMatcher(exp *ast.CallExpr, pass *analysis.Pass, nilable ast.Expr, h
 		return checkNilMatcher(exp, pass, nilable, handler, notEqual, oldExp)
 
 	default:
-		return true
+		return true, nil
 	}
-	return false
+	return false, diagnostics
 }
 
-func checkNilError(pass *analysis.Pass, assertionExp *ast.CallExpr, handler gomegahandler.Handler, actualArg ast.Expr, oldExpr string) bool {
+func checkNilError(pass *analysis.Pass, assertionExp *ast.CallExpr, handler gomegahandler.Handler, actualArg ast.Expr, oldExpr string) (bool, []analysis.Diagnostic) {
 	if len(assertionExp.Args) == 0 {
-		return true
+		return true, nil
 	}
 
 	equalFuncExpr, ok := assertionExp.Args[0].(*ast.CallExpr)
 	if !ok {
-		return true
+		return true, nil
 	}
 
 	funcName, ok := handler.GetActualFuncName(equalFuncExpr)
 	if !ok {
-		return true
+		return true, nil
 	}
 
 	switch funcName {
@@ -953,12 +975,12 @@ func checkNilError(pass *analysis.Pass, assertionExp *ast.CallExpr, handler gome
 	case equal:
 
 		if len(equalFuncExpr.Args) == 0 {
-			return true
+			return true, nil
 		}
 
 		nilable, ok := equalFuncExpr.Args[0].(*ast.Ident)
 		if !ok || nilable.Name != "nil" {
-			return true
+			return true, nil
 		}
 
 	case not:
@@ -966,7 +988,7 @@ func checkNilError(pass *analysis.Pass, assertionExp *ast.CallExpr, handler gome
 		assertionExp.Args[0] = assertionExp.Args[0].(*ast.CallExpr).Args[0]
 		return checkNilError(pass, assertionExp, handler, actualArg, oldExpr)
 	default:
-		return true
+		return true, nil
 	}
 
 	var newFuncName string
@@ -980,8 +1002,7 @@ func checkNilError(pass *analysis.Pass, assertionExp *ast.CallExpr, handler gome
 	handler.ReplaceFunction(equalFuncExpr, ast.NewIdent(newFuncName))
 	equalFuncExpr.Args = nil
 
-	report(pass, assertionExp, wrongErrWarningTemplate, oldExpr)
-	return false
+	return false, prepareReport(pass, assertionExp, wrongErrWarningTemplate, oldExpr)
 }
 
 // handleAssertionOnly checks use-cases when the actual value is valid, but only the assertion should be fixed
@@ -991,30 +1012,30 @@ func checkNilError(pass *analysis.Pass, assertionExp *ast.CallExpr, handler gome
 //	Equal(true) => BeTrue()
 //	Equal(false) => BeFalse()
 //	HaveLen(0) => BeEmpty()
-func handleAssertionOnly(pass *analysis.Pass, config types.Config, expr *ast.CallExpr, handler gomegahandler.Handler, actualArg ast.Expr, oldExpr string, shouldReport bool) bool {
+func handleAssertionOnly(pass *analysis.Pass, config types.Config, expr *ast.CallExpr, handler gomegahandler.Handler, actualArg ast.Expr, oldExpr string, shouldReport bool) (bool, []analysis.Diagnostic) {
 	if len(expr.Args) == 0 {
-		return true
+		return true, nil
 	}
 
 	equalFuncExpr, ok := expr.Args[0].(*ast.CallExpr)
 	if !ok {
-		return true
+		return true, nil
 	}
 
 	funcName, ok := handler.GetActualFuncName(equalFuncExpr)
 	if !ok {
-		return true
+		return true, nil
 	}
 
 	switch funcName {
 	case equal:
 		if len(equalFuncExpr.Args) == 0 {
-			return true
+			return true, nil
 		}
 
 		tkn, ok := equalFuncExpr.Args[0].(*ast.Ident)
 		if !ok {
-			return true
+			return true, nil
 		}
 
 		var replacement string
@@ -1022,7 +1043,7 @@ func handleAssertionOnly(pass *analysis.Pass, config types.Config, expr *ast.Cal
 		switch tkn.Name {
 		case "nil":
 			if config.SuppressNil {
-				return true
+				return true, nil
 			}
 			replacement = beNil
 			template = wrongNilWarningTemplate
@@ -1038,52 +1059,43 @@ func handleAssertionOnly(pass *analysis.Pass, config types.Config, expr *ast.Cal
 			}
 			template = wrongBoolWarningTemplate
 		default:
-			return true
+			return true, nil
 		}
 
 		handler.ReplaceFunction(equalFuncExpr, ast.NewIdent(replacement))
 		equalFuncExpr.Args = nil
 
-		if shouldReport {
-			report(pass, expr, template, oldExpr)
-		}
-
-		return false
+		return false, prepareReport(pass, expr, template, oldExpr)
 
 	case beFalse:
 		if isNegativeAssertion(expr) {
 			reverseAssertionFuncLogic(expr)
 			handler.ReplaceFunction(equalFuncExpr, ast.NewIdent(beTrue))
-			if shouldReport {
-				report(pass, expr, doubleNegativeWarningTemplate, oldExpr)
-			}
+			return false, prepareReport(pass, expr, doubleNegativeWarningTemplate, oldExpr)
 		}
-		return false
+		return false, nil
 
 	case haveLen:
 		if config.AllowHaveLen0 {
-			return true
+			return true, nil
 		}
 
 		if len(equalFuncExpr.Args) > 0 {
 			if isZero(pass, equalFuncExpr.Args[0]) {
 				handler.ReplaceFunction(equalFuncExpr, ast.NewIdent(beEmpty))
 				equalFuncExpr.Args = nil
-				if shouldReport {
-					report(pass, expr, wrongLengthWarningTemplate, oldExpr)
-				}
-				return false
+				return false, prepareReport(pass, expr, wrongLengthWarningTemplate, oldExpr)
 			}
 		}
 
-		return true
+		return true, nil
 
 	case not:
 		reverseAssertionFuncLogic(expr)
 		expr.Args[0] = expr.Args[0].(*ast.CallExpr).Args[0]
 		return handleAssertionOnly(pass, config, expr, handler, actualArg, oldExpr, shouldReport)
 	default:
-		return true
+		return true, nil
 	}
 }
 
@@ -1174,7 +1186,7 @@ func replaceNilActualArg(actualExpr *ast.CallExpr, handler gomegahandler.Handler
 }
 
 // For the BeNumerically matcher, we want to avoid the assertion of length to be > 0 or >= 1, or just == number
-func handleBeNumerically(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, oldExp string) bool {
+func handleBeNumerically(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, oldExp string) (bool, []analysis.Diagnostic) {
 	opExp, ok1 := matcher.Args[0].(*ast.BasicLit)
 	valExp, ok2 := matcher.Args[1].(*ast.BasicLit)
 
@@ -1186,22 +1198,20 @@ func handleBeNumerically(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.Ca
 			reverseAssertionFuncLogic(exp)
 			handler.ReplaceFunction(exp.Args[0].(*ast.CallExpr), ast.NewIdent(beEmpty))
 			exp.Args[0].(*ast.CallExpr).Args = nil
-			reportLengthAssertion(pass, exp, handler, oldExp)
-			return false
+
+			return false, reportLengthAssertion(pass, exp, handler, oldExp)
 		} else if op == `"=="` {
 			chooseNumericMatcher(pass, exp, handler, valExp)
-			reportLengthAssertion(pass, exp, handler, oldExp)
 
-			return false
+			return false, reportLengthAssertion(pass, exp, handler, oldExp)
 		} else if op == `"!="` {
 			reverseAssertionFuncLogic(exp)
 			chooseNumericMatcher(pass, exp, handler, valExp)
-			reportLengthAssertion(pass, exp, handler, oldExp)
 
-			return false
+			return false, reportLengthAssertion(pass, exp, handler, oldExp)
 		}
 	}
-	return true
+	return true, nil
 }
 
 func chooseNumericMatcher(pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, valExp ast.Expr) {
@@ -1225,7 +1235,7 @@ func isNegativeAssertion(exp *ast.CallExpr) bool {
 	return reverseassertion.IsNegativeLogic(assertionFunc.Name)
 }
 
-func handleEqualMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, oldExp string) {
+func handleEqualMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, oldExp string) []analysis.Diagnostic {
 	equalTo, ok := matcher.Args[0].(*ast.BasicLit)
 	if ok {
 		chooseNumericMatcher(pass, exp, handler, equalTo)
@@ -1233,25 +1243,25 @@ func handleEqualMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.Cal
 		handler.ReplaceFunction(exp.Args[0].(*ast.CallExpr), ast.NewIdent(haveLen))
 		exp.Args[0].(*ast.CallExpr).Args = []ast.Expr{matcher.Args[0]}
 	}
-	reportLengthAssertion(pass, exp, handler, oldExp)
+	return reportLengthAssertion(pass, exp, handler, oldExp)
 }
 
-func handleBeZero(pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, oldExp string) {
+func handleBeZero(pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, oldExp string) []analysis.Diagnostic {
 	exp.Args[0].(*ast.CallExpr).Args = nil
 	handler.ReplaceFunction(exp.Args[0].(*ast.CallExpr), ast.NewIdent(beEmpty))
-	reportLengthAssertion(pass, exp, handler, oldExp)
+	return reportLengthAssertion(pass, exp, handler, oldExp)
 }
 
-func handleEqualNilMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, nilable ast.Expr, notEqual bool, oldExp string) {
+func handleEqualNilMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, nilable ast.Expr, notEqual bool, oldExp string) []analysis.Diagnostic {
 	equalTo, ok := matcher.Args[0].(*ast.Ident)
 	if !ok {
-		return
+		return nil
 	}
 
 	if equalTo.Name == "false" {
 		reverseAssertionFuncLogic(exp)
 	} else if equalTo.Name != "true" {
-		return
+		return nil
 	}
 
 	newFuncName, isItError := handleNilComparisonErr(pass, exp, nilable)
@@ -1259,15 +1269,15 @@ func handleEqualNilMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.
 	handler.ReplaceFunction(exp.Args[0].(*ast.CallExpr), ast.NewIdent(newFuncName))
 	exp.Args[0].(*ast.CallExpr).Args = nil
 
-	reportNilAssertion(pass, exp, handler, nilable, notEqual, oldExp, isItError)
+	return reportNilAssertion(pass, exp, handler, nilable, notEqual, oldExp, isItError)
 }
 
-func handleNilBeBoolMatcher(pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, nilable ast.Expr, notEqual bool, oldExp string) {
+func handleNilBeBoolMatcher(pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, nilable ast.Expr, notEqual bool, oldExp string) []analysis.Diagnostic {
 	newFuncName, isItError := handleNilComparisonErr(pass, exp, nilable)
 	handler.ReplaceFunction(exp.Args[0].(*ast.CallExpr), ast.NewIdent(newFuncName))
 	exp.Args[0].(*ast.CallExpr).Args = nil
 
-	reportNilAssertion(pass, exp, handler, nilable, notEqual, oldExp, isItError)
+	return reportNilAssertion(pass, exp, handler, nilable, notEqual, oldExp, isItError)
 }
 
 func handleNilComparisonErr(pass *analysis.Pass, exp *ast.CallExpr, nilable ast.Expr) (string, bool) {
@@ -1293,18 +1303,18 @@ func isAssertionFunc(name string) bool {
 	return false
 }
 
-func reportLengthAssertion(pass *analysis.Pass, expr *ast.CallExpr, handler gomegahandler.Handler, oldExpr string) {
+func reportLengthAssertion(pass *analysis.Pass, expr *ast.CallExpr, handler gomegahandler.Handler, oldExpr string) []analysis.Diagnostic {
 	actualExpr := handler.GetActualExpr(expr.Fun.(*ast.SelectorExpr))
 	replaceLenActualArg(actualExpr, handler)
 
-	report(pass, expr, wrongLengthWarningTemplate, oldExpr)
+	return prepareReport(pass, expr, wrongLengthWarningTemplate, oldExpr)
 }
 
-func reportNilAssertion(pass *analysis.Pass, expr *ast.CallExpr, handler gomegahandler.Handler, nilable ast.Expr, notEqual bool, oldExpr string, isItError bool) {
+func reportNilAssertion(pass *analysis.Pass, expr *ast.CallExpr, handler gomegahandler.Handler, nilable ast.Expr, notEqual bool, oldExpr string, isItError bool) []analysis.Diagnostic {
 	actualExpr := handler.GetActualExpr(expr.Fun.(*ast.SelectorExpr))
 	changed := replaceNilActualArg(actualExpr, handler, nilable)
 	if !changed {
-		return
+		return nil
 	}
 
 	if notEqual {
@@ -1315,31 +1325,58 @@ func reportNilAssertion(pass *analysis.Pass, expr *ast.CallExpr, handler gomegah
 		template = wrongErrWarningTemplate
 	}
 
-	report(pass, expr, template, oldExpr)
+	return prepareReport(pass, expr, template, oldExpr)
 }
 
-func report(pass *analysis.Pass, expr ast.Expr, messageTemplate, oldExpr string) {
+func prepareReport(pass *analysis.Pass, expr ast.Expr, messageTemplate, oldExpr string) []analysis.Diagnostic {
 	newExp := goFmt(pass.Fset, expr)
-	pass.Report(analysis.Diagnostic{
-		Pos:     expr.Pos(),
-		Message: fmt.Sprintf(messageTemplate, newExp),
-		SuggestedFixes: []analysis.SuggestedFix{
-			{
-				Message: fmt.Sprintf("should replace %s with %s", oldExpr, newExp),
-				TextEdits: []analysis.TextEdit{
-					{
-						Pos:     expr.Pos(),
-						End:     expr.End(),
-						NewText: []byte(newExp),
+	return []analysis.Diagnostic{
+		{
+			Pos:     expr.Pos(),
+			Message: fmt.Sprintf(messageTemplate, newExp),
+			SuggestedFixes: []analysis.SuggestedFix{
+				{
+					Message: fmt.Sprintf("should replace %s with %s", oldExpr, newExp),
+					TextEdits: []analysis.TextEdit{
+						{
+							Pos:     expr.Pos(),
+							End:     expr.End(),
+							NewText: []byte(newExp),
+						},
 					},
 				},
 			},
 		},
-	})
+	}
 }
 
-func reportNewName(pass *analysis.Pass, id *ast.Ident, newName string, messageTemplate, oldExpr string) {
-	pass.Report(analysis.Diagnostic{
+func report(pass *analysis.Pass, diagnostics []analysis.Diagnostic) {
+	switch len(diagnostics) {
+	case 0:
+		return
+
+	case 1:
+		pass.Report(diagnostics[0])
+
+	default:
+		var fixes []analysis.SuggestedFix
+		for i := range diagnostics[:len(diagnostics)-1] {
+			if len(diagnostics[i].SuggestedFixes) > 0 {
+				fixes = append(fixes, diagnostics[i].SuggestedFixes...)
+				diagnostics[i].SuggestedFixes = nil
+			}
+			pass.Report(diagnostics[i])
+		}
+		lastDiag := diagnostics[len(diagnostics)-1]
+		if len(fixes) > 0 {
+			lastDiag.SuggestedFixes = append(lastDiag.SuggestedFixes, fixes...)
+		}
+		pass.Report(lastDiag)
+	}
+}
+
+func reportNewName(id *ast.Ident, newName string, messageTemplate, oldExpr string) analysis.Diagnostic {
+	return analysis.Diagnostic{
 		Pos:     id.Pos(),
 		Message: fmt.Sprintf(messageTemplate, newName),
 		SuggestedFixes: []analysis.SuggestedFix{
@@ -1354,18 +1391,18 @@ func reportNewName(pass *analysis.Pass, id *ast.Ident, newName string, messageTe
 				},
 			},
 		},
-	})
+	}
 }
 
-func reportNoFix(pass *analysis.Pass, pos token.Pos, message string, args ...any) {
+func reportNoFix(pos token.Pos, message string, args ...any) analysis.Diagnostic {
 	if len(args) > 0 {
 		message = fmt.Sprintf(message, args...)
 	}
 
-	pass.Report(analysis.Diagnostic{
+	return analysis.Diagnostic{
 		Pos:     pos,
 		Message: message,
-	})
+	}
 }
 
 func getNilableFromComparison(actualArg ast.Expr) (ast.Expr, token.Token) {
@@ -1475,15 +1512,18 @@ func isNumeric(pass *analysis.Pass, node ast.Expr) bool {
 	return false
 }
 
-func checkNoAssertion(pass *analysis.Pass, expr *ast.CallExpr, handler gomegahandler.Handler) {
+func checkNoAssertion(expr *ast.CallExpr, handler gomegahandler.Handler) []analysis.Diagnostic {
 	funcName, ok := handler.GetActualFuncName(expr)
 	if ok {
+		var diagnostics []analysis.Diagnostic
 		if isActualFunc(funcName) {
-			reportNoFix(pass, expr.Pos(), missingAssertionMessage, funcName)
+			diagnostics = []analysis.Diagnostic{reportNoFix(expr.Pos(), missingAssertionMessage, funcName)}
 		} else if isActualAsyncFunc(funcName) {
-			reportNoFix(pass, expr.Pos(), missingAsyncAssertionMessage, funcName)
+			diagnostics = []analysis.Diagnostic{reportNoFix(expr.Pos(), missingAsyncAssertionMessage, funcName)}
 		}
+		return diagnostics
 	}
+	return nil
 }
 
 func isActualFunc(name string) bool {
