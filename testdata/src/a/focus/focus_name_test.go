@@ -8,7 +8,7 @@ import (
 var _ = tester.FDescribe("should warn", func() {
 	tester.When("should ignore", func() {
 		tester.It("should ignore", func() {
-			Expect(len("abcd")).Should(Equal(4)) // want `ginkgo-linter: wrong length assertion; consider using .Expect\("abcd"\)\.Should\(HaveLen\(4\)\). instead`
+			Expect(len("abcd")).Should(Equal(4)) // want `ginkgo-linter: wrong length assertion\. Consider using .Expect\("abcd"\)\.Should\(HaveLen\(4\)\). instead`
 		})
 	})
 	tester.Context("should ignore", func() {

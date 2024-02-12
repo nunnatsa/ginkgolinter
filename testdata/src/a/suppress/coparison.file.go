@@ -9,7 +9,7 @@ import (
 
 var _ = Describe("should suppress comparison assertions", func() {
 	It("should suppress comparison assertions", func() {
-		Expect(len("abcd")).To(Equal(4)) // want `ginkgo-linter: wrong length assertion; consider using .Expect\("abcd"\)\.To\(HaveLen\(4\)\). instead`
+		Expect(len("abcd")).To(Equal(4)) // want `ginkgo-linter: wrong length assertion\. Consider using .Expect\("abcd"\)\.To\(HaveLen\(4\)\). instead`
 		str := "abcd"
 		Expect("abcd" == str).To(BeTrue()) // no warning triggered
 	})

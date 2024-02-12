@@ -5,7 +5,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = ginkgo.FDescribe("should warn", func() { // want `ginkgo-linter: Focus container found. This is used only for local debug and should not be part of the actual source code, consider to replace with "Describe"`
+var _ = ginkgo.FDescribe("should warn", func() { // want `ginkgo-linter: Focus container found. This is used only for local debug and should not be part of the actual source code\. Consider to replace with "Describe"`
 	ginkgo.When("should ignore", func() {
 		ginkgo.It("should ignore", func() {
 			Expect("abcd").Should(HaveLen(4))
@@ -23,7 +23,7 @@ var _ = ginkgo.FDescribe("should warn", func() { // want `ginkgo-linter: Focus c
 })
 
 var _ = ginkgo.Describe("should ignore", func() {
-	ginkgo.FWhen("should warn", func() { // want `ginkgo-linter: Focus container found. This is used only for local debug and should not be part of the actual source code, consider to replace with "When"`
+	ginkgo.FWhen("should warn", func() { // want `ginkgo-linter: Focus container found. This is used only for local debug and should not be part of the actual source code\. Consider to replace with "When"`
 		ginkgo.Context("should ignore", func() {
 			ginkgo.It("should ignore", func() {
 				Expect("abcd").Should(HaveLen(4))
@@ -35,7 +35,7 @@ var _ = ginkgo.Describe("should ignore", func() {
 		})
 	})
 
-	ginkgo.FContext("should warn", func() { // want `ginkgo-linter: Focus container found. This is used only for local debug and should not be part of the actual source code, consider to replace with "Context"`
+	ginkgo.FContext("should warn", func() { // want `ginkgo-linter: Focus container found. This is used only for local debug and should not be part of the actual source code\. Consider to replace with "Context"`
 		ginkgo.Context("should ignore", func() {
 			ginkgo.It("should ignore", func() {
 				Expect("abcd").Should(HaveLen(4))
@@ -48,7 +48,7 @@ var _ = ginkgo.Describe("should ignore", func() {
 	})
 
 	ginkgo.Context("ignore", func() {
-		ginkgo.FIt("should warn", func() { // want `ginkgo-linter: Focus container found. This is used only for local debug and should not be part of the actual source code, consider to replace with "It"`
+		ginkgo.FIt("should warn", func() { // want `ginkgo-linter: Focus container found. This is used only for local debug and should not be part of the actual source code\. Consider to replace with "It"`
 			Expect("abcd").Should(HaveLen(4))
 		})
 	})

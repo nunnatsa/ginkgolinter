@@ -79,7 +79,7 @@ var _ = Describe("Check MatchError", func() {
 		one := 1
 		Expect(one).To(MatchError("example")) // want `ginkgo-linter: the MatchError matcher used to assert a non error type \(one\)`
 		Expect(e1).To(MatchError(isExample))  // want `ginkgo-linter: missing function description as second parameter of MatchError`
-		Expect(e1).To(MatchError(f1))         // want `ginkgo-linter: MatchError first parameter \(f1\) must be error, string, GomegaMatcher or func\(error\)bool are allowed`
+		Expect(e1).To(MatchError(f1))         // want `ginkgo-linter: multiple issues: MatchError first parameter \(f1\) must be error, string, GomegaMatcher or func\(error\)bool are allowed; redundant MatchError arguments; consider removing them`
 	})
 
 	It("two arguments - valid", func() {
@@ -102,14 +102,14 @@ var _ = Describe("Check MatchError", func() {
 	})
 
 	It("two arguments - wrong usage", func() {
-		Expect(e1).To(MatchError(e2, "not used"), "this text is ok")                      // want `ginkgo-linter: redundant MatchError arguments; consider removing them; consider using .MatchError\(e2\). instead`
-		Expect(e1).To(MatchError("example", "not used"), "this text is ok")               // want `ginkgo-linter: redundant MatchError arguments; consider removing them; consider using .MatchError\("example"\). instead`
-		Expect(e1).To(MatchError(ContainSubstring("amp"), "not used"), "this text is ok") // want `ginkgo-linter: redundant MatchError arguments; consider removing them; consider using .MatchError\(ContainSubstring\("amp"\)\). instead`
+		Expect(e1).To(MatchError(e2, "not used"), "this text is ok")                      // want `ginkgo-linter: redundant MatchError arguments; consider removing them`
+		Expect(e1).To(MatchError("example", "not used"), "this text is ok")               // want `ginkgo-linter: redundant MatchError arguments; consider removing them`
+		Expect(e1).To(MatchError(ContainSubstring("amp"), "not used"), "this text is ok") // want `ginkgo-linter: redundant MatchError arguments; consider removing them`
 	})
 
 	It("two arguments - invalid", func() {
-		Expect(e1).To(MatchError(1, "not used"), "wrong type - int")         // want `ginkgo-linter: MatchError first parameter \(1\) must be error, string, GomegaMatcher or func\(error\)bool are allowed`
-		Expect(e1).To(MatchError(compareString, "wrong function signature")) // want `ginkgo-linter: MatchError first parameter \(compareString\) must be error, string, GomegaMatcher or func\(error\)bool are allowed`
+		Expect(e1).To(MatchError(1, "not used"), "wrong type - int")         // want `ginkgo-linter: multiple issues: MatchError first parameter \(1\) must be error, string, GomegaMatcher or func\(error\)bool are allowed; redundant MatchError arguments; consider removing them`
+		Expect(e1).To(MatchError(compareString, "wrong function signature")) // want `ginkgo-linter: multiple issues: MatchError first parameter \(compareString\) must be error, string, GomegaMatcher or func\(error\)bool are allowed; redundant MatchError arguments; consider removing them`
 	})
 
 	It("two arguments. Second is not a string", func() {
@@ -119,11 +119,11 @@ var _ = Describe("Check MatchError", func() {
 	})
 
 	It("multiple arguments", func() {
-		Expect(e1).To(MatchError(isExample, "is it the example error", "not used"))             // want `ginkgo-linter: redundant MatchError arguments; consider removing them; consider using .MatchError\(isExample, "is it the example error"\). instead`
-		Expect(e1).To(MatchError(isExample, "is it the example error", "not used", "not used")) // want `ginkgo-linter: redundant MatchError arguments; consider removing them; consider using .MatchError\(isExample, "is it the example error"\). instead`
-		Expect(e1).To(MatchError(e2, "not used", "not used"))                                   // want `ginkgo-linter: redundant MatchError arguments; consider removing them; consider using .MatchError\(e2\). instead`
-		Expect(e1).To(MatchError("example", "not used", "not used"))                            // want `ginkgo-linter: redundant MatchError arguments; consider removing them; consider using .MatchError\("example"\). instead`
-		Expect(e1).To(MatchError(ContainSubstring("amp"), "not used", "not used"))              // want `ginkgo-linter: redundant MatchError arguments; consider removing them; consider using .MatchError\(ContainSubstring\("amp"\)\). instead`
+		Expect(e1).To(MatchError(isExample, "is it the example error", "not used"))             // want `ginkgo-linter: redundant MatchError arguments; consider removing them`
+		Expect(e1).To(MatchError(isExample, "is it the example error", "not used", "not used")) // want `ginkgo-linter: redundant MatchError arguments; consider removing them`
+		Expect(e1).To(MatchError(e2, "not used", "not used"))                                   // want `ginkgo-linter: redundant MatchError arguments; consider removing them`
+		Expect(e1).To(MatchError("example", "not used", "not used"))                            // want `ginkgo-linter: redundant MatchError arguments; consider removing them`
+		Expect(e1).To(MatchError(ContainSubstring("amp"), "not used", "not used"))              // want `ginkgo-linter: redundant MatchError arguments; consider removing them`
 	})
 
 	It("funcs - valid", func() {
@@ -143,19 +143,19 @@ var _ = Describe("Check MatchError", func() {
 
 	It("and - invalid", func() {
 		var err error = e1
-		Expect(err).To(And(Not(BeNil()), MatchError("expect", "not used")))               // want `ginkgo-linter: redundant MatchError arguments; consider removing them; consider using .MatchError\("expect"\). instead`
+		Expect(err).To(And(Not(BeNil()), MatchError("expect", "not used")))               // want `ginkgo-linter: redundant MatchError arguments; consider removing them`
 		Expect(err).To(And(MatchError("expect"), MatchError(e2)))                         // valid
-		Expect(err).To(And(MatchError("expect", "not used"), MatchError(e2, "not used"))) // want `ginkgo-linter: redundant MatchError arguments; consider removing them; consider using .MatchError\("expect"\). instead` `ginkgo-linter: redundant MatchError arguments; consider removing them; consider using .MatchError\(e2\). instead`
-		Expect(err).To(And(MatchError("expect", "not used"), MatchError(e2)))             // want `ginkgo-linter: redundant MatchError arguments; consider removing them; consider using .MatchError\("expect"\). instead`
-		Expect(err).To(And(MatchError("expect"), MatchError(e2, "not used")))             // want `ginkgo-linter: redundant MatchError arguments; consider removing them; consider using .MatchError\(e2\). instead`
+		Expect(err).To(And(MatchError("expect", "not used"), MatchError(e2, "not used"))) // want `ginkgo-linter: multiple issues: redundant MatchError arguments; consider removing them; redundant MatchError arguments; consider removing them`
+		Expect(err).To(And(MatchError("expect", "not used"), MatchError(e2)))             // want `ginkgo-linter: redundant MatchError arguments; consider removing them`
+		Expect(err).To(And(MatchError("expect"), MatchError(e2, "not used")))             // want `ginkgo-linter: redundant MatchError arguments; consider removing them`
 	})
 
 	It("or - invalid", func() {
 		var err error = e1
-		Expect(err).To(Or(Not(BeNil()), MatchError("expect", "not used")))               // want `ginkgo-linter: redundant MatchError arguments; consider removing them; consider using .MatchError\("expect"\). instead`
+		Expect(err).To(Or(Not(BeNil()), MatchError("expect", "not used")))               // want `ginkgo-linter: redundant MatchError arguments; consider removing them`
 		Expect(err).To(Or(MatchError("expect"), MatchError(e2)))                         // valid
-		Expect(err).To(Or(MatchError("expect", "not used"), MatchError(e2, "not used"))) // want `ginkgo-linter: redundant MatchError arguments; consider removing them; consider using .MatchError\("expect"\). instead` `ginkgo-linter: redundant MatchError arguments; consider removing them; consider using .MatchError\(e2\). instead`
-		Expect(err).To(Or(MatchError("expect", "not used"), MatchError(e2)))             // want `ginkgo-linter: redundant MatchError arguments; consider removing them; consider using .MatchError\("expect"\). instead`
-		Expect(err).To(Or(MatchError("expect"), MatchError(e2, "not used")))             // want `ginkgo-linter: redundant MatchError arguments; consider removing them; consider using .MatchError\(e2\). instead`
+		Expect(err).To(Or(MatchError("expect", "not used"), MatchError(e2, "not used"))) // want `ginkgo-linter: multiple issues: redundant MatchError arguments; consider removing them; redundant MatchError arguments; consider removing them`
+		Expect(err).To(Or(MatchError("expect", "not used"), MatchError(e2)))             // want `ginkgo-linter: redundant MatchError arguments; consider removing them`
+		Expect(err).To(Or(MatchError("expect"), MatchError(e2, "not used")))             // want `ginkgo-linter: redundant MatchError arguments; consider removing them`
 	})
 })
