@@ -70,7 +70,12 @@ func (h dotHandler) GetActualFuncName(expr *ast.CallExpr) (string, bool) {
 
 // ReplaceFunction replaces the function with another one, for fix suggestions
 func (dotHandler) ReplaceFunction(caller *ast.CallExpr, newExpr *ast.Ident) {
-	caller.Fun = newExpr
+	switch f := caller.Fun.(type) {
+	case *ast.Ident:
+		caller.Fun = newExpr
+	case *ast.SelectorExpr:
+		f.Sel = newExpr
+	}
 }
 
 func (dotHandler) getDefFuncName(expr *ast.CallExpr) string {

@@ -46,6 +46,7 @@ const (
 	matchErrorMissingDescription  = linterName + ": missing function description as second parameter of MatchError"
 	matchErrorRedundantArg        = linterName + ": redundant MatchError arguments; consider removing them; consider using `%s` instead"
 	matchErrorNoFuncDescription   = linterName + ": The second parameter of MatchError must be the function description (string)"
+	forceExpectToTemplate         = linterName + ": must not use Expect with %s"
 )
 
 const ( // gomega matchers
@@ -96,6 +97,7 @@ func NewAnalyzer() *analysis.Analyzer {
 			SuppressCompare: false,
 			ForbidFocus:     false,
 			AllowHaveLen0:   false,
+			ForceExpectTo:   false,
 		},
 	}
 
@@ -114,63 +116,12 @@ func NewAnalyzer() *analysis.Analyzer {
 	a.Flags.Var(&linter.config.SuppressAsync, "suppress-async-assertion", "Suppress warning for function call in async assertion, like Eventually")
 	a.Flags.Var(&linter.config.SuppressTypeCompare, "suppress-type-compare-assertion", "Suppress warning for comparing values from different types, like int32 and uint32")
 	a.Flags.Var(&linter.config.AllowHaveLen0, "allow-havelen-0", "Do not warn for HaveLen(0); default = false")
-
+	a.Flags.Var(&linter.config.ForceExpectTo, "force-expect-to", "force using `Expect` with `To`, `ToNot` or `NotTo`. reject using `Expect` with `Should` or `ShouldNot`; default = false (not forced)")
 	a.Flags.BoolVar(&ignored, "suppress-focus-container", true, "Suppress warning for ginkgo focus containers like FDescribe, FContext, FWhen or FIt. Deprecated and ignored: use --forbid-focus-container instead")
 	a.Flags.Var(&linter.config.ForbidFocus, "forbid-focus-container", "trigger a warning for ginkgo focus containers like FDescribe, FContext, FWhen or FIt; default = false.")
 
 	return a
 }
-
-const doc = `enforces standards of using ginkgo and gomega
-
-or
-       ginkgolinter version
-
-version: %s
-
-currently, the linter searches for following:
-* trigger a warning when using Eventually or Constantly with a function call. This is in order to prevent the case when 
-  using a function call instead of a function. Function call returns a value only once, and so the original value
-  is tested again and again and is never changed. [Bug]
-
-* trigger a warning when comparing a pointer to a value. [Bug]
-
-* trigger a warning for missing assertion method: [Bug]
-	Eventually(checkSomething)
-
-* trigger a warning when a ginkgo focus container (FDescribe, FContext, FWhen or FIt) is found. [Bug]
-
-* validate the MatchError gomega matcher [Bug]
-
-* trigger a warning when using the Equal or the BeIdentical matcher with two different types, as these matchers will
-  fail in runtime.
-
-* wrong length assertions. We want to assert the item rather than its length. [Style]
-For example:
-	Expect(len(x)).Should(Equal(1))
-This should be replaced with:
-	Expect(x)).Should(HavelLen(1))
-	
-* wrong nil assertions. We want to assert the item rather than a comparison result. [Style]
-For example:
-	Expect(x == nil).Should(BeTrue())
-This should be replaced with:
-	Expect(x).Should(BeNil())
-
-* wrong error assertions. For example: [Style]
-	Expect(err == nil).Should(BeTrue())
-This should be replaced with:
-	Expect(err).ShouldNot(HaveOccurred())
-
-* wrong boolean comparison, for example: [Style]
-	Expect(x == 8).Should(BeTrue())
-This should be replaced with:
-	Expect(x).Should(BeEqual(8))
-
-* replaces Equal(true/false) with BeTrue()/BeFalse() [Style]
-
-* replaces HaveLen(0) with BeEmpty() [Style]
-`
 
 // main assertion function
 func (l *ginkgoLinter) run(pass *analysis.Pass) (interface{}, error) {
@@ -295,12 +246,44 @@ func checkExpression(pass *analysis.Pass, config types.Config, assertionExp *ast
 		return true
 	}
 
-	goNested, diags := doCheckExpression(pass, config, assertionExp, actualArg, expr, handler, oldExpr)
-	if len(diags) > 0 {
-		report(pass, diags)
+	goNested, diagnostics := doCheckExpression(pass, config, assertionExp, actualArg, expr, handler, oldExpr)
+
+	if config.ForceExpectTo {
+		if valid, diags := forceExpectTo(pass, expr, handler, oldExpr); !valid {
+			diagnostics = append(diagnostics, diags...)
+		}
+	}
+
+	if len(diagnostics) > 0 {
+		report(pass, diagnostics)
 	}
 
 	return goNested
+}
+
+func forceExpectTo(pass *analysis.Pass, expr *ast.CallExpr, handler gomegahandler.Handler, oldExpr string) (bool, []analysis.Diagnostic) {
+	if asrtFun, ok := expr.Fun.(*ast.SelectorExpr); ok {
+		if actualFuncName, ok := handler.GetActualFuncName(expr); ok && actualFuncName == expect {
+			var (
+				name     string
+				newIdent *ast.Ident
+			)
+
+			switch name = asrtFun.Sel.Name; name {
+			case "Should":
+				newIdent = ast.NewIdent("To")
+			case "ShouldNot":
+				newIdent = ast.NewIdent("ToNot")
+			default:
+				return true, nil
+			}
+
+			handler.ReplaceFunction(expr, newIdent)
+			return false, prepareReport(pass, expr, fmt.Sprintf(forceExpectToTemplate, name)+"; consider using `%s` instead", oldExpr)
+		}
+	}
+
+	return false, nil
 }
 
 func doCheckExpression(pass *analysis.Pass, config types.Config, assertionExp *ast.CallExpr, actualArg ast.Expr, expr *ast.CallExpr, handler gomegahandler.Handler, oldExpr string) (bool, []analysis.Diagnostic) {
@@ -1359,17 +1342,18 @@ func report(pass *analysis.Pass, diagnostics []analysis.Diagnostic) {
 		pass.Report(diagnostics[0])
 
 	default:
+		// use only the latest SuggestedFix, to avoid conflicts
 		var fixes []analysis.SuggestedFix
 		for i := range diagnostics[:len(diagnostics)-1] {
 			if len(diagnostics[i].SuggestedFixes) > 0 {
-				fixes = append(fixes, diagnostics[i].SuggestedFixes...)
+				fixes = diagnostics[i].SuggestedFixes
 				diagnostics[i].SuggestedFixes = nil
 			}
 			pass.Report(diagnostics[i])
 		}
 		lastDiag := diagnostics[len(diagnostics)-1]
-		if len(fixes) > 0 {
-			lastDiag.SuggestedFixes = append(lastDiag.SuggestedFixes, fixes...)
+		if len(lastDiag.SuggestedFixes) == 0 && len(fixes) > 0 {
+			lastDiag.SuggestedFixes = fixes
 		}
 		pass.Report(lastDiag)
 	}
