@@ -356,6 +356,17 @@ Expect(x1 == c1).Should(BeTrue()) // ==> Expect(x1).Should(Equal(c1))
 Expect(c1 == x1).Should(BeTrue()) // ==> Expect(x1).Should(Equal(c1))
 ```
 
+### Don't Allow Using `Expect` with `Should` or `ShouldNot` [STYLE]
+This optional rule forces the usage of the `Expect` method only with the `To`, `ToNot` or `NotTo` 
+assertion methods; e.g.
+```go
+Expect("abc").Should(HaveLen(3)) // => Expect("abc").To(HaveLen(3))
+Expect("abc").ShouldNot(BeEmpty()) // => Expect("abc").ToNot(BeEmpty())
+```
+This rule support auto fixing.
+
+***This rule is disabled by default***. Use the `--force-expect-to=true` command line flag to enable it.
+
 ## Suppress the linter
 ### Suppress warning from command line
 * Use the `--suppress-len-assertion=true` flag to suppress the wrong length assertion warning

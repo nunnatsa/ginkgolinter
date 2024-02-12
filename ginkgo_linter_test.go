@@ -142,6 +142,11 @@ func TestFlags(t *testing.T) {
 			testData: []string{"a/comparetypesconfig"},
 			flags:    map[string]string{"suppress-type-compare-assertion": "true"},
 		},
+		{
+			testName: "test the force-expect-to flag",
+			testData: []string{"a/forceExpectTo"},
+			flags:    map[string]string{"force-expect-to": "true"},
+		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
 			analyzer := ginkgolinter.NewAnalyzer()

@@ -26,6 +26,7 @@ type Config struct {
 	ForbidFocus         Boolean
 	SuppressTypeCompare Boolean
 	AllowHaveLen0       Boolean
+	ForceExpectTo       Boolean
 }
 
 func (s *Config) AllTrue() bool {
@@ -42,6 +43,7 @@ func (s *Config) Clone() Config {
 		ForbidFocus:         s.ForbidFocus,
 		SuppressTypeCompare: s.SuppressTypeCompare,
 		AllowHaveLen0:       s.AllowHaveLen0,
+		ForceExpectTo:       s.ForceExpectTo,
 	}
 }
 
