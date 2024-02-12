@@ -13,6 +13,6 @@ var _ = Describe("should suppress async assertions", func() {
 	})
 
 	It("should suppress async assertions, but not Eqaul(true)", func() {
-		Eventually(slowBool()).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion; consider using .Eventually\(slowBool\(\)\)\.Should\(BeTrue\(\)\). instead`
+		Eventually(slowBool()).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion\. Consider using .Eventually\(slowBool\(\)\)\.Should\(BeTrue\(\)\). instead`
 	})
 })

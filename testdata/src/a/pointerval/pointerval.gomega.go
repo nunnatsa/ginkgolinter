@@ -10,19 +10,19 @@ var _ = Describe("", Label("pointers1"), func() {
 	It("pointer to var", func() {
 		g.Expect(*p).Should(g.Equal(v))
 		g.Expect(p).Should(g.HaveValue(g.Equal(v)))
-		g.Expect(p).Should(g.Equal(v)) // want `ginkgo-linter: comparing a pointer to a value will always fail. consider using .g\.Expect\(p\)\.Should\(g\.HaveValue\(g\.Equal\(v\)\)\). instead`
+		g.Expect(p).Should(g.Equal(v)) // want `ginkgo-linter: comparing a pointer to a value will always fail\. Consider using .g\.Expect\(p\)\.Should\(g\.HaveValue\(g\.Equal\(v\)\)\). instead`
 	})
 
 	It("pointer to const", func() {
 		g.Expect(*p).Should(g.Equal(c))
 		g.Expect(p).Should(g.HaveValue(g.Equal(c)))
-		g.Expect(p).Should(g.Equal(c)) // want `ginkgo-linter: comparing a pointer to a value will always fail. consider using .g\.Expect\(p\)\.Should\(g\.HaveValue\(g\.Equal\(c\)\)\). instead`
+		g.Expect(p).Should(g.Equal(c)) // want `ginkgo-linter: comparing a pointer to a value will always fail\. Consider using .g\.Expect\(p\)\.Should\(g\.HaveValue\(g\.Equal\(c\)\)\). instead`
 	})
 
 	It("function", func() {
 		g.Expect(retPointer()).Should(g.HaveValue(g.Equal(c))) // valid
 		g.Expect(*retPointer()).Should(g.Equal(c))             // valid
-		g.Expect(retPointer()).Should(g.Equal(c))              // want `ginkgo-linter: comparing a pointer to a value will always fail. consider using .g\.Expect\(retPointer\(\)\)\.Should\(g\.HaveValue\(g\.Equal\(c\)\)\). instead`
+		g.Expect(retPointer()).Should(g.Equal(c))              // want `ginkgo-linter: comparing a pointer to a value will always fail\. Consider using .g\.Expect\(retPointer\(\)\)\.Should\(g\.HaveValue\(g\.Equal\(c\)\)\). instead`
 	})
 
 	Context("struct", func() {
@@ -40,17 +40,17 @@ var _ = Describe("", Label("pointers1"), func() {
 		It("struct with pointer field", func() {
 			g.Expect(*s3.field).Should(g.Equal(c))             // valid
 			g.Expect(s3.field).Should(g.HaveValue(g.Equal(c))) // valid
-			g.Expect(s3.field).Should(g.Equal(c))              // want `ginkgo-linter: comparing a pointer to a value will always fail. consider using .g\.Expect\(s3\.field\)\.Should\(g\.HaveValue\(g\.Equal\(c\)\)\). instead`
+			g.Expect(s3.field).Should(g.Equal(c))              // want `ginkgo-linter: comparing a pointer to a value will always fail\. Consider using .g\.Expect\(s3\.field\)\.Should\(g\.HaveValue\(g\.Equal\(c\)\)\). instead`
 		})
 		It("pointer struct with pointer field", func() {
 			g.Expect(*s4.field).Should(g.Equal(c))             // valid
 			g.Expect(s4.field).Should(g.HaveValue(g.Equal(c))) // valid
-			g.Expect(s4.field).Should(g.Equal(c))              // want `ginkgo-linter: comparing a pointer to a value will always fail. consider using .g\.Expect\(s4\.field\)\.Should\(g\.HaveValue\(g\.Equal\(c\)\)\). instead`
+			g.Expect(s4.field).Should(g.Equal(c))              // want `ginkgo-linter: comparing a pointer to a value will always fail\. Consider using .g\.Expect\(s4\.field\)\.Should\(g\.HaveValue\(g\.Equal\(c\)\)\). instead`
 		})
 	})
 
 	It("do not add HaveValue for nil", func() {
-		g.Expect(p).ShouldNot(g.Equal(nil)) // want `ginkgo-linter: wrong nil assertion; consider using .g\.Expect\(p\)\.ShouldNot\(g\.BeNil\(\)\). instead`
+		g.Expect(p).ShouldNot(g.Equal(nil)) // want `ginkgo-linter: wrong nil assertion\. Consider using .g\.Expect\(p\)\.ShouldNot\(g\.BeNil\(\)\). instead`
 		g.Expect(p).ShouldNot(g.BeNil())    // valid
 	})
 
@@ -61,18 +61,18 @@ var _ = Describe("", Label("pointers1"), func() {
 		pf := &f
 
 		It("true", func() {
-			g.Expect(pt).Should(g.Equal(true))     // want `ginkgo-linter: comparing a pointer to a value will always fail. consider using .g\.Expect\(pt\)\.Should\(g\.HaveValue\(g\.BeTrue\(\)\)\). instead`
-			g.Expect(pt).ShouldNot(g.Equal(false)) // want `ginkgo-linter: comparing a pointer to a value will always fail. consider using .g\.Expect\(pt\)\.Should\(g\.HaveValue\(g\.BeTrue\(\)\)\). instead`
+			g.Expect(pt).Should(g.Equal(true))     // want `ginkgo-linter: multiple issues: wrong boolean assertion; comparing a pointer to a value will always fail\. Consider using .g\.Expect\(pt\)\.Should\(g\.HaveValue\(g\.BeTrue\(\)\)\). instead`
+			g.Expect(pt).ShouldNot(g.Equal(false)) // want `ginkgo-linter: multiple issues: wrong boolean assertion; comparing a pointer to a value will always fail\. Consider using .g\.Expect\(pt\)\.Should\(g\.HaveValue\(g\.BeTrue\(\)\)\). instead`
 		})
 
 		It("BeTrue", func() {
-			g.Expect(pt).Should(g.BeTrue())     // want `ginkgo-linter: comparing a pointer to a value will always fail. consider using .g\.Expect\(pt\)\.Should\(g\.HaveValue\(g\.BeTrue\(\)\)\). instead`
-			g.Expect(pt).ShouldNot(g.BeFalse()) // want `ginkgo-linter: comparing a pointer to a value will always fail. consider using .g\.Expect\(pt\)\.Should\(g\.HaveValue\(g\.BeTrue\(\)\)\). instead`
+			g.Expect(pt).Should(g.BeTrue())     // want `ginkgo-linter: comparing a pointer to a value will always fail\. Consider using .g\.Expect\(pt\)\.Should\(g\.HaveValue\(g\.BeTrue\(\)\)\). instead`
+			g.Expect(pt).ShouldNot(g.BeFalse()) // want `ginkgo-linter: multiple issues: avoid double negative assertion; comparing a pointer to a value will always fail\. Consider using .g\.Expect\(pt\)\.Should\(g\.HaveValue\(g\.BeTrue\(\)\)\). instead`
 		})
 
 		It("false", func() {
-			g.Expect(pf).Should(g.Equal(false))   // want `ginkgo-linter: comparing a pointer to a value will always fail. consider using .g\.Expect\(pf\)\.Should\(g\.HaveValue\(g\.BeFalse\(\)\)\). instead`
-			g.Expect(pf).ShouldNot(g.Equal(true)) // want `ginkgo-linter: comparing a pointer to a value will always fail. consider using .g\.Expect\(pf\)\.ShouldNot\(g\.HaveValue\(g\.BeTrue\(\)\)\). instead`
+			g.Expect(pf).Should(g.Equal(false))   // want `ginkgo-linter: multiple issues: wrong boolean assertion; comparing a pointer to a value will always fail\. Consider using .g\.Expect\(pf\)\.Should\(g\.HaveValue\(g\.BeFalse\(\)\)\). instead`
+			g.Expect(pf).ShouldNot(g.Equal(true)) // want `ginkgo-linter: multiple issues: wrong boolean assertion; comparing a pointer to a value will always fail\. Consider using .g\.Expect\(pf\)\.ShouldNot\(g\.HaveValue\(g\.BeTrue\(\)\)\). instead`
 		})
 	})
 })

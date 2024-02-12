@@ -14,6 +14,6 @@ var _ = Describe("test async suppress configuration", func() {
 		g.Eventually(slowInt()).WithPolling(time.Millisecond * 100).WithTimeout(time.Second * 2).Should(g.Equal(42))
 	})
 	It("should trigger comparison waring", func() {
-		g.Eventually(slowBool()).WithPolling(time.Millisecond * 100).WithTimeout(time.Second * 2).Should(g.Equal(true)) // want `ginkgo-linter: wrong boolean assertion; consider using .g\.Eventually\(slowBool\(\)\)\.WithPolling\(time\.Millisecond \* 100\)\.WithTimeout\(time\.Second \* 2\)\.Should\(g\.BeTrue\(\)\). instead`
+		g.Eventually(slowBool()).WithPolling(time.Millisecond * 100).WithTimeout(time.Second * 2).Should(g.Equal(true)) // want `ginkgo-linter: wrong boolean assertion\. Consider using .g\.Eventually\(slowBool\(\)\)\.WithPolling\(time\.Millisecond \* 100\)\.WithTimeout\(time\.Second \* 2\)\.Should\(g\.BeTrue\(\)\). instead`
 	})
 })

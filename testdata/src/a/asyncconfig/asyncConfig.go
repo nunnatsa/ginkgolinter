@@ -24,6 +24,6 @@ var _ = Describe("test async suppress configuration", func() {
 		Eventually(slowInt()).WithPolling(time.Millisecond * 100).WithTimeout(time.Second * 2).Should(Equal(42))
 	})
 	It("should trigger comparison waring", func() {
-		Eventually(slowBool()).WithPolling(time.Millisecond * 100).WithTimeout(time.Second * 2).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion; consider using .Eventually\(slowBool\(\)\)\.WithPolling\(time\.Millisecond \* 100\)\.WithTimeout\(time\.Second \* 2\)\.Should\(BeTrue\(\)\). instead`
+		Eventually(slowBool()).WithPolling(time.Millisecond * 100).WithTimeout(time.Second * 2).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion\. Consider using .Eventually\(slowBool\(\)\)\.WithPolling\(time\.Millisecond \* 100\)\.WithTimeout\(time\.Second \* 2\)\.Should\(BeTrue\(\)\). instead`
 	})
 })

@@ -7,7 +7,7 @@ import (
 
 var _ = Describe("test focused tables", func() {
 	FDescribeTable("focused table", func(s []int, l int) {
-		Expect(len(s)).Should(Equal(l)) // want `ginkgo-linter: wrong length assertion; consider using .Expect\(s\)\.Should\(HaveLen\(l\)\). instead`
+		Expect(len(s)).Should(Equal(l)) // want `ginkgo-linter: wrong length assertion\. Consider using .Expect\(s\)\.Should\(HaveLen\(l\)\). instead`
 	},
 		Entry([]int{1, 2, 3, 4}, 4),
 		FEntry([]int{1, 2, 3, 4, 5}, 5),

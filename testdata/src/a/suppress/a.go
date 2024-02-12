@@ -10,7 +10,7 @@ var _ = Describe("Supress wrong length check", func() {
 		It("should ignore length warning", func() {
 			// ginkgo-linter:ignore-len-assert-warning
 			Expect(len("abc")).Should(Equal(3))
-			Expect(len("abc")).Should(Equal(3)) // want `ginkgo-linter: wrong length assertion; consider using .Expect\("abc"\)\.Should\(HaveLen\(3\)\). instead`
+			Expect(len("abc")).Should(Equal(3)) // want `ginkgo-linter: wrong length assertion\. Consider using .Expect\("abc"\)\.Should\(HaveLen\(3\)\). instead`
 			Expect("123").To(HaveLen(3))
 			/*
 
@@ -35,7 +35,7 @@ var _ = Describe("Supress wrong length check", func() {
 		It("should ignore length warning", func() {
 			// ginkgo-linter:ignore-nil-assert-warning
 			Expect(x == nil).Should(BeTrue())
-			Expect(x == nil).Should(BeTrue()) // want `ginkgo-linter: wrong nil assertion; consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+			Expect(x == nil).Should(BeTrue()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
 			Expect(x).To(BeNil())
 			/*
 
@@ -60,7 +60,7 @@ var _ = Describe("Supress wrong length check", func() {
 		It("should ignore error warning", func() {
 			// ginkgo-linter:ignore-err-assert-warning
 			Expect(x).To(BeNil())
-			Expect(x == nil).Should(BeTrue()) // want `ginkgo-linter: wrong error assertion; consider using .Expect\(x\)\.ShouldNot\(HaveOccurred\(\)\). instead`
+			Expect(x == nil).Should(BeTrue()) // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(x\)\.ShouldNot\(HaveOccurred\(\)\). instead`
 			// ginkgo-linter:ignore-err-assert-warning
 			Expect(x == nil).Should(BeTrue())
 			/*
