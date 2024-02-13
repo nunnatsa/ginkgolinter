@@ -1,8 +1,7 @@
-package ginkgolinter
+package linter
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
 	"go/ast"
 	"go/constant"
@@ -19,7 +18,6 @@ import (
 	"github.com/nunnatsa/ginkgolinter/interfaces"
 	"github.com/nunnatsa/ginkgolinter/reverseassertion"
 	"github.com/nunnatsa/ginkgolinter/types"
-	"github.com/nunnatsa/ginkgolinter/version"
 )
 
 // The ginkgolinter enforces standards of using ginkgo and gomega.
@@ -80,51 +78,18 @@ const ( // gomega actuals
 	consistentlyWithOffset = "ConsistentlyWithOffset"
 )
 
-// Analyzer is the interface to go_vet
-var Analyzer = NewAnalyzer()
-
-type ginkgoLinter struct {
+type GinkgoLinter struct {
 	config *types.Config
 }
 
-// NewAnalyzer returns an Analyzer - the package interface with nogo
-func NewAnalyzer() *analysis.Analyzer {
-	linter := ginkgoLinter{
-		config: &types.Config{
-			SuppressLen:     false,
-			SuppressNil:     false,
-			SuppressErr:     false,
-			SuppressCompare: false,
-			ForbidFocus:     false,
-			AllowHaveLen0:   false,
-			ForceExpectTo:   false,
-		},
+func NewGinkgoLinter(config *types.Config) *GinkgoLinter {
+	return &GinkgoLinter{
+		config: config,
 	}
-
-	a := &analysis.Analyzer{
-		Name: "ginkgolinter",
-		Doc:  fmt.Sprintf(doc, version.Version()),
-		Run:  linter.run,
-	}
-
-	var ignored bool
-	a.Flags.Init("ginkgolinter", flag.ExitOnError)
-	a.Flags.Var(&linter.config.SuppressLen, "suppress-len-assertion", "Suppress warning for wrong length assertions")
-	a.Flags.Var(&linter.config.SuppressNil, "suppress-nil-assertion", "Suppress warning for wrong nil assertions")
-	a.Flags.Var(&linter.config.SuppressErr, "suppress-err-assertion", "Suppress warning for wrong error assertions")
-	a.Flags.Var(&linter.config.SuppressCompare, "suppress-compare-assertion", "Suppress warning for wrong comparison assertions")
-	a.Flags.Var(&linter.config.SuppressAsync, "suppress-async-assertion", "Suppress warning for function call in async assertion, like Eventually")
-	a.Flags.Var(&linter.config.SuppressTypeCompare, "suppress-type-compare-assertion", "Suppress warning for comparing values from different types, like int32 and uint32")
-	a.Flags.Var(&linter.config.AllowHaveLen0, "allow-havelen-0", "Do not warn for HaveLen(0); default = false")
-	a.Flags.Var(&linter.config.ForceExpectTo, "force-expect-to", "force using `Expect` with `To`, `ToNot` or `NotTo`. reject using `Expect` with `Should` or `ShouldNot`; default = false (not forced)")
-	a.Flags.BoolVar(&ignored, "suppress-focus-container", true, "Suppress warning for ginkgo focus containers like FDescribe, FContext, FWhen or FIt. Deprecated and ignored: use --forbid-focus-container instead")
-	a.Flags.Var(&linter.config.ForbidFocus, "forbid-focus-container", "trigger a warning for ginkgo focus containers like FDescribe, FContext, FWhen or FIt; default = false.")
-
-	return a
 }
 
-// main assertion function
-func (l *ginkgoLinter) run(pass *analysis.Pass) (interface{}, error) {
+// Run is the main assertion function
+func (l *GinkgoLinter) Run(pass *analysis.Pass) (interface{}, error) {
 	for _, file := range pass.Files {
 		fileConfig := l.config.Clone()
 
