@@ -151,6 +151,11 @@ func TestFlags(t *testing.T) {
 			testData: []string{"a/forceExpectTo"},
 			flags:    map[string]string{"force-expect-to": "true"},
 		},
+		{
+			testName: "check async timing intervals",
+			testData: []string{"a/timing"},
+			flags:    map[string]string{"validate-async-intervals": "true"},
+		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
 			analyzer := ginkgolinter.NewAnalyzer()

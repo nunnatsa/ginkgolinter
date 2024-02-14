@@ -16,6 +16,7 @@ import (
 	"github.com/nunnatsa/ginkgolinter/ginkgohandler"
 	"github.com/nunnatsa/ginkgolinter/gomegahandler"
 	"github.com/nunnatsa/ginkgolinter/interfaces"
+	"github.com/nunnatsa/ginkgolinter/internal/intervals"
 	"github.com/nunnatsa/ginkgolinter/reports"
 	"github.com/nunnatsa/ginkgolinter/reverseassertion"
 	"github.com/nunnatsa/ginkgolinter/types"
@@ -107,6 +108,17 @@ func (l *GinkgoLinter) Run(pass *analysis.Pass) (interface{}, error) {
 			continue
 		}
 
+		timePks := ""
+		for _, imp := range file.Imports {
+			if imp.Path.Value == `"time"` {
+				if imp.Name == nil {
+					timePks = "time"
+				} else {
+					timePks = imp.Name.Name
+				}
+			}
+		}
+
 		ast.Inspect(file, func(n ast.Node) bool {
 			if ginkgoHndlr != nil && fileConfig.ForbidFocus {
 				spec, ok := n.(*ast.ValueSpec)
@@ -166,7 +178,7 @@ func (l *GinkgoLinter) Run(pass *analysis.Pass) (interface{}, error) {
 				return true
 			}
 
-			return checkExpression(pass, config, assertionExp, actualExpr, gomegaHndlr)
+			return checkExpression(pass, config, assertionExp, actualExpr, gomegaHndlr, timePks)
 		})
 	}
 	return nil, nil
@@ -196,13 +208,13 @@ func checkFocusContainer(pass *analysis.Pass, ginkgoHndlr ginkgohandler.Handler,
 	return foundFocus
 }
 
-func checkExpression(pass *analysis.Pass, config types.Config, assertionExp *ast.CallExpr, actualExpr *ast.CallExpr, handler gomegahandler.Handler) bool {
+func checkExpression(pass *analysis.Pass, config types.Config, assertionExp *ast.CallExpr, actualExpr *ast.CallExpr, handler gomegahandler.Handler, timePkg string) bool {
 	expr := astcopy.CallExpr(assertionExp)
 
 	reportBuilder := reports.NewBuilder(pass.Fset, expr)
 
 	goNested := false
-	if checkAsyncAssertion(pass, config, expr, actualExpr, handler, reportBuilder) {
+	if checkAsyncAssertion(pass, config, expr, actualExpr, handler, reportBuilder, timePkg) {
 		goNested = true
 	} else {
 
@@ -629,7 +641,7 @@ func checkPointerComparison(pass *analysis.Pass, config types.Config, origExp *a
 
 // check async assertion does not assert function call. This is a real bug in the test. In this case, the assertion is
 // done on the returned value, instead of polling the result of a function, for instance.
-func checkAsyncAssertion(pass *analysis.Pass, config types.Config, expr *ast.CallExpr, actualExpr *ast.CallExpr, handler gomegahandler.Handler, reportBuilder *reports.Builder) bool {
+func checkAsyncAssertion(pass *analysis.Pass, config types.Config, expr *ast.CallExpr, actualExpr *ast.CallExpr, handler gomegahandler.Handler, reportBuilder *reports.Builder, timePkg string) bool {
 	funcName, ok := handler.GetActualFuncName(actualExpr)
 	if !ok {
 		return false
@@ -675,15 +687,18 @@ func checkAsyncAssertion(pass *analysis.Pass, config types.Config, expr *ast.Cal
 
 						actualExpr.Fun = call
 						actualExpr.Args = fun.Args
+						actualExpr = actualExpr.Fun.(*ast.SelectorExpr).X.(*ast.CallExpr)
 					} else {
 						actualExpr.Args[funcIndex] = fun.Fun
 					}
 
-					handleAssertionOnly(pass, config, expr, handler, actualExpr, reportBuilder)
 					reportBuilder.AddIssue(true, valueInEventually, funcName, funcName)
-					return true
 				}
 			}
+		}
+
+		if config.ValidateAsyncIntervals {
+			intervals.CheckIntervals(pass, expr, actualExpr, reportBuilder, handler, timePkg, funcIndex)
 		}
 	}
 

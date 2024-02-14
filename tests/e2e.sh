@@ -29,3 +29,5 @@ cd testdata/src/a
 [[ $(./ginkgolinter --suppress-nil-assertion=true --suppress-len-assertion=true --suppress-err-assertion=true --suppress-compare-assertion=true --suppress-async-assertion=true --forbid-focus-container=false --suppress-type-compare-assertion=true a/... 2>&1 | wc -l) == 152 ]]
 # suppress all, force  Expect with To
 [[ $(./ginkgolinter --force-expect-to=true --suppress-nil-assertion=true --suppress-len-assertion=true --suppress-err-assertion=true --suppress-compare-assertion=true --suppress-async-assertion=true --forbid-focus-container=false --suppress-type-compare-assertion=true a/... 2>&1 | wc -l) == 775 ]]
+# enable async interval validation
+[[ $(./ginkgolinter --validate-async-intervals=true a/... 2>&1 | wc -l) == 2686 ]]
