@@ -6,8 +6,9 @@ import (
 	"go/ast"
 	"go/printer"
 	"go/token"
-	"golang.org/x/tools/go/analysis"
 	"strings"
+
+	"golang.org/x/tools/go/analysis"
 )
 
 type Builder struct {

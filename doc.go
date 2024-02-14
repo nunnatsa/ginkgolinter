@@ -8,7 +8,7 @@ or
 version: %s
 
 currently, the linter searches for following:
-* trigger a warning when using Eventually or Constantly with a function call. This is in order to prevent the case when 
+* trigger a warning when using Eventually or Consistently with a function call. This is in order to prevent the case when 
   using a function call instead of a function. Function call returns a value only once, and so the original value
   is tested again and again and is never changed. [Bug]
 
@@ -23,6 +23,12 @@ currently, the linter searches for following:
 
 * trigger a warning when using the Equal or the BeIdentical matcher with two different types, as these matchers will
   fail in runtime.
+
+* async timing interval: timeout is shorter than polling interval [Bug]
+For example:
+	Eventually(aFunc).WithTimeout(500 * time.Millisecond).WithPolling(10 * time.Second).Should(Succeed())
+This will probably happen when using the old format:
+	Eventually(aFunc, 500 * time.Millisecond, 10 * time.Second).Should(Succeed())
 
 * wrong length assertions. We want to assert the item rather than its length. [Style]
 For example:
@@ -56,5 +62,24 @@ This should be replaced with:
 
 * replaces HaveLen(0) with BeEmpty() [Style]
 
-* replaces Expect(...).Should(...) with Expect(...).To() [stype]
+* replaces Expect(...).Should(...) with Expect(...).To() [Style]
+
+* async timing interval: multiple timeout or polling interval [Style]
+For example:
+	Eventually(context.Background(), func() bool { return true }, time.Second*10).WithTimeout(time.Second * 10).WithPolling(time.Millisecond * 500).Should(BeTrue())
+	Eventually(context.Background(), func() bool { return true }, time.Second*10).Within(time.Second * 10).WithPolling(time.Millisecond * 500).Should(BeTrue())
+	Eventually(func() bool { return true }, time.Second*10, 500*time.Millisecond).WithPolling(time.Millisecond * 500).Should(BeTrue())
+	Eventually(func() bool { return true }, time.Second*10, 500*time.Millisecond).ProbeEvery(time.Millisecond * 500).Should(BeTrue())
+
+* async timing interval: non-time.Duration intervals [Style]
+gomega supports a few formats for timeout and polling intervals, when using the old format (the last two parameters of Eventually and Constantly):
+  * time.Duration
+  * any kind of numeric value, as number of seconds
+  * duration string like "12s"
+The linter triggers a warning for any duration value that is not of the time.Duration type, assuming that this is
+the desired type, given the type of the argument of the newer "WithTimeout", "WithPolling", "Within" and "ProbeEvery" 
+methods. 
+For example:
+	Eventually(context.Background(), func() bool { return true }, "1s").Should(BeTrue())
+	Eventually(context.Background(), func() bool { return true }, time.Second*60, 15).Should(BeTrue())
 `
