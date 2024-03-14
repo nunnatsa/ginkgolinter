@@ -28,6 +28,7 @@ import (
 const (
 	linterName                    = "ginkgo-linter"
 	wrongLengthWarningTemplate    = "wrong length assertion"
+	wrongCapWarningTemplate       = "wrong cap assertion"
 	wrongNilWarningTemplate       = "wrong nil assertion"
 	wrongBoolWarningTemplate      = "wrong boolean assertion"
 	wrongErrWarningTemplate       = "wrong error assertion"
@@ -58,6 +59,7 @@ const ( // gomega matchers
 	beZero         = "BeZero"
 	equal          = "Equal"
 	haveLen        = "HaveLen"
+	haveCap        = "HaveCap"
 	haveOccurred   = "HaveOccurred"
 	haveValue      = "HaveValue"
 	not            = "Not"
@@ -253,6 +255,10 @@ func forceExpectTo(expr *ast.CallExpr, handler gomegahandler.Handler, reportBuil
 func doCheckExpression(pass *analysis.Pass, config types.Config, assertionExp *ast.CallExpr, actualArg ast.Expr, expr *ast.CallExpr, handler gomegahandler.Handler, reportBuilder *reports.Builder) bool {
 	if !bool(config.SuppressLen) && isActualIsLenFunc(actualArg) {
 		return checkLengthMatcher(expr, pass, handler, reportBuilder)
+
+	} else if !bool(config.SuppressLen) && isActualIsCapFunc(actualArg) {
+		return checkCapMatcher(expr, handler, reportBuilder)
+
 	} else if nilable, compOp := getNilableFromComparison(actualArg); nilable != nil {
 		if isExprError(pass, nilable) {
 			if config.SuppressErr {
@@ -269,9 +275,16 @@ func doCheckExpression(pass *analysis.Pass, config types.Config, assertionExp *a
 		if !shouldContinue {
 			return false
 		}
-		if !bool(config.SuppressLen) && isActualIsLenFunc(first) {
-			if handleLenComparison(pass, expr, matcher, first, second, op, handler, reportBuilder) {
-				return false
+		if !config.SuppressLen {
+			if isActualIsLenFunc(first) {
+				if handleLenComparison(pass, expr, matcher, first, second, op, handler, reportBuilder) {
+					return false
+				}
+			}
+			if isActualIsCapFunc(first) {
+				if handleCapComparison(expr, matcher, first, second, op, handler, reportBuilder) {
+					return false
+				}
 			}
 		}
 		return bool(config.SuppressCompare) || checkComparison(expr, pass, matcher, handler, first, second, op, reportBuilder)
@@ -814,15 +827,50 @@ func handleLenComparison(pass *analysis.Pass, exp *ast.CallExpr, matcher *ast.Ca
 	return true
 }
 
+func handleCapComparison(exp *ast.CallExpr, matcher *ast.CallExpr, first ast.Expr, second ast.Expr, op token.Token, handler gomegahandler.Handler, reportBuilder *reports.Builder) bool {
+	switch op {
+	case token.EQL:
+	case token.NEQ:
+		reverseAssertionFuncLogic(exp)
+	default:
+		return false
+	}
+
+	eql := ast.NewIdent(haveCap)
+	matcher.Args = []ast.Expr{second}
+
+	handler.ReplaceFunction(matcher, eql)
+	firstLen, ok := first.(*ast.CallExpr) // assuming it's len()
+	if !ok {
+		return false // should never happen
+	}
+
+	val := firstLen.Args[0]
+	fun := handler.GetActualExpr(exp.Fun.(*ast.SelectorExpr))
+	fun.Args = []ast.Expr{val}
+
+	reportBuilder.AddIssue(true, wrongCapWarningTemplate)
+	return true
+}
+
 // Check if the "actual" argument is a call to the golang built-in len() function
 func isActualIsLenFunc(actualArg ast.Expr) bool {
+	return checkActualFuncName(actualArg, "len")
+}
+
+// Check if the "actual" argument is a call to the golang built-in len() function
+func isActualIsCapFunc(actualArg ast.Expr) bool {
+	return checkActualFuncName(actualArg, "cap")
+}
+
+func checkActualFuncName(actualArg ast.Expr, name string) bool {
 	lenArgExp, ok := actualArg.(*ast.CallExpr)
 	if !ok {
 		return false
 	}
 
 	lenFunc, ok := lenArgExp.Fun.(*ast.Ident)
-	return ok && lenFunc.Name == "len"
+	return ok && lenFunc.Name == name
 }
 
 // Check if matcher function is in one of the patterns we want to avoid
@@ -839,7 +887,7 @@ func checkLengthMatcher(exp *ast.CallExpr, pass *analysis.Pass, handler gomegaha
 
 	switch matcherFuncName {
 	case equal:
-		handleEqualMatcher(matcher, pass, exp, handler, reportBuilder)
+		handleEqualLenMatcher(matcher, pass, exp, handler, reportBuilder)
 		return false
 
 	case beZero:
@@ -853,6 +901,40 @@ func checkLengthMatcher(exp *ast.CallExpr, pass *analysis.Pass, handler gomegaha
 		reverseAssertionFuncLogic(exp)
 		exp.Args[0] = exp.Args[0].(*ast.CallExpr).Args[0]
 		return checkLengthMatcher(exp, pass, handler, reportBuilder)
+
+	default:
+		return true
+	}
+}
+
+// Check if matcher function is in one of the patterns we want to avoid
+func checkCapMatcher(exp *ast.CallExpr, handler gomegahandler.Handler, reportBuilder *reports.Builder) bool {
+	matcher, ok := exp.Args[0].(*ast.CallExpr)
+	if !ok {
+		return true
+	}
+
+	matcherFuncName, ok := handler.GetActualFuncName(matcher)
+	if !ok {
+		return true
+	}
+
+	switch matcherFuncName {
+	case equal:
+		handleEqualCapMatcher(matcher, exp, handler, reportBuilder)
+		return false
+
+	case beZero:
+		handleCapBeZero(exp, handler, reportBuilder)
+		return false
+
+	case beNumerically:
+		return handleCapBeNumerically(matcher, exp, handler, reportBuilder)
+
+	case not:
+		reverseAssertionFuncLogic(exp)
+		exp.Args[0] = exp.Args[0].(*ast.CallExpr).Args[0]
+		return checkCapMatcher(exp, handler, reportBuilder)
 
 	default:
 		return true
@@ -1093,13 +1175,13 @@ func replaceLenActualArg(actualExpr *ast.CallExpr, handler gomegahandler.Handler
 	switch name {
 	case expect, omega:
 		arg := actualExpr.Args[0]
-		if isActualIsLenFunc(arg) {
+		if isActualIsLenFunc(arg) || isActualIsCapFunc(arg) {
 			// replace the len function call by its parameter, to create a fix suggestion
 			actualExpr.Args[0] = arg.(*ast.CallExpr).Args[0]
 		}
 	case expectWithOffset:
 		arg := actualExpr.Args[1]
-		if isActualIsLenFunc(arg) {
+		if isActualIsLenFunc(arg) || isActualIsCapFunc(arg) {
 			// replace the len function call by its parameter, to create a fix suggestion
 			actualExpr.Args[1] = arg.(*ast.CallExpr).Args[0]
 		}
@@ -1140,18 +1222,45 @@ func handleBeNumerically(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.Ca
 			reverseAssertionFuncLogic(exp)
 			handler.ReplaceFunction(exp.Args[0].(*ast.CallExpr), ast.NewIdent(beEmpty))
 			exp.Args[0].(*ast.CallExpr).Args = nil
-			reportLengthAssertion(exp, handler, reportBuilder)
-			return false
 		} else if op == `"=="` {
 			chooseNumericMatcher(pass, exp, handler, valExp)
-			reportLengthAssertion(exp, handler, reportBuilder)
-			return false
 		} else if op == `"!="` {
 			reverseAssertionFuncLogic(exp)
 			chooseNumericMatcher(pass, exp, handler, valExp)
-			reportLengthAssertion(exp, handler, reportBuilder)
-			return false
+		} else {
+			return true
 		}
+
+		reportLengthAssertion(exp, handler, reportBuilder)
+		return false
+	}
+	return true
+}
+
+// For the BeNumerically matcher, we want to avoid the assertion of length to be > 0 or >= 1, or just == number
+func handleCapBeNumerically(matcher *ast.CallExpr, exp *ast.CallExpr, handler gomegahandler.Handler, reportBuilder *reports.Builder) bool {
+	opExp, ok1 := matcher.Args[0].(*ast.BasicLit)
+	valExp, ok2 := matcher.Args[1].(*ast.BasicLit)
+
+	if ok1 && ok2 {
+		op := opExp.Value
+		val := valExp.Value
+
+		if (op == `">"` && val == "0") || (op == `">="` && val == "1") {
+			reverseAssertionFuncLogic(exp)
+			handler.ReplaceFunction(exp.Args[0].(*ast.CallExpr), ast.NewIdent(haveCap))
+			exp.Args[0].(*ast.CallExpr).Args = []ast.Expr{&ast.BasicLit{Kind: token.INT, Value: "0"}}
+		} else if op == `"=="` {
+			replaceNumericCapMatcher(exp, handler, valExp)
+		} else if op == `"!="` {
+			reverseAssertionFuncLogic(exp)
+			replaceNumericCapMatcher(exp, handler, valExp)
+		} else {
+			return true
+		}
+
+		reportCapAssertion(exp, handler, reportBuilder)
+		return false
 	}
 	return true
 }
@@ -1167,6 +1276,12 @@ func chooseNumericMatcher(pass *analysis.Pass, exp *ast.CallExpr, handler gomega
 	}
 }
 
+func replaceNumericCapMatcher(exp *ast.CallExpr, handler gomegahandler.Handler, valExp ast.Expr) {
+	caller := exp.Args[0].(*ast.CallExpr)
+	handler.ReplaceFunction(caller, ast.NewIdent(haveCap))
+	exp.Args[0].(*ast.CallExpr).Args = []ast.Expr{valExp}
+}
+
 func reverseAssertionFuncLogic(exp *ast.CallExpr) {
 	assertionFunc := exp.Fun.(*ast.SelectorExpr).Sel
 	assertionFunc.Name = reverseassertion.ChangeAssertionLogic(assertionFunc.Name)
@@ -1177,7 +1292,7 @@ func isNegativeAssertion(exp *ast.CallExpr) bool {
 	return reverseassertion.IsNegativeLogic(assertionFunc.Name)
 }
 
-func handleEqualMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, reportBuilder *reports.Builder) {
+func handleEqualLenMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, reportBuilder *reports.Builder) {
 	equalTo, ok := matcher.Args[0].(*ast.BasicLit)
 	if ok {
 		chooseNumericMatcher(pass, exp, handler, equalTo)
@@ -1188,10 +1303,23 @@ func handleEqualMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.Cal
 	reportLengthAssertion(exp, handler, reportBuilder)
 }
 
+func handleEqualCapMatcher(matcher *ast.CallExpr, exp *ast.CallExpr, handler gomegahandler.Handler, reportBuilder *reports.Builder) {
+	handler.ReplaceFunction(exp.Args[0].(*ast.CallExpr), ast.NewIdent(haveCap))
+	exp.Args[0].(*ast.CallExpr).Args = []ast.Expr{matcher.Args[0]}
+	reportCapAssertion(exp, handler, reportBuilder)
+}
+
 func handleBeZero(exp *ast.CallExpr, handler gomegahandler.Handler, reportBuilder *reports.Builder) {
 	exp.Args[0].(*ast.CallExpr).Args = nil
 	handler.ReplaceFunction(exp.Args[0].(*ast.CallExpr), ast.NewIdent(beEmpty))
 	reportLengthAssertion(exp, handler, reportBuilder)
+}
+
+func handleCapBeZero(exp *ast.CallExpr, handler gomegahandler.Handler, reportBuilder *reports.Builder) {
+	exp.Args[0].(*ast.CallExpr).Args = nil
+	handler.ReplaceFunction(exp.Args[0].(*ast.CallExpr), ast.NewIdent(haveCap))
+	exp.Args[0].(*ast.CallExpr).Args = []ast.Expr{&ast.BasicLit{Kind: token.INT, Value: "0"}}
+	reportCapAssertion(exp, handler, reportBuilder)
 }
 
 func handleEqualNilMatcher(matcher *ast.CallExpr, pass *analysis.Pass, exp *ast.CallExpr, handler gomegahandler.Handler, nilable ast.Expr, notEqual bool, reportBuilder *reports.Builder) {
@@ -1250,6 +1378,13 @@ func reportLengthAssertion(expr *ast.CallExpr, handler gomegahandler.Handler, re
 	replaceLenActualArg(actualExpr, handler)
 
 	reportBuilder.AddIssue(true, wrongLengthWarningTemplate)
+}
+
+func reportCapAssertion(expr *ast.CallExpr, handler gomegahandler.Handler, reportBuilder *reports.Builder) {
+	actualExpr := handler.GetActualExpr(expr.Fun.(*ast.SelectorExpr))
+	replaceLenActualArg(actualExpr, handler)
+
+	reportBuilder.AddIssue(true, wrongCapWarningTemplate)
 }
 
 func reportNilAssertion(expr *ast.CallExpr, handler gomegahandler.Handler, nilable ast.Expr, notEqual bool, isItError bool, reportBuilder *reports.Builder) {

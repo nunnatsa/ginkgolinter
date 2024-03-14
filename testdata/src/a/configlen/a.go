@@ -1482,4 +1482,23 @@ var _ = Describe("test data for the ginkgo-linter", func() {
 			})
 		})
 	})
+
+	Context("check cap", func() {
+		slice := make([]int, 0, 10)
+		It("check cap", func() {
+			Expect(cap(slice)).To(Equal(10))
+			Expect(cap(slice)).ToNot(BeZero())
+			Expect(cap(slice)).ToNot(Equal(5))
+			Expect(cap(slice)).To(BeNumerically("==", 10))
+			Expect(cap(slice)).ToNot(BeNumerically("!=", 10))
+			Expect(cap(slice)).To(BeNumerically(">", 0))
+			Expect(cap(slice)).To(BeNumerically(">=", 1))
+		})
+		It("check cap compare", func() {
+			Expect(cap(slice) == 10).To(BeTrue())    // want `wrong comparison assertion. Consider using .Expect\(cap\(slice\)\).To\(Equal\(10\)\). instead`
+			Expect(cap(slice) == 10).To(Equal(true)) // want `wrong comparison assertion. Consider using .Expect\(cap\(slice\)\).To\(Equal\(10\)\). instead`
+			Expect(cap(slice) != 0).To(BeFalse())    // want `wrong comparison assertion. Consider using .Expect\(cap\(slice\)\).To\(BeZero\(\)\). instead`
+			Expect(cap(slice) != 0).To(Equal(false)) // want `wrong comparison assertion. Consider using .Expect\(cap\(slice\)\).To\(BeZero\(\)\). instead`
+		})
+	})
 })
