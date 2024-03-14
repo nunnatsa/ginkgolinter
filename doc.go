@@ -30,6 +30,12 @@ For example:
 This should be replaced with:
 	Expect(x)).Should(HavelLen(1))
 	
+* wrong cap assertions. We want to assert the item rather than its cap. [Style]
+For example:
+	Expect(cap(x)).Should(Equal(1))
+This should be replaced with:
+	Expect(x)).Should(HavelCap(1))
+	
 * wrong nil assertions. We want to assert the item rather than a comparison result. [Style]
 For example:
 	Expect(x == nil).Should(BeTrue())

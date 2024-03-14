@@ -259,6 +259,20 @@ The output of the linter,when finding issues, looks like this:
 ./testdata/src/a/a.go:18:5: ginkgo-linter: wrong length assertion; consider using `Expect("").Should(BeEmpty())` instead
 ./testdata/src/a/a.go:22:5: ginkgo-linter: wrong length assertion; consider using `Expect("").Should(BeEmpty())` instead
 ```
+
+### Wrong Cap Assertion [STYLE]
+The linter finds assertion of the golang built-in `cap` function, with all kind of matchers, while there are already
+gomega matchers for these usecases; We want to assert the item, rather than its cap.
+
+There are several wrong patterns:
+```go
+Expect(cap(x)).To(Equal(0)) // should be: Expect(x).To(HaveCap(0))
+Expect(cap(x)).To(BeZero()) // should be: Expect(x).To(HaveCap(0))
+Expect(cap(x)).To(BeNumeric(">", 0)) // should be: Expect(x).ToNot(HaveCap(0))
+Expect(cap(x)).To(BeNumeric("==", 2)) // should be: Expect(x).To(HaveCap(2))
+Expect(cap(x)).To(BeNumeric("!=", 3)) // should be: Expect(x).ToNot(HaveCap(3))
+```
+
 #### use the `HaveLen(0)` matcher.  [STYLE]
 The linter will also warn about the `HaveLen(0)` matcher, and will suggest to replace it with `BeEmpty()`
 
@@ -369,7 +383,7 @@ This rule support auto fixing.
 
 ## Suppress the linter
 ### Suppress warning from command line
-* Use the `--suppress-len-assertion=true` flag to suppress the wrong length assertion warning
+* Use the `--suppress-len-assertion=true` flag to suppress the wrong length and cap assertions warning
 * Use the `--suppress-nil-assertion=true` flag to suppress the wrong nil assertion warning
 * Use the `--suppress-err-assertion=true` flag to suppress the wrong error assertion warning
 * Use the `--suppress-compare-assertion=true` flag to suppress the wrong comparison assertion warning
@@ -380,7 +394,7 @@ This rule support auto fixing.
   command line, and not from a comment.
 
 ### Suppress warning from the code
-To suppress the wrong length assertion warning, add a comment with (only)
+To suppress the wrong length and cap assertions warning, add a comment with (only)
 
 `ginkgo-linter:ignore-len-assert-warning`. 
 
