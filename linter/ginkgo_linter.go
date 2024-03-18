@@ -19,7 +19,7 @@ import (
 	"github.com/nunnatsa/ginkgolinter/internal/intervals"
 	"github.com/nunnatsa/ginkgolinter/internal/reports"
 	"github.com/nunnatsa/ginkgolinter/internal/reverseassertion"
-	"github.com/nunnatsa/ginkgolinter/internal/types"
+	"github.com/nunnatsa/ginkgolinter/types"
 )
 
 // The ginkgolinter enforces standards of using ginkgo and gomega.
