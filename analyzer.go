@@ -43,6 +43,7 @@ func NewAnalyzer() *analysis.Analyzer {
 	a.Flags.Var(&config.ForceExpectTo, "force-expect-to", "force using `Expect` with `To`, `ToNot` or `NotTo`. reject using `Expect` with `Should` or `ShouldNot`; default = false (not forced)")
 	a.Flags.BoolVar(&ignored, "suppress-focus-container", true, "Suppress warning for ginkgo focus containers like FDescribe, FContext, FWhen or FIt. Deprecated and ignored: use --forbid-focus-container instead")
 	a.Flags.Var(&config.ForbidFocus, "forbid-focus-container", "trigger a warning for ginkgo focus containers like FDescribe, FContext, FWhen or FIt; default = false.")
+	a.Flags.Var(&config.ForbidSpecPollution, "forbid-spec-pollution", "trigger a warning for variable assignments in ginkgo containers like Describe, Context and When, instead of in BeforeEach(); default = false.")
 
 	return a
 }

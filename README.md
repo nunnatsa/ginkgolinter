@@ -227,7 +227,7 @@ ginkgolinter checks the following:
 * If the first parameter is a function with the format of `func(error)bool`, ginkgolinter makes sure that the second 
   parameter exists and its type is string.
 
-### Async timing interval: timeout is shorter than polling interval [Bug]
+### Async timing interval: timeout is shorter than polling interval [BUG]
 ***Note***: Only applied when the `suppress-async-assertion` flag is **not set** *and* the `validate-async-intervals` 
 flag **is** set.
 
@@ -248,6 +248,32 @@ This will probably happen when using the old format:
    ```go
    Eventually(aFunc, 500 * time.Millisecond /*timeout*/, 10 * time.Second /*polling*/).Should(Succeed())
    ```
+
+### Avoid Spec Pollution: Don't Initialize Variables in Container Nodes [BUG/STYLE]:
+***Note***: Only applied when the `--forbid-spec-pollution=true` flag is set (disabled by default).
+
+According to [ginkgo documentation](https://onsi.github.io/ginkgo/#avoid-spec-pollution-dont-initialize-variables-in-container-nodes), 
+no variable should be assigned within a container node (`Describe`, `Context`, `When` or their `F`, `P` or `X` forms)
+  
+For example:
+```go
+var _ = Describe("description", func(){
+    var x = 10
+    ...
+})
+```
+
+Instead, use `BeforeEach()`; e.g.
+```go
+var _ = Describe("description", func (){
+    var x int
+	
+    BeforeEach(func (){
+        x = 10
+    })
+    ...
+})
+```
 
 ### Wrong Length Assertion [STYLE]
 The linter finds assertion of the golang built-in `len` function, with all kind of matchers, while there are already 
@@ -403,7 +429,7 @@ This rule support auto fixing.
 
 ***This rule is disabled by default***. Use the `--force-expect-to=true` command line flag to enable it.
 
-### Async timing interval: multiple timeout or polling intervals [Style]
+### Async timing interval: multiple timeout or polling intervals [STYLE]
 ***Note***: Only applied when the `suppress-async-assertion` flag is **not set** *and* the `validate-async-intervals`
 flag **is** set.
 
@@ -421,7 +447,7 @@ Eventually(aFunc).WithTimeout(time.Second * 10).Within(time.Second * 10).WithPol
 Eventually(aFunc, time.Second*10, time.Millisecond * 500).WithPolling(time.Millisecond * 500).Should(BeTrue())
 ```
 
-### Async timing interval: non-time.Duration intervals [Bug]
+### Async timing interval: non-time.Duration intervals [STYLE]
 ***Note***: Only applied when the `suppress-async-assertion` flag is **not set** *and* the `validate-async-intervals`
 flag **is** set.
 

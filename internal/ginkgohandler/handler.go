@@ -15,6 +15,7 @@ const (
 // in imported with "." name, custom name or without any name.
 type Handler interface {
 	GetFocusContainerName(*ast.CallExpr) (bool, *ast.Ident)
+	IsWrapContainer(*ast.CallExpr) bool
 	IsFocusSpec(ident ast.Expr) bool
 }
 
@@ -49,6 +50,13 @@ func (h dotHandler) GetFocusContainerName(exp *ast.CallExpr) (bool, *ast.Ident) 
 	return false, nil
 }
 
+func (h dotHandler) IsWrapContainer(exp *ast.CallExpr) bool {
+	if fun, ok := exp.Fun.(*ast.Ident); ok {
+		return IsWrapContainer(fun.Name)
+	}
+	return false
+}
+
 func (h dotHandler) IsFocusSpec(exp ast.Expr) bool {
 	id, ok := exp.(*ast.Ident)
 	return ok && id.Name == focusSpec
@@ -70,6 +78,16 @@ func (h nameHandler) GetFocusContainerName(exp *ast.CallExpr) (bool, *ast.Ident)
 	return false, nil
 }
 
+func (h nameHandler) IsWrapContainer(exp *ast.CallExpr) bool {
+	if sel, ok := exp.Fun.(*ast.SelectorExpr); ok {
+		if id, ok := sel.X.(*ast.Ident); ok && id.Name == string(h) {
+			return IsWrapContainer(sel.Sel.Name)
+		}
+	}
+	return false
+
+}
+
 func (h nameHandler) IsFocusSpec(exp ast.Expr) bool {
 	if selExp, ok := exp.(*ast.SelectorExpr); ok {
 		if x, ok := selExp.X.(*ast.Ident); ok && x.Name == string(h) {
@@ -88,10 +106,24 @@ func isFocusContainer(name string) bool {
 	return false
 }
 
-func IsContainer(id *ast.Ident) bool {
-	switch id.Name {
-	case "It", "When", "Context", "Describe", "DescribeTable", "Entry":
+func IsContainer(name string) bool {
+	switch name {
+	case "It", "When", "Context", "Describe", "DescribeTable", "Entry",
+		"PIt", "PWhen", "PContext", "PDescribe", "PDescribeTable", "PEntry",
+		"XIt", "XWhen", "XContext", "XDescribe", "XDescribeTable", "XEntry":
 		return true
 	}
-	return isFocusContainer(id.Name)
+	return isFocusContainer(name)
+}
+
+func IsWrapContainer(name string) bool {
+	switch name {
+	case "When", "Context", "Describe",
+		"FWhen", "FContext", "FDescribe",
+		"PWhen", "PContext", "PDescribe",
+		"XWhen", "XContext", "XDescribe":
+		return true
+	}
+
+	return false
 }

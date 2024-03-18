@@ -30,6 +30,20 @@ For example:
 This will probably happen when using the old format:
 	Eventually(aFunc, 500 * time.Millisecond, 10 * time.Second).Should(Succeed())
 
+* reject variable assignments in ginkgo containers [Bug/Style]:
+For example:
+	var _ = Describe("description", func(){
+		var x = 10
+	})
+
+Should use BeforeEach instead; e.g.
+	var _ = Describe("description", func(){
+		var x int
+		BeforeEach(func(){
+			x = 10
+		})
+	})
+
 * wrong length assertions. We want to assert the item rather than its length. [Style]
 For example:
 	Expect(len(x)).Should(Equal(1))
