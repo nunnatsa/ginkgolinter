@@ -13,13 +13,13 @@ import (
 	"github.com/go-toolsmith/astcopy"
 	"golang.org/x/tools/go/analysis"
 
-	"github.com/nunnatsa/ginkgolinter/ginkgohandler"
-	"github.com/nunnatsa/ginkgolinter/gomegahandler"
-	"github.com/nunnatsa/ginkgolinter/interfaces"
+	"github.com/nunnatsa/ginkgolinter/internal/ginkgohandler"
+	"github.com/nunnatsa/ginkgolinter/internal/gomegahandler"
+	"github.com/nunnatsa/ginkgolinter/internal/interfaces"
 	"github.com/nunnatsa/ginkgolinter/internal/intervals"
-	"github.com/nunnatsa/ginkgolinter/reports"
-	"github.com/nunnatsa/ginkgolinter/reverseassertion"
-	"github.com/nunnatsa/ginkgolinter/types"
+	"github.com/nunnatsa/ginkgolinter/internal/reports"
+	"github.com/nunnatsa/ginkgolinter/internal/reverseassertion"
+	"github.com/nunnatsa/ginkgolinter/internal/types"
 )
 
 // The ginkgolinter enforces standards of using ginkgo and gomega.

@@ -4,7 +4,7 @@ import (
 	"go/token"
 	"testing"
 
-	"github.com/nunnatsa/ginkgolinter/reverseassertion"
+	"github.com/nunnatsa/ginkgolinter/internal/reverseassertion"
 )
 
 func TestChangeAssertionLogic(t *testing.T) {

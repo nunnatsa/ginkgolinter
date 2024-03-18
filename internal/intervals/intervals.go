@@ -11,8 +11,8 @@ import (
 
 	"golang.org/x/tools/go/analysis"
 
-	"github.com/nunnatsa/ginkgolinter/gomegahandler"
-	"github.com/nunnatsa/ginkgolinter/reports"
+	"github.com/nunnatsa/ginkgolinter/internal/gomegahandler"
+	"github.com/nunnatsa/ginkgolinter/internal/reports"
 )
 
 type noDurationIntervalErr struct {
