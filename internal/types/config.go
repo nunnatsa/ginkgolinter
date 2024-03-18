@@ -27,6 +27,7 @@ type Config struct {
 	AllowHaveLen0          Boolean
 	ForceExpectTo          Boolean
 	ValidateAsyncIntervals Boolean
+	ForbidSpecPollution    Boolean
 }
 
 func (s *Config) AllTrue() bool {
@@ -45,6 +46,7 @@ func (s *Config) Clone() Config {
 		AllowHaveLen0:          s.AllowHaveLen0,
 		ForceExpectTo:          s.ForceExpectTo,
 		ValidateAsyncIntervals: s.ValidateAsyncIntervals,
+		ForbidSpecPollution:    s.ForbidSpecPollution,
 	}
 }
 

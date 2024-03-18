@@ -18,7 +18,7 @@ cd testdata/src/a
 # suppress all but async
 [[ $(./ginkgolinter --suppress-nil-assertion=true --suppress-err-assertion=true --suppress-len-assertion=true --suppress-compare-assertion=true --suppress-type-compare-assertion=true a/... 2>&1 | wc -l) == 183 ]]
 # suppress all but focus
-[[ $(./ginkgolinter --suppress-nil-assertion=true --suppress-err-assertion=true --suppress-len-assertion=true --suppress-compare-assertion=true --suppress-async-assertion=true --forbid-focus-container=true --suppress-type-compare-assertion=true a/... 2>&1 | wc -l) == 207 ]]
+[[ $(./ginkgolinter --suppress-nil-assertion=true --suppress-err-assertion=true --suppress-len-assertion=true --suppress-compare-assertion=true --suppress-async-assertion=true --forbid-focus-container=true --suppress-type-compare-assertion=true a/... 2>&1 | wc -l) == 216 ]]
 # suppress all but compare different types
 [[ $(./ginkgolinter --suppress-nil-assertion=true --suppress-err-assertion=true --suppress-len-assertion=true --suppress-compare-assertion=true --suppress-compare-assertion=true a/... 2>&1 | wc -l) == 267 ]]
 # allow HaveLen(0)
@@ -31,3 +31,9 @@ cd testdata/src/a
 [[ $(./ginkgolinter --force-expect-to=true --suppress-nil-assertion=true --suppress-len-assertion=true --suppress-err-assertion=true --suppress-compare-assertion=true --suppress-async-assertion=true --forbid-focus-container=false --suppress-type-compare-assertion=true a/... 2>&1 | wc -l) == 775 ]]
 # enable async interval validation
 [[ $(./ginkgolinter --validate-async-intervals=true a/... 2>&1 | wc -l) == 2686 ]]
+# suppress spec pollution
+[[ $(./ginkgolinter --forbid-spec-pollution=true a/... 2>&1 | wc -l) == 2689 ]]
+# suppress all but spec pollution
+[[ $(./ginkgolinter --suppress-nil-assertion=true --suppress-err-assertion=true --suppress-len-assertion=true --suppress-compare-assertion=true --suppress-async-assertion=true --forbid-spec-pollution=true --suppress-type-compare-assertion=true a/... 2>&1 | wc -l) == 250 ]]
+# suppress all but spec pollution && focus containers
+[[ $(./ginkgolinter --suppress-nil-assertion=true --suppress-err-assertion=true --suppress-len-assertion=true --suppress-compare-assertion=true --suppress-async-assertion=true --forbid-spec-pollution=true --suppress-type-compare-assertion=true --forbid-focus-container=true a/... 2>&1 | wc -l) == 314 ]]

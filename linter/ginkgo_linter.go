@@ -47,6 +47,7 @@ const (
 	matchErrorRedundantArg        = "redundant MatchError arguments; consider removing them"
 	matchErrorNoFuncDescription   = "The second parameter of MatchError must be the function description (string)"
 	forceExpectToTemplate         = "must not use Expect with %s"
+	useBeforeEachTemplate         = "use BeforeEach() to assign variable %s"
 )
 
 const ( // gomega matchers
@@ -120,16 +121,24 @@ func (l *GinkgoLinter) Run(pass *analysis.Pass) (interface{}, error) {
 		}
 
 		ast.Inspect(file, func(n ast.Node) bool {
-			if ginkgoHndlr != nil && fileConfig.ForbidFocus {
+			if ginkgoHndlr != nil {
+				goDeeper := false
 				spec, ok := n.(*ast.ValueSpec)
 				if ok {
 					for _, val := range spec.Values {
 						if exp, ok := val.(*ast.CallExpr); ok {
-							if checkFocusContainer(pass, ginkgoHndlr, exp) {
-								return true
+							if bool(fileConfig.ForbidFocus) && checkFocusContainer(pass, ginkgoHndlr, exp) {
+								goDeeper = true
+							}
+
+							if bool(fileConfig.ForbidSpecPollution) && checkAssignmentsInContainer(pass, ginkgoHndlr, exp) {
+								goDeeper = true
 							}
 						}
 					}
+				}
+				if goDeeper {
+					return true
 				}
 			}
 
@@ -150,8 +159,15 @@ func (l *GinkgoLinter) Run(pass *analysis.Pass) (interface{}, error) {
 				return true
 			}
 
-			if ginkgoHndlr != nil && bool(config.ForbidFocus) {
-				if checkFocusContainer(pass, ginkgoHndlr, assertionExp) {
+			if ginkgoHndlr != nil {
+				goDeeper := false
+				if bool(config.ForbidFocus) && checkFocusContainer(pass, ginkgoHndlr, assertionExp) {
+					goDeeper = true
+				}
+				if bool(config.ForbidSpecPollution) && checkAssignmentsInContainer(pass, ginkgoHndlr, assertionExp) {
+					goDeeper = true
+				}
+				if goDeeper {
 					return true
 				}
 			}
@@ -184,6 +200,83 @@ func (l *GinkgoLinter) Run(pass *analysis.Pass) (interface{}, error) {
 	return nil, nil
 }
 
+func checkAssignmentsInContainer(pass *analysis.Pass, ginkgoHndlr ginkgohandler.Handler, exp *ast.CallExpr) bool {
+	foundSomething := false
+	if ginkgoHndlr.IsWrapContainer(exp) {
+		for _, arg := range exp.Args {
+			if fn, ok := arg.(*ast.FuncLit); ok {
+				if fn.Body != nil {
+					if checkAssignments(pass, fn.Body.List) {
+						foundSomething = true
+					}
+					break
+				}
+			}
+		}
+	}
+
+	return foundSomething
+}
+
+func checkAssignments(pass *analysis.Pass, list []ast.Stmt) bool {
+	foundSomething := false
+	for _, stmt := range list {
+		switch st := stmt.(type) {
+		case *ast.DeclStmt:
+			if gen, ok := st.Decl.(*ast.GenDecl); ok {
+				if gen.Tok != token.VAR {
+					continue
+				}
+				for _, spec := range gen.Specs {
+					if valSpec, ok := spec.(*ast.ValueSpec); ok {
+						if checkAssignmentsValues(pass, valSpec.Names, valSpec.Values) {
+							foundSomething = true
+						}
+					}
+				}
+			}
+
+		case *ast.AssignStmt:
+			for i, val := range st.Rhs {
+				if _, isFunc := val.(*ast.FuncLit); !isFunc {
+					if id, isIdent := st.Lhs[i].(*ast.Ident); isIdent {
+						reportNoFix(pass, id.Pos(), useBeforeEachTemplate, id.Name)
+						foundSomething = true
+					}
+				}
+			}
+
+		case *ast.IfStmt:
+			if st.Body != nil {
+				if checkAssignments(pass, st.Body.List) {
+					foundSomething = true
+				}
+			}
+			if st.Else != nil {
+				if block, isBlock := st.Else.(*ast.BlockStmt); isBlock {
+					if checkAssignments(pass, block.List) {
+						foundSomething = true
+					}
+				}
+			}
+		}
+	}
+
+	return foundSomething
+}
+
+func checkAssignmentsValues(pass *analysis.Pass, names []*ast.Ident, values []ast.Expr) bool {
+	foundSomething := false
+	for i, val := range values {
+		if _, isFunc := val.(*ast.FuncLit); !isFunc {
+			reportNoFix(pass, names[i].Pos(), useBeforeEachTemplate, names[i].Name)
+			foundSomething = true
+		}
+	}
+
+	return foundSomething
+}
+
 func checkFocusContainer(pass *analysis.Pass, ginkgoHndlr ginkgohandler.Handler, exp *ast.CallExpr) bool {
 	foundFocus := false
 	isFocus, id := ginkgoHndlr.GetFocusContainerName(exp)
@@ -192,7 +285,7 @@ func checkFocusContainer(pass *analysis.Pass, ginkgoHndlr ginkgohandler.Handler,
 		foundFocus = true
 	}
 
-	if id != nil && ginkgohandler.IsContainer(id) {
+	if id != nil && ginkgohandler.IsContainer(id.Name) {
 		for _, arg := range exp.Args {
 			if ginkgoHndlr.IsFocusSpec(arg) {
 				reportNoFix(pass, arg.Pos(), focusSpecFound)

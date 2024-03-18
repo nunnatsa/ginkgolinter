@@ -156,6 +156,19 @@ func TestFlags(t *testing.T) {
 			testData: []string{"a/timing"},
 			flags:    map[string]string{"validate-async-intervals": "true"},
 		},
+		{
+			testName: "vars in containers",
+			testData: []string{"a/vars-in-containers"},
+			flags:    map[string]string{"forbid-spec-pollution": "true"},
+		},
+		{
+			testName: "vars in containers + focus containers",
+			testData: []string{"a/containers-vas-and-focus"},
+			flags: map[string]string{
+				"forbid-spec-pollution":  "true",
+				"forbid-focus-container": "true",
+			},
+		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
 			analyzer := ginkgolinter.NewAnalyzer()
