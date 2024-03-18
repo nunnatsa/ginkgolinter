@@ -6,10 +6,21 @@ import (
 
 	"golang.org/x/tools/go/analysis"
 
-	"github.com/nunnatsa/ginkgolinter/internal/types"
 	"github.com/nunnatsa/ginkgolinter/linter"
+	"github.com/nunnatsa/ginkgolinter/types"
 	"github.com/nunnatsa/ginkgolinter/version"
 )
+
+// NewAnalyzerWithConfig returns an Analyzer.
+func NewAnalyzerWithConfig(config *types.Config) *analysis.Analyzer {
+	theLinter := linter.NewGinkgoLinter(config)
+
+	return &analysis.Analyzer{
+		Name: "ginkgolinter",
+		Doc:  fmt.Sprintf(doc, version.Version()),
+		Run:  theLinter.Run,
+	}
+}
 
 // NewAnalyzer returns an Analyzer - the package interface with nogo
 func NewAnalyzer() *analysis.Analyzer {
@@ -23,12 +34,7 @@ func NewAnalyzer() *analysis.Analyzer {
 		ForceExpectTo:   false,
 	}
 
-	theLinter := linter.NewGinkgoLinter(config)
-	a := &analysis.Analyzer{
-		Name: "ginkgolinter",
-		Doc:  fmt.Sprintf(doc, version.Version()),
-		Run:  theLinter.Run,
-	}
+	a := NewAnalyzerWithConfig(config)
 
 	var ignored bool
 	a.Flags.Init("ginkgolinter", flag.ExitOnError)
