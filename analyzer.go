@@ -6,8 +6,8 @@ import (
 
 	"golang.org/x/tools/go/analysis"
 
+	"github.com/nunnatsa/ginkgolinter/internal/types"
 	"github.com/nunnatsa/ginkgolinter/linter"
-	"github.com/nunnatsa/ginkgolinter/types"
 	"github.com/nunnatsa/ginkgolinter/version"
 )
 
