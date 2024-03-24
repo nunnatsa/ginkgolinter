@@ -11,6 +11,8 @@ var _ = Describe("When's", func() {
 		shouldNotTriggerWarningEither = 2
 	)
 
+	_ = getValue()
+
 	When("test When", func() {
 		const shouldNotTriggerWarning = 3
 		const (
