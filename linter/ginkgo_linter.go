@@ -239,7 +239,7 @@ func checkAssignments(pass *analysis.Pass, list []ast.Stmt) bool {
 		case *ast.AssignStmt:
 			for i, val := range st.Rhs {
 				if _, isFunc := val.(*ast.FuncLit); !isFunc {
-					if id, isIdent := st.Lhs[i].(*ast.Ident); isIdent {
+					if id, isIdent := st.Lhs[i].(*ast.Ident); isIdent && id.Name != "_" {
 						reportNoFix(pass, id.Pos(), useBeforeEachTemplate, id.Name)
 						foundSomething = true
 					}

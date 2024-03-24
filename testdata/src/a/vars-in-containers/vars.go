@@ -10,6 +10,10 @@ type Human struct {
 	ID   string `json:"id"`
 }
 
+func getValue() int {
+	return 42
+}
+
 var _ = Describe("vars in Describe", func() {
 	var a = 1 // want `use BeforeEach\(\) to assign variable a`
 	var (
@@ -26,6 +30,8 @@ var _ = Describe("vars in Describe", func() {
 
 		g, h, valid2 int
 	)
+
+	_ = getValue()
 
 	if b == "testing" {
 		d = b // want `use BeforeEach\(\) to assign variable d`
