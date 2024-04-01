@@ -307,7 +307,7 @@ func checkExpression(pass *analysis.Pass, config types.Config, assertionExp *ast
 	reportBuilder := reports.NewBuilder(pass.Fset, expr)
 
 	goNested := false
-	if checkAsyncAssertion(pass, config, expr, actualExpr, handler, reportBuilder, timePkg) {
+	if checkAsyncAssertion(pass, assertionExp, config, expr, actualExpr, handler, reportBuilder, timePkg) {
 		goNested = true
 	} else {
 
@@ -394,7 +394,7 @@ func doCheckExpression(pass *analysis.Pass, config types.Config, assertionExp *a
 		}
 		return bool(config.SuppressCompare) || checkComparison(expr, pass, matcher, handler, first, second, op, reportBuilder)
 
-	} else if checkMatchError(pass, assertionExp, actualArg, handler, reportBuilder) {
+	} else if checkMatchError(pass, assertionExp, actualArg, handler, reportBuilder, isExprError) {
 		return false
 	} else if isExprError(pass, actualArg) {
 		return bool(config.SuppressErr) || checkNilError(pass, expr, handler, actualArg, reportBuilder)
@@ -410,16 +410,16 @@ func doCheckExpression(pass *analysis.Pass, config types.Config, assertionExp *a
 	return true
 }
 
-func checkMatchError(pass *analysis.Pass, origExp *ast.CallExpr, actualArg ast.Expr, handler gomegahandler.Handler, reportBuilder *reports.Builder) bool {
+func checkMatchError(pass *analysis.Pass, origExp *ast.CallExpr, actualArg ast.Expr, handler gomegahandler.Handler, reportBuilder *reports.Builder, isErrFunc func(*analysis.Pass, ast.Expr) bool) bool {
 	matcher, ok := origExp.Args[0].(*ast.CallExpr)
 	if !ok {
 		return false
 	}
 
-	return doCheckMatchError(pass, origExp, matcher, actualArg, handler, reportBuilder)
+	return doCheckMatchError(pass, origExp, matcher, actualArg, handler, reportBuilder, isErrFunc)
 }
 
-func doCheckMatchError(pass *analysis.Pass, origExp *ast.CallExpr, matcher *ast.CallExpr, actualArg ast.Expr, handler gomegahandler.Handler, reportBuilder *reports.Builder) bool {
+func doCheckMatchError(pass *analysis.Pass, origExp *ast.CallExpr, matcher *ast.CallExpr, actualArg ast.Expr, handler gomegahandler.Handler, reportBuilder *reports.Builder, isErrFunc func(*analysis.Pass, ast.Expr) bool) bool {
 	name, ok := handler.GetActualFuncName(matcher)
 	if !ok {
 		return false
@@ -432,12 +432,12 @@ func doCheckMatchError(pass *analysis.Pass, origExp *ast.CallExpr, matcher *ast.
 			return false
 		}
 
-		return doCheckMatchError(pass, origExp, nested, actualArg, handler, reportBuilder)
+		return doCheckMatchError(pass, origExp, nested, actualArg, handler, reportBuilder, isErrFunc)
 	case and, or:
 		res := false
 		for _, arg := range matcher.Args {
 			if nested, ok := arg.(*ast.CallExpr); ok {
-				if valid := doCheckMatchError(pass, origExp, nested, actualArg, handler, reportBuilder); valid {
+				if valid := doCheckMatchError(pass, origExp, nested, actualArg, handler, reportBuilder, isErrFunc); valid {
 					res = true
 				}
 			}
@@ -447,7 +447,7 @@ func doCheckMatchError(pass *analysis.Pass, origExp *ast.CallExpr, matcher *ast.
 		return false
 	}
 
-	if !isExprError(pass, actualArg) {
+	if !isErrFunc(pass, actualArg) {
 		reportBuilder.AddIssue(false, matchErrorArgWrongType, goFmt(pass.Fset, actualArg))
 	}
 
@@ -469,7 +469,6 @@ func doCheckMatchError(pass *analysis.Pass, origExp *ast.CallExpr, matcher *ast.
 		}
 		return true
 	}
-
 	if requiredParams == 2 && numParams == 1 {
 		reportBuilder.AddIssue(false, matchErrorMissingDescription)
 		return true
@@ -482,6 +481,7 @@ func doCheckMatchError(pass *analysis.Pass, origExp *ast.CallExpr, matcher *ast.
 	expr.Args = newArgsSuggestion
 
 	reportBuilder.AddIssue(true, matchErrorRedundantArg)
+
 	return true
 }
 
@@ -495,7 +495,7 @@ func checkMatchErrorAssertion(pass *analysis.Pass, matcher *ast.CallExpr) (bool,
 		return true, 2
 	}
 
-	return false, 0
+	return false, 1
 }
 
 // isFuncErrBool checks if a function is with the signature `func(error) bool`
@@ -734,7 +734,7 @@ func checkPointerComparison(pass *analysis.Pass, config types.Config, origExp *a
 
 // check async assertion does not assert function call. This is a real bug in the test. In this case, the assertion is
 // done on the returned value, instead of polling the result of a function, for instance.
-func checkAsyncAssertion(pass *analysis.Pass, config types.Config, expr *ast.CallExpr, actualExpr *ast.CallExpr, handler gomegahandler.Handler, reportBuilder *reports.Builder, timePkg string) bool {
+func checkAsyncAssertion(pass *analysis.Pass, origExp *ast.CallExpr, config types.Config, expr *ast.CallExpr, actualExpr *ast.CallExpr, handler gomegahandler.Handler, reportBuilder *reports.Builder, timePkg string) bool {
 	funcName, ok := handler.GetActualFuncName(actualExpr)
 	if !ok {
 		return false
@@ -794,6 +794,14 @@ func checkAsyncAssertion(pass *analysis.Pass, config types.Config, expr *ast.Cal
 			intervals.CheckIntervals(pass, expr, actualExpr, reportBuilder, handler, timePkg, funcIndex)
 		}
 	}
+
+	if !config.SuppressErr {
+		if isExprErrFunc(pass, actualExpr.Args[funcIndex]) {
+			checkNilError(pass, expr, handler, actualExpr, reportBuilder)
+		}
+	}
+
+	checkMatchError(pass, origExp, actualExpr.Args[funcIndex], handler, reportBuilder, isExprErrFunc)
 
 	handleAssertionOnly(pass, config, expr, handler, actualExpr, reportBuilder)
 	return true
@@ -1626,6 +1634,20 @@ func isExprError(pass *analysis.Pass, expr ast.Expr) bool {
 			}
 		}
 	}
+	return false
+}
+
+func isExprErrFunc(pass *analysis.Pass, expr ast.Expr) bool {
+	actualArgType := pass.TypesInfo.TypeOf(expr)
+	t, isErrFunc := actualArgType.(*gotypes.Signature)
+	if !isErrFunc {
+		return false
+	}
+
+	if t.Results().Len() == 1 {
+		return interfaces.ImplementsError(t.Results().At(0).Type())
+	}
+
 	return false
 }
 

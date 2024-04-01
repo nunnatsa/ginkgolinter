@@ -3,6 +3,7 @@ package matcherror
 import (
 	"errors"
 	"fmt"
+
 	"github.com/onsi/gomega/types"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -33,7 +34,7 @@ var _ = Describe("Check MatchError", func() {
 		one := 1
 		gomega.Expect(one).To(gomega.MatchError("example")) // want `ginkgo-linter: the MatchError matcher used to assert a non error type \(one\)`
 		gomega.Expect(e1).To(gomega.MatchError(isExample))  // want `ginkgo-linter: missing function description as second parameter of MatchError`
-		gomega.Expect(e1).To(gomega.MatchError(f1))         // want `ginkgo-linter: multiple issues: MatchError first parameter \(f1\) must be error, string, GomegaMatcher or func\(error\)bool are allowed; redundant MatchError arguments; consider removing them`
+		gomega.Expect(e1).To(gomega.MatchError(f1))         // want `ginkgo-linter: MatchError first parameter \(f1\) must be error, string, GomegaMatcher or func\(error\)bool are allowed`
 	})
 
 	It("two arguments - valid", func() {
