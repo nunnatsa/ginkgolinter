@@ -485,6 +485,7 @@ Eventually(aFunc, time.Second*5, time.Second*polling)
 * Use the `--suppress-async-assertion=true` flag to suppress the function call in async assertion warning
 * Use the `--forbid-focus-container=true` flag to activate the focused container assertion (deactivated by default)
 * Use the `--suppress-type-compare-assertion=true` to suppress the type compare assertion warning
+* Use the `--suppress-succeed-assertion=true` to suppress the wrong succeed assertion warning
 * Use the `--allow-havelen-0=true` flag to avoid warnings about `HaveLen(0)`; Note: this parameter is only supported from
   command line, and not from a comment.
 

@@ -1,4 +1,4 @@
-package succeed
+package succeedconfig
 
 import (
 	"errors"
@@ -38,10 +38,10 @@ var _ = Describe("Ensure succeed assertion is used correctly", Label("succeed"),
 		err: err0,
 	}
 
-	Expect(err0).ToNot(Succeed())              // want `ginkgo-linter: Succeed matcher should be asserted against a function call; consider replacing with Expect\(err0\).To\(HaveOccurred\(\)\)`
-	ExpectWithOffset(1, err0).NotTo(Succeed()) // want `ginkgo-linter: Succeed matcher should be asserted against a function call; consider replacing with ExpectWithOffset\(1, err0\).To\(HaveOccurred\(\)\)`
-	Expect(err0).NotTo(Not(Succeed()))         // want `ginkgo-linter: Succeed matcher should be asserted against a function call; consider replacing with Expect\(err0\).To\(Not\(HaveOccurred\(\)\)\)`
-	Expect(wrap.err).To(Succeed())             // want `ginkgo-linter: Succeed matcher should be asserted against a function call; consider replacing with Expect\(wrap.err\).ToNot\(HaveOccurred\(\)\)`
+	Expect(err0).ToNot(Succeed())
+	ExpectWithOffset(1, err0).NotTo(Succeed())
+	Expect(err0).NotTo(Not(Succeed()))
+	Expect(wrap.err).To(Succeed())
 	// ginkgo-linter:ignore-succeed-warning
 	Expect(err0).ToNot(Succeed())
 
@@ -53,7 +53,7 @@ var _ = Describe("Ensure succeed assertion is used correctly", Label("succeed"),
 		return attemptToCallNetwork(false)
 	}).Should(Succeed())
 
-	ConsistentlyWithOffset(2, func() error {
+	ConsistentlyWithOffset(1, func() error {
 		return attemptToCallNetwork(false)
 	}).Should(Succeed())
 

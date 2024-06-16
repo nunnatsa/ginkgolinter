@@ -43,6 +43,7 @@ func NewAnalyzer() *analysis.Analyzer {
 	a.Flags.Var(&config.SuppressErr, "suppress-err-assertion", "Suppress warning for wrong error assertions")
 	a.Flags.Var(&config.SuppressCompare, "suppress-compare-assertion", "Suppress warning for wrong comparison assertions")
 	a.Flags.Var(&config.SuppressAsync, "suppress-async-assertion", "Suppress warning for function call in async assertion, like Eventually")
+	a.Flags.Var(&config.SuppressSucceed, "suppress-succeed-assertion", "Suppress warning for Succeed used against expressions that are not function calls")
 	a.Flags.Var(&config.ValidateAsyncIntervals, "validate-async-intervals", "best effort validation of async intervals (timeout and polling); ignored the suppress-async-assertion flag is true")
 	a.Flags.Var(&config.SuppressTypeCompare, "suppress-type-compare-assertion", "Suppress warning for comparing values from different types, like int32 and uint32")
 	a.Flags.Var(&config.AllowHaveLen0, "allow-havelen-0", "Do not warn for HaveLen(0); default = false")

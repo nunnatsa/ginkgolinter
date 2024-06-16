@@ -14,6 +14,7 @@ const (
 	suppressAsyncAsertWarning       = suppressPrefix + "ignore-async-assert-warning"
 	suppressFocusContainerWarning   = suppressPrefix + "ignore-focus-container-warning"
 	suppressTypeCompareWarning      = suppressPrefix + "ignore-type-compare-warning"
+	suppressSucceedWarning          = suppressPrefix + "ignore-succeed-warning"
 )
 
 type Config struct {
@@ -22,6 +23,7 @@ type Config struct {
 	SuppressErr            Boolean
 	SuppressCompare        Boolean
 	SuppressAsync          Boolean
+	SuppressSucceed        Boolean
 	ForbidFocus            Boolean
 	SuppressTypeCompare    Boolean
 	AllowHaveLen0          Boolean
@@ -31,7 +33,10 @@ type Config struct {
 }
 
 func (s *Config) AllTrue() bool {
-	return bool(s.SuppressLen && s.SuppressNil && s.SuppressErr && s.SuppressCompare && s.SuppressAsync && !s.ForbidFocus)
+	return bool(
+		s.SuppressLen && s.SuppressNil && s.SuppressErr && s.SuppressCompare && s.SuppressAsync &&
+			s.SuppressSucceed && !s.ForbidFocus,
+	)
 }
 
 func (s *Config) Clone() Config {
@@ -41,6 +46,7 @@ func (s *Config) Clone() Config {
 		SuppressErr:            s.SuppressErr,
 		SuppressCompare:        s.SuppressCompare,
 		SuppressAsync:          s.SuppressAsync,
+		SuppressSucceed:        s.SuppressSucceed,
 		ForbidFocus:            s.ForbidFocus,
 		SuppressTypeCompare:    s.SuppressTypeCompare,
 		AllowHaveLen0:          s.AllowHaveLen0,
@@ -79,6 +85,8 @@ func (s *Config) UpdateFromComment(commentGroup []*ast.CommentGroup) {
 					s.ForbidFocus = false
 				case suppressTypeCompareWarning:
 					s.SuppressTypeCompare = true
+				case suppressSucceedWarning:
+					s.SuppressSucceed = true
 				}
 			}
 		}

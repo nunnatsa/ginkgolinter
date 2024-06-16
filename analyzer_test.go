@@ -146,6 +146,11 @@ func TestFlags(t *testing.T) {
 			flags:    map[string]string{"forbid-focus-container": "true"},
 		},
 		{
+			testName: "test the suppress-succeed-assertion flag",
+			testData: []string{"a/succeedconfig"},
+			flags:    map[string]string{"suppress-succeed-assertion": "true"},
+		},
+		{
 			testName: "test the suppress-type-compare-assertion flag",
 			testData: []string{"a/comparetypesconfig"},
 			flags:    map[string]string{"suppress-type-compare-assertion": "true"},

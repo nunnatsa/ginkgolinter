@@ -48,8 +48,9 @@ const (
 	matchErrorNoFuncDescription    = "The second parameter of MatchError must be the function description (string)"
 	forceExpectToTemplate          = "must not use Expect with %s"
 	useBeforeEachTemplate          = "use BeforeEach() to assign variable %s"
-	succeedSyncOnlyWithErrFuncCall = "Succeed matcher should only be asserted against a function call, and the function must return exactly one error"
-	succeedAsyncOnlyWithErrFunc    = "Succeed matcher must only be asserted against a function that returns exactly one error"
+	succeedSyncOnlyWithErr         = "Succeed matcher must be asserted against exactly one error value or a function call returning the same, or it will always fail"
+	succeedSyncOnlyWithErrFuncCall = "Succeed matcher should be asserted against a function call; consider replacing with %s"
+	succeedAsyncOnlyWithErrFunc    = "Succeed matcher must be asserted against a function that returns exactly one error"
 )
 
 const ( // gomega matchers
@@ -313,8 +314,8 @@ func checkExpression(pass *analysis.Pass, config types.Config, assertionExp *ast
 		goNested = true
 	} else {
 
-		actualArg := getActualArg(actualExpr, handler)
-		if actualArg == nil {
+		actualArgs := getActualArgs(actualExpr, handler)
+		if len(actualArgs) == 0 {
 			return true
 		}
 
@@ -322,7 +323,7 @@ func checkExpression(pass *analysis.Pass, config types.Config, assertionExp *ast
 			goNested = forceExpectTo(expr, handler, reportBuilder) || goNested
 		}
 
-		goNested = doCheckExpression(pass, config, assertionExp, actualArg, expr, handler, reportBuilder) || goNested
+		goNested = doCheckExpression(pass, config, assertionExp, actualArgs, expr, handler, reportBuilder) || goNested
 	}
 
 	if reportBuilder.HasReport() {
@@ -359,7 +360,9 @@ func forceExpectTo(expr *ast.CallExpr, handler gomegahandler.Handler, reportBuil
 	return false
 }
 
-func doCheckExpression(pass *analysis.Pass, config types.Config, assertionExp *ast.CallExpr, actualArg ast.Expr, expr *ast.CallExpr, handler gomegahandler.Handler, reportBuilder *reports.Builder) bool {
+func doCheckExpression(pass *analysis.Pass, config types.Config, assertionExp *ast.CallExpr, actualArgs []ast.Expr, expr *ast.CallExpr, handler gomegahandler.Handler, reportBuilder *reports.Builder) bool {
+	actualArg := actualArgs[0]
+
 	if !bool(config.SuppressLen) && isActualIsLenFunc(actualArg) {
 		return checkLengthMatcher(expr, pass, handler, reportBuilder)
 
@@ -398,7 +401,7 @@ func doCheckExpression(pass *analysis.Pass, config types.Config, assertionExp *a
 
 	} else if checkMatchError(pass, assertionExp, actualArg, handler, reportBuilder, isExprError) {
 		return false
-	} else if checkSucceedSync(pass, assertionExp, actualArg, handler, reportBuilder) {
+	} else if checkSucceedSync(pass, assertionExp, actualArgs, handler, reportBuilder, bool(config.SuppressSucceed)) {
 		return false
 	} else if isExprError(pass, actualArg) {
 		return bool(config.SuppressErr) || checkNilError(pass, expr, handler, actualArg, reportBuilder)
@@ -406,14 +409,17 @@ func doCheckExpression(pass *analysis.Pass, config types.Config, assertionExp *a
 		return false
 	} else if !handleAssertionOnly(pass, config, expr, handler, actualArg, reportBuilder) {
 		return false
-	} else if !config.SuppressTypeCompare {
-		return !checkEqualWrongType(pass, assertionExp, actualArg, handler, reportBuilder)
+	} else if bool(!config.SuppressTypeCompare) && checkEqualWrongType(pass, assertionExp, actualArg, handler, reportBuilder) {
+		return false
 	}
 
 	return true
 }
 
 func checkMatchError(pass *analysis.Pass, origExp *ast.CallExpr, actualArg ast.Expr, handler gomegahandler.Handler, reportBuilder *reports.Builder, isErrFunc func(*analysis.Pass, ast.Expr) bool) bool {
+	if actualArg == nil {
+		return false
+	}
 	matcher, ok := origExp.Args[0].(*ast.CallExpr)
 	if !ok {
 		return false
@@ -504,53 +510,73 @@ func checkMatchErrorAssertion(pass *analysis.Pass, matcher *ast.CallExpr) (bool,
 // Ensure that the Succeed matcher is only used against function calls that return a single error
 // in the synchronous case.
 //
-// e.g. these are fine
+// e.g. these are valid assertions
 //
-//	Expect(func() error { return errors.New("failed") }()).To(Succeed())
-//	Expect(func() error { return errors.New("failed") }()).NotTo(Succeed())
+//	// function signature is `os.Remove(string) error`
+//	Expect(os.Remove("emptyDirectory")).To(Succeed())
+//	Expect(os.Remove("nonemptyDirectory")).NotTo(Succeed())
 //
 // but these are not
 //
+//	// function signature is `os.ReadFile(string) ([]byte, error)`
 //	Expect(err).To(Succeed())
-//	Expect(func() (int, error) { return 0, errors.New("failed") }()).To(Succeed())
+//	Expect(return os.ReadFile("someFile").To(Succeed())
 func checkSucceedSync(
-	pass *analysis.Pass, assertionExp *ast.CallExpr, actualArg ast.Expr, handler gomegahandler.Handler, reportBuilder *reports.Builder,
+	pass *analysis.Pass, assertionExp *ast.CallExpr, actualArgs []ast.Expr, handler gomegahandler.Handler, reportBuilder *reports.Builder,
+	suppressStyleIssue bool,
 ) bool {
-	matcher, isMatcherFuncCall := assertionExp.Args[0].(*ast.CallExpr)
+	_, isMatcherFuncCall := assertionExp.Args[0].(*ast.CallExpr)
 	if !isMatcherFuncCall {
 		return false
 	}
 
+	assertionExpCopy := astcopy.CallExpr(assertionExp)
+	matcherCopy := assertionExpCopy.Args[0].(*ast.CallExpr)
+
 	isAsync := false
-	return doCheckSucceed(pass, matcher, actualArg, handler, reportBuilder, isAsync)
+	return doCheckSucceed(
+		pass, assertionExpCopy, matcherCopy, actualArgs, handler, reportBuilder, isAsync,
+		suppressStyleIssue,
+	)
 }
 
 // Ensure that the Succeed matcher is only used against functions that return a single error
 // in the asynchronous case.
 //
-// e.g. these are fine
+// e.g. these are valid assertions
 //
-//	Eventually(func() error { return errors.New("failed") }).Should(Succeed())
-//	Consistently(func() error { return errors.New("failed") }).ShouldNot(Succeed())
+//	// function signature is `os.Remove(string) error`
+//	Eventually(func() error { return os.Remove("emptyDirectory") }).Should(Succeed())
+//	Consistently(func() error { return os.Remove("nonemptyDirectory") }).ShouldNot(Succeed())
 //
 // but this is not
 //
-//	Eventually(func() (int, error) { return 0, errors.New("failed") }).Should(Succeed())
+//	// function signature is `os.ReadFile(string) ([]byte, error)`
+//	Eventually(func() ([]byte, error) { return os.ReadFile("someFile") }).Should(Succeed())
 func checkSucceedAsync(
-	pass *analysis.Pass, assertionExp *ast.CallExpr, actualArg ast.Expr, handler gomegahandler.Handler, reportBuilder *reports.Builder,
+	pass *analysis.Pass, assertionExp *ast.CallExpr, actualArgs []ast.Expr, handler gomegahandler.Handler, reportBuilder *reports.Builder,
+	suppressWarnings bool,
 ) bool {
-	matcher, isMatcherFuncCall := assertionExp.Args[0].(*ast.CallExpr)
+	_, isMatcherFuncCall := assertionExp.Args[0].(*ast.CallExpr)
 	if !isMatcherFuncCall {
 		return false
 	}
 
+	assertionExpCopy := astcopy.CallExpr(assertionExp)
+	matcherCopy := assertionExpCopy.Args[0].(*ast.CallExpr)
+
 	isAsync := true
-	return doCheckSucceed(pass, matcher, actualArg, handler, reportBuilder, isAsync)
+	return doCheckSucceed(pass, assertionExpCopy, matcherCopy, actualArgs, handler, reportBuilder, isAsync, suppressWarnings)
 }
 
+// Function that looks for Succeed matcher by recursively unwrapping the `matcher` argument and,
+// if a match is found, enforces rules for the Succeed matcher, i.e. that the actual arguments must
+// be a single error or function returning a single error, depending on whether the assertion is
+// async.
 func doCheckSucceed(
-	pass *analysis.Pass, matcher *ast.CallExpr, actualArg ast.Expr, handler gomegahandler.Handler, reportBuilder *reports.Builder,
-	isAsync bool,
+	pass *analysis.Pass,
+	assertionExpr *ast.CallExpr, matcher *ast.CallExpr, actualArgs []ast.Expr, handler gomegahandler.Handler, reportBuilder *reports.Builder,
+	isAsync, suppressWarnings bool,
 ) bool {
 	matcherFuncName, isMatcherFuncCall := handler.GetActualFuncName(matcher)
 	if !isMatcherFuncCall {
@@ -565,19 +591,26 @@ func doCheckSucceed(
 			return false
 		}
 
-		return doCheckSucceed(pass, nested, actualArg, handler, reportBuilder, isAsync)
+		return doCheckSucceed(pass, assertionExpr, nested, actualArgs, handler, reportBuilder, isAsync, suppressWarnings)
 	default:
 		return false
 	}
 
 	if isAsync {
-		if !isExprErrFunc(pass, actualArg) {
+		if len(actualArgs) != 1 || !isExprErrFunc(pass, actualArgs[0]) {
 			reportBuilder.AddIssue(false, succeedAsyncOnlyWithErrFunc)
 			return true
 		}
 	} else {
-		if !isExprErrFuncCall(pass, actualArg) {
-			reportBuilder.AddIssue(false, succeedSyncOnlyWithErrFuncCall)
+		if len(actualArgs) != 1 || !isExprExactError(pass, actualArgs[0]) {
+			reportBuilder.AddIssue(false, succeedSyncOnlyWithErr)
+			return true
+		}
+		if !suppressWarnings && !isExprErrFuncCall(pass, actualArgs[0]) {
+			reverseAssertionFuncLogic(assertionExpr)
+			handler.ReplaceFunction(matcher, ast.NewIdent(haveOccurred))
+			reportBuilder.AddIssue(true, succeedSyncOnlyWithErrFuncCall, goFmt(pass.Fset, assertionExpr))
+			reportBuilder.SetFixOffer(pass.Fset, assertionExpr)
 			return true
 		}
 	}
@@ -890,7 +923,7 @@ func checkAsyncAssertion(pass *analysis.Pass, origExp *ast.CallExpr, config type
 
 	checkMatchError(pass, origExp, actualExpr.Args[funcIndex], handler, reportBuilder, isExprErrFunc)
 
-	checkSucceedAsync(pass, origExp, actualExpr.Args[funcIndex], handler, reportBuilder)
+	checkSucceedAsync(pass, origExp, actualExpr.Args[funcIndex:], handler, reportBuilder, bool(config.SuppressAsync))
 
 	handleAssertionOnly(pass, config, expr, handler, actualExpr, reportBuilder)
 	return true
@@ -1352,9 +1385,9 @@ func isZero(pass *analysis.Pass, arg ast.Expr) bool {
 	return false
 }
 
-// getActualArg checks that the function is an assertion's actual function and return the "actual" parameter. If the
+// getActualArgs checks that the function is an assertion's actual function and return the "actual" parameters. If the
 // function is not assertion's actual function, return nil.
-func getActualArg(actualExpr *ast.CallExpr, handler gomegahandler.Handler) ast.Expr {
+func getActualArgs(actualExpr *ast.CallExpr, handler gomegahandler.Handler) []ast.Expr {
 	funcName, ok := handler.GetActualFuncName(actualExpr)
 	if !ok {
 		return nil
@@ -1362,9 +1395,9 @@ func getActualArg(actualExpr *ast.CallExpr, handler gomegahandler.Handler) ast.E
 
 	switch funcName {
 	case expect, omega:
-		return actualExpr.Args[0]
+		return actualExpr.Args[0:]
 	case expectWithOffset:
-		return actualExpr.Args[1]
+		return actualExpr.Args[1:]
 	default:
 		return nil
 	}
@@ -1641,6 +1674,9 @@ func reportNoFix(pass *analysis.Pass, pos token.Pos, message string, args ...any
 }
 
 func getNilableFromComparison(actualArg ast.Expr) (ast.Expr, token.Token) {
+	if actualArg == nil {
+		return nil, token.ILLEGAL
+	}
 	bin, ok := actualArg.(*ast.BinaryExpr)
 	if !ok {
 		return nil, token.ILLEGAL
@@ -1663,6 +1699,9 @@ func isNil(expr ast.Expr) bool {
 }
 
 func isComparison(pass *analysis.Pass, actualArg ast.Expr) (ast.Expr, ast.Expr, token.Token, bool) {
+	if actualArg == nil {
+		return nil, nil, token.ILLEGAL, false
+	}
 	bin, ok := actualArg.(*ast.BinaryExpr)
 	if !ok {
 		return nil, nil, token.ILLEGAL, false
@@ -1724,6 +1763,22 @@ func isExprError(pass *analysis.Pass, expr ast.Expr) bool {
 	return false
 }
 
+// Returns whether the expression implements type error or is a tuple of length 1 whose only
+// element implements type error.
+func isExprExactError(pass *analysis.Pass, expr ast.Expr) bool {
+	if !isExprError(pass, expr) {
+		return false
+	}
+
+	actualArgType := pass.TypesInfo.TypeOf(expr)
+	switch t := actualArgType.(type) {
+	case *gotypes.Tuple:
+		return t.Len() == 1
+	}
+
+	return true
+}
+
 // Returns whether the expression is a function that returns one error value
 func isExprErrFunc(pass *analysis.Pass, expr ast.Expr) bool {
 	actualArgType := pass.TypesInfo.TypeOf(expr)
@@ -1745,7 +1800,7 @@ func isExprErrFuncCall(pass *analysis.Pass, expr ast.Expr) bool {
 	if !isCallExpr {
 		return false
 	}
-	return isExprError(pass, expr)
+	return isExprExactError(pass, expr)
 }
 
 func isPointer(pass *analysis.Pass, expr ast.Expr) bool {
