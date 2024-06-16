@@ -86,6 +86,10 @@ func TestAllUseCases(t *testing.T) {
 			testData: "a/matcherror",
 		},
 		{
+			testName: "Succeed",
+			testData: "a/succeed",
+		},
+		{
 			testName: "issue 124: custom matcher form other packages",
 			testData: "a/issue-124",
 		},

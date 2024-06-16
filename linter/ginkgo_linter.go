@@ -27,27 +27,29 @@ import (
 // For more details, look at the README.md file
 
 const (
-	linterName                    = "ginkgo-linter"
-	wrongLengthWarningTemplate    = "wrong length assertion"
-	wrongCapWarningTemplate       = "wrong cap assertion"
-	wrongNilWarningTemplate       = "wrong nil assertion"
-	wrongBoolWarningTemplate      = "wrong boolean assertion"
-	wrongErrWarningTemplate       = "wrong error assertion"
-	wrongCompareWarningTemplate   = "wrong comparison assertion"
-	doubleNegativeWarningTemplate = "avoid double negative assertion"
-	valueInEventually             = "use a function call in %s. This actually checks nothing, because %s receives the function returned value, instead of function itself, and this value is never changed"
-	comparePointerToValue         = "comparing a pointer to a value will always fail"
-	missingAssertionMessage       = linterName + `: %q: missing assertion method. Expected %s`
-	focusContainerFound           = linterName + ": Focus container found. This is used only for local debug and should not be part of the actual source code. Consider to replace with %q"
-	focusSpecFound                = linterName + ": Focus spec found. This is used only for local debug and should not be part of the actual source code. Consider to remove it"
-	compareDifferentTypes         = "use %[1]s with different types: Comparing %[2]s with %[3]s; either change the expected value type if possible, or use the BeEquivalentTo() matcher, instead of %[1]s()"
-	matchErrorArgWrongType        = "the MatchError matcher used to assert a non error type (%s)"
-	matchErrorWrongTypeAssertion  = "MatchError first parameter (%s) must be error, string, GomegaMatcher or func(error)bool are allowed"
-	matchErrorMissingDescription  = "missing function description as second parameter of MatchError"
-	matchErrorRedundantArg        = "redundant MatchError arguments; consider removing them"
-	matchErrorNoFuncDescription   = "The second parameter of MatchError must be the function description (string)"
-	forceExpectToTemplate         = "must not use Expect with %s"
-	useBeforeEachTemplate         = "use BeforeEach() to assign variable %s"
+	linterName                     = "ginkgo-linter"
+	wrongLengthWarningTemplate     = "wrong length assertion"
+	wrongCapWarningTemplate        = "wrong cap assertion"
+	wrongNilWarningTemplate        = "wrong nil assertion"
+	wrongBoolWarningTemplate       = "wrong boolean assertion"
+	wrongErrWarningTemplate        = "wrong error assertion"
+	wrongCompareWarningTemplate    = "wrong comparison assertion"
+	doubleNegativeWarningTemplate  = "avoid double negative assertion"
+	valueInEventually              = "use a function call in %s. This actually checks nothing, because %s receives the function returned value, instead of function itself, and this value is never changed"
+	comparePointerToValue          = "comparing a pointer to a value will always fail"
+	missingAssertionMessage        = linterName + `: %q: missing assertion method. Expected %s`
+	focusContainerFound            = linterName + ": Focus container found. This is used only for local debug and should not be part of the actual source code. Consider to replace with %q"
+	focusSpecFound                 = linterName + ": Focus spec found. This is used only for local debug and should not be part of the actual source code. Consider to remove it"
+	compareDifferentTypes          = "use %[1]s with different types: Comparing %[2]s with %[3]s; either change the expected value type if possible, or use the BeEquivalentTo() matcher, instead of %[1]s()"
+	matchErrorArgWrongType         = "the MatchError matcher used to assert a non error type (%s)"
+	matchErrorWrongTypeAssertion   = "MatchError first parameter (%s) must be error, string, GomegaMatcher or func(error)bool are allowed"
+	matchErrorMissingDescription   = "missing function description as second parameter of MatchError"
+	matchErrorRedundantArg         = "redundant MatchError arguments; consider removing them"
+	matchErrorNoFuncDescription    = "The second parameter of MatchError must be the function description (string)"
+	forceExpectToTemplate          = "must not use Expect with %s"
+	useBeforeEachTemplate          = "use BeforeEach() to assign variable %s"
+	succeedSyncOnlyWithErrFuncCall = "Succeed matcher should only be asserted against a function call, and the function must return exactly one error"
+	succeedAsyncOnlyWithErrFunc    = "Succeed matcher must only be asserted against a function that returns exactly one error"
 )
 
 const ( // gomega matchers
@@ -65,15 +67,15 @@ const ( // gomega matchers
 	haveOccurred   = "HaveOccurred"
 	haveValue      = "HaveValue"
 	not            = "Not"
-	omega          = "Ω"
-	succeed        = "Succeed"
 	and            = "And"
 	or             = "Or"
 	withTransform  = "WithTransform"
 	matchError     = "MatchError"
+	succeed        = "Succeed"
 )
 
 const ( // gomega actuals
+	omega                  = "Ω"
 	expect                 = "Expect"
 	expectWithOffset       = "ExpectWithOffset"
 	eventually             = "Eventually"
@@ -396,9 +398,10 @@ func doCheckExpression(pass *analysis.Pass, config types.Config, assertionExp *a
 
 	} else if checkMatchError(pass, assertionExp, actualArg, handler, reportBuilder, isExprError) {
 		return false
+	} else if checkSucceedSync(pass, assertionExp, actualArg, handler, reportBuilder) {
+		return false
 	} else if isExprError(pass, actualArg) {
 		return bool(config.SuppressErr) || checkNilError(pass, expr, handler, actualArg, reportBuilder)
-
 	} else if checkPointerComparison(pass, config, assertionExp, expr, actualArg, handler, reportBuilder) {
 		return false
 	} else if !handleAssertionOnly(pass, config, expr, handler, actualArg, reportBuilder) {
@@ -496,6 +499,90 @@ func checkMatchErrorAssertion(pass *analysis.Pass, matcher *ast.CallExpr) (bool,
 	}
 
 	return false, 1
+}
+
+// Ensure that the Succeed matcher is only used against function calls that return a single error
+// in the synchronous case.
+//
+// e.g. these are fine
+//
+//	Expect(func() error { return errors.New("failed") }()).To(Succeed())
+//	Expect(func() error { return errors.New("failed") }()).NotTo(Succeed())
+//
+// but these are not
+//
+//	Expect(err).To(Succeed())
+//	Expect(func() (int, error) { return 0, errors.New("failed") }()).To(Succeed())
+func checkSucceedSync(
+	pass *analysis.Pass, assertionExp *ast.CallExpr, actualArg ast.Expr, handler gomegahandler.Handler, reportBuilder *reports.Builder,
+) bool {
+	matcher, isMatcherFuncCall := assertionExp.Args[0].(*ast.CallExpr)
+	if !isMatcherFuncCall {
+		return false
+	}
+
+	isAsync := false
+	return doCheckSucceed(pass, matcher, actualArg, handler, reportBuilder, isAsync)
+}
+
+// Ensure that the Succeed matcher is only used against functions that return a single error
+// in the asynchronous case.
+//
+// e.g. these are fine
+//
+//	Eventually(func() error { return errors.New("failed") }).Should(Succeed())
+//	Consistently(func() error { return errors.New("failed") }).ShouldNot(Succeed())
+//
+// but this is not
+//
+//	Eventually(func() (int, error) { return 0, errors.New("failed") }).Should(Succeed())
+func checkSucceedAsync(
+	pass *analysis.Pass, assertionExp *ast.CallExpr, actualArg ast.Expr, handler gomegahandler.Handler, reportBuilder *reports.Builder,
+) bool {
+	matcher, isMatcherFuncCall := assertionExp.Args[0].(*ast.CallExpr)
+	if !isMatcherFuncCall {
+		return false
+	}
+
+	isAsync := true
+	return doCheckSucceed(pass, matcher, actualArg, handler, reportBuilder, isAsync)
+}
+
+func doCheckSucceed(
+	pass *analysis.Pass, matcher *ast.CallExpr, actualArg ast.Expr, handler gomegahandler.Handler, reportBuilder *reports.Builder,
+	isAsync bool,
+) bool {
+	matcherFuncName, isMatcherFuncCall := handler.GetActualFuncName(matcher)
+	if !isMatcherFuncCall {
+		return false
+	}
+
+	switch matcherFuncName {
+	case succeed:
+	case not:
+		nested, ok := matcher.Args[0].(*ast.CallExpr)
+		if !ok {
+			return false
+		}
+
+		return doCheckSucceed(pass, nested, actualArg, handler, reportBuilder, isAsync)
+	default:
+		return false
+	}
+
+	if isAsync {
+		if !isExprErrFunc(pass, actualArg) {
+			reportBuilder.AddIssue(false, succeedAsyncOnlyWithErrFunc)
+			return true
+		}
+	} else {
+		if !isExprErrFuncCall(pass, actualArg) {
+			reportBuilder.AddIssue(false, succeedSyncOnlyWithErrFuncCall)
+			return true
+		}
+	}
+
+	return false
 }
 
 // isFuncErrBool checks if a function is with the signature `func(error) bool`
@@ -802,6 +889,8 @@ func checkAsyncAssertion(pass *analysis.Pass, origExp *ast.CallExpr, config type
 	}
 
 	checkMatchError(pass, origExp, actualExpr.Args[funcIndex], handler, reportBuilder, isExprErrFunc)
+
+	checkSucceedAsync(pass, origExp, actualExpr.Args[funcIndex], handler, reportBuilder)
 
 	handleAssertionOnly(pass, config, expr, handler, actualExpr, reportBuilder)
 	return true
@@ -1621,9 +1710,7 @@ func isExprError(pass *analysis.Pass, expr ast.Expr) bool {
 	actualArgType := pass.TypesInfo.TypeOf(expr)
 	switch t := actualArgType.(type) {
 	case *gotypes.Named:
-		if interfaces.ImplementsError(actualArgType) {
-			return true
-		}
+		return interfaces.ImplementsError(actualArgType)
 	case *gotypes.Tuple:
 		if t.Len() > 0 {
 			switch t0 := t.At(0).Type().(type) {
@@ -1637,6 +1724,7 @@ func isExprError(pass *analysis.Pass, expr ast.Expr) bool {
 	return false
 }
 
+// Returns whether the expression is a function that returns one error value
 func isExprErrFunc(pass *analysis.Pass, expr ast.Expr) bool {
 	actualArgType := pass.TypesInfo.TypeOf(expr)
 	t, isErrFunc := actualArgType.(*gotypes.Signature)
@@ -1649,6 +1737,15 @@ func isExprErrFunc(pass *analysis.Pass, expr ast.Expr) bool {
 	}
 
 	return false
+}
+
+// Returns whether the expression is a function call that returns one error value
+func isExprErrFuncCall(pass *analysis.Pass, expr ast.Expr) bool {
+	_, isCallExpr := expr.(*ast.CallExpr)
+	if !isCallExpr {
+		return false
+	}
+	return isExprError(pass, expr)
 }
 
 func isPointer(pass *analysis.Pass, expr ast.Expr) bool {
