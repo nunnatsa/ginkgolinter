@@ -50,7 +50,7 @@ const (
 	useBeforeEachTemplate          = "use BeforeEach() to assign variable %s"
 	succeedSyncOnlyWithErr         = "Succeed matcher must be asserted against exactly one error value or a function call returning the same, or it will always fail"
 	succeedSyncOnlyWithErrFuncCall = "Succeed matcher should be asserted against a function call; consider replacing with %s"
-	succeedAsyncOnlyWithErrFunc    = "Succeed matcher must be asserted against a function that returns exactly one error"
+	succeedAsyncOnlyWithErrFunc    = "Succeed matcher must be asserted against a function that returns exactly one error or a function which takes in a single gomega.Gomega argument and returns nothing"
 )
 
 const ( // gomega matchers
@@ -533,9 +533,8 @@ func checkSucceedSync(
 	assertionExpCopy := astcopy.CallExpr(assertionExp)
 	matcherCopy := assertionExpCopy.Args[0].(*ast.CallExpr)
 
-	isAsync := false
 	return doCheckSucceed(
-		pass, assertionExpCopy, matcherCopy, actualArgs, handler, reportBuilder, isAsync,
+		pass, assertionExpCopy, matcherCopy, actualArgs, handler, reportBuilder, false,
 		suppressStyleIssue,
 	)
 }
@@ -565,8 +564,7 @@ func checkSucceedAsync(
 	assertionExpCopy := astcopy.CallExpr(assertionExp)
 	matcherCopy := assertionExpCopy.Args[0].(*ast.CallExpr)
 
-	isAsync := true
-	return doCheckSucceed(pass, assertionExpCopy, matcherCopy, actualArgs, handler, reportBuilder, isAsync, suppressWarnings)
+	return doCheckSucceed(pass, assertionExpCopy, matcherCopy, actualArgs, handler, reportBuilder, true, suppressWarnings)
 }
 
 // Function that looks for Succeed matcher by recursively unwrapping the `matcher` argument and,
@@ -597,12 +595,13 @@ func doCheckSucceed(
 	}
 
 	if isAsync {
-		if len(actualArgs) != 1 || !isExprErrFunc(pass, actualArgs[0]) {
+		if len(actualArgs) != 1 ||
+			!(isExprErrFunc(pass, actualArgs[0]) || isExprGomegaFunc(pass, actualArgs[0])) {
 			reportBuilder.AddIssue(false, succeedAsyncOnlyWithErrFunc)
 			return true
 		}
 	} else {
-		if len(actualArgs) != 1 || !isExprExactError(pass, actualArgs[0]) {
+		if len(actualArgs) != 1 || !isExprSingleError(pass, actualArgs[0]) {
 			reportBuilder.AddIssue(false, succeedSyncOnlyWithErr)
 			return true
 		}
@@ -1765,7 +1764,7 @@ func isExprError(pass *analysis.Pass, expr ast.Expr) bool {
 
 // Returns whether the expression implements type error or is a tuple of length 1 whose only
 // element implements type error.
-func isExprExactError(pass *analysis.Pass, expr ast.Expr) bool {
+func isExprSingleError(pass *analysis.Pass, expr ast.Expr) bool {
 	if !isExprError(pass, expr) {
 		return false
 	}
@@ -1782,8 +1781,8 @@ func isExprExactError(pass *analysis.Pass, expr ast.Expr) bool {
 // Returns whether the expression is a function that returns one error value
 func isExprErrFunc(pass *analysis.Pass, expr ast.Expr) bool {
 	actualArgType := pass.TypesInfo.TypeOf(expr)
-	t, isErrFunc := actualArgType.(*gotypes.Signature)
-	if !isErrFunc {
+	t, isFunc := actualArgType.(*gotypes.Signature)
+	if !isFunc {
 		return false
 	}
 
@@ -1794,13 +1793,29 @@ func isExprErrFunc(pass *analysis.Pass, expr ast.Expr) bool {
 	return false
 }
 
+// Returns whether the expression is a function that takes in a single gomega.Gomega argument and
+// returns nothing, e.g. `func(g gomega.Gomega) { g.Expect(myStringMaker()).ToNot(BeEmpty()) }`
+func isExprGomegaFunc(pass *analysis.Pass, expr ast.Expr) bool {
+	actualArgType := pass.TypesInfo.TypeOf(expr)
+	t, isFunc := actualArgType.(*gotypes.Signature)
+	if !isFunc {
+		return false
+	}
+
+	if t.Results().Len() != 0 || t.Params().Len() != 1 {
+		return false
+	}
+
+	return interfaces.IsGomega(t.Params().At(0).Type())
+}
+
 // Returns whether the expression is a function call that returns one error value
 func isExprErrFuncCall(pass *analysis.Pass, expr ast.Expr) bool {
 	_, isCallExpr := expr.(*ast.CallExpr)
 	if !isCallExpr {
 		return false
 	}
-	return isExprExactError(pass, expr)
+	return isExprSingleError(pass, expr)
 }
 
 func isPointer(pass *analysis.Pass, expr ast.Expr) bool {

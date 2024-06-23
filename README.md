@@ -233,9 +233,9 @@ value, it will always fail.
 
 The linter will not suggest a fix for this rule. This rule cannot be suppressed.
 
-These are legal forms of this matcher for sync assertions:
+These are valid forms of this matcher for sync assertions:
   ```go
-  // This is legal, but not readable; should be replaced with `Expect(os.Remove("someFile")).To(Succeed())`
+  // This is valid, but not readable; should be replaced with `Expect(os.Remove("someFile")).To(Succeed())`
   // or `Expect(err).NotTo(HaveOccurred())`
   err := os.Remove("someFile")
   Expect(err).To(Succeed())
@@ -243,7 +243,7 @@ These are legal forms of this matcher for sync assertions:
   ExpectWithOffset(1, os.Remove("someOtherFile")).ToNot(Succeed())
   ```
 
-The following usages are not legal:
+The following usages are not valid:
   ```go
   contents, err := os.ReadFile("someFile")
   ExpectWithOffset(1, contents, err).To(Succeed())
@@ -254,7 +254,7 @@ The following usages are not legal:
 For async assertions, the matcher works similarly, but there is a special case for functions that take in a single
 `gomega.Gomega` argument and return no values; in this special case, `Succeed` can still be used.
 
-The following usages are legal forms of this matcher for async assertions:
+The following usages are valid forms of this matcher for async assertions:
   ```go
   EventuallyWithOffset(1, func() error {
     _, err := os.ReadFile("someFile")
@@ -270,7 +270,7 @@ The following usages are legal forms of this matcher for async assertions:
   }).ShouldNot(Succeed())
   ```
 
-The following usages are not legal:
+The following usages are not valid:
   ```go
   EventuallyWithOffset(1, os.ReadFile).WithArguments("someFile").Should(Succeed())
   ```
@@ -550,7 +550,7 @@ Eventually(aFunc, time.Second*5, time.Second*polling)
 * Use the `--suppress-async-assertion=true` flag to suppress the function call in async assertion warning
 * Use the `--forbid-focus-container=true` flag to activate the focused container assertion (deactivated by default)
 * Use the `--suppress-type-compare-assertion=true` to suppress the type compare assertion warning
-* Use the `--suppress-succeed-assertion=true` to suppress the wrong succeed assertion warning
+* Use the `--suppress-succeed-assertion=true` to suppress the wrong succeed assertion style warning
 * Use the `--allow-havelen-0=true` flag to avoid warnings about `HaveLen(0)`; Note: this parameter is only supported from
   command line, and not from a comment.
 

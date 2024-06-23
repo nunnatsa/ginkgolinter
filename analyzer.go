@@ -29,6 +29,7 @@ func NewAnalyzer() *analysis.Analyzer {
 		SuppressNil:     false,
 		SuppressErr:     false,
 		SuppressCompare: false,
+		SuppressSucceed: false,
 		ForbidFocus:     false,
 		AllowHaveLen0:   false,
 		ForceExpectTo:   false,
