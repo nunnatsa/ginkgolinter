@@ -227,6 +227,55 @@ ginkgolinter checks the following:
 * If the first parameter is a function with the format of `func(error)bool`, ginkgolinter makes sure that the second 
   parameter exists and its type is string.
 
+### Wrong Usage of the `Succeed` gomega Matcher [BUG]
+The `Succeed` gomega matcher asserts that a *single* error value is nil. If this matcher is used against more than one
+value, it will always fail.
+
+The linter will not suggest a fix for this rule. This rule cannot be suppressed.
+
+These are legal forms of this matcher for sync assertions:
+  ```go
+  // This is legal, but not readable; should be replaced with `Expect(os.Remove("someFile")).To(Succeed())`
+  // or `Expect(err).NotTo(HaveOccurred())`
+  err := os.Remove("someFile")
+  Expect(err).To(Succeed())
+
+  ExpectWithOffset(1, os.Remove("someOtherFile")).ToNot(Succeed())
+  ```
+
+The following usages are not legal:
+  ```go
+  contents, err := os.ReadFile("someFile")
+  ExpectWithOffset(1, contents, err).To(Succeed())
+
+  Expect(os.ReadFile("someOtherFile")).ToNot(Succeed())
+  ```
+
+For async assertions, the matcher works similarly, but there is a special case for functions that take in a single
+`gomega.Gomega` argument and return no values; in this special case, `Succeed` can still be used.
+
+The following usages are legal forms of this matcher for async assertions:
+  ```go
+  EventuallyWithOffset(1, func() error {
+    _, err := os.ReadFile("someFile")
+    return err
+  }).Should(Succeed())
+
+  Eventually(os.Remove).WithArguments("someFile").ShouldNot(Succeed())
+
+  // special case where the function is allowed to return no error value
+  Consistently(func(g.Gomega) {
+    contents, err := os.ReadFile("someFile")
+    g.Expect(contents, err).ToNot(BeEmpty())
+  }).ShouldNot(Succeed())
+  ```
+
+The following usages are not legal:
+  ```go
+  EventuallyWithOffset(1, os.ReadFile).WithArguments("someFile").Should(Succeed())
+  ```
+
+
 ### Async timing interval: timeout is shorter than polling interval [BUG]
 ***Note***: Only applied when the `suppress-async-assertion` flag is **not set** *and* the `validate-async-intervals` 
 flag **is** set.
@@ -373,7 +422,7 @@ Expect(err == nil).To(BeFalse()) // should be: Expect(err).To(HaveOccurred())
 Expect(err != nil).To(BeTrue()) // should be: Expect(err).To(HaveOccurred())
 Expect(funcReturnsError()).To(BeNil()) // should be: Expect(funcReturnsError()).To(Succeed())
 
-and so on
+// and so on
 ```
 It also supports the embedded `Not()` matcher; e.g.
 
@@ -416,6 +465,22 @@ const c1 = 5
 
 Expect(x1 == c1).Should(BeTrue()) // ==> Expect(x1).Should(Equal(c1))
 Expect(c1 == x1).Should(BeTrue()) // ==> Expect(x1).Should(Equal(c1))
+```
+
+### `Succeed` Matcher Not Used on Function Call [STYLE]
+The linter finds assertions of the `Succeed` matcher used on an actual argument that has an error
+type but is not a function call, e.g. `Expect(err).To(Succeed())`, and suggests replacing them
+with `Expect(err).ToNot(HaveOccurred())`. The latter is much more readable.
+
+```go
+resp := getResponse()
+Expect(resp.Err).To(Succeed()) // ==> Expect(resp.Err).ToNot(HaveOccurred())
+Expect(getResponse().Err).To(Succeed()) // ==> Expect(getResponse().Err).ToNot(HaveOccurred())
+
+err := someOperation()
+ExpectWithOffset(1, err).ToNot(Succeed()) // ==> ExpectWithOffset(1, err).To(HaveOccurred())
+
+ExpectWithOffset(1, someOperation()).ToNot(Succeed())  // this is fine
 ```
 
 ### Don't Allow Using `Expect` with `Should` or `ShouldNot` [STYLE]
