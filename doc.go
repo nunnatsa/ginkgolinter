@@ -22,7 +22,10 @@ currently, the linter searches for following:
 * validate the MatchError gomega matcher [Bug]
 
 * trigger a warning when using the Equal or the BeIdentical matcher with two different types, as these matchers will
-  fail in runtime.
+  fail at runtime [Bug]
+
+* trigger a warning when using the Succeed matcher on anything but a single error argument, as this matcher will fail
+  at runtime [Bug]
 
 * async timing interval: timeout is shorter than polling interval [Bug]
 For example:
@@ -77,6 +80,8 @@ This should be replaced with:
 * replaces HaveLen(0) with BeEmpty() [Style]
 
 * replaces Expect(...).Should(...) with Expect(...).To() [Style]
+
+* replaces Expect(err).Should(Succeed()) with Expect(err).ToNot(HaveOccurred()) [Style]
 
 * async timing interval: multiple timeout or polling interval [Style]
 For example:

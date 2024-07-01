@@ -11,6 +11,7 @@ func TestSuppress_AllTrue(t *testing.T) {
 		SuppressErr:     true,
 		SuppressAsync:   true,
 		SuppressCompare: true,
+		SuppressSucceed: true,
 		ForbidFocus:     false,
 	}
 
@@ -42,6 +43,11 @@ func TestSuppress_AllTrue(t *testing.T) {
 	if s.AllTrue() {
 		t.Error("should not be AllTrue")
 	}
+
+	s.SuppressSucceed = true
+	if s.AllTrue() {
+		t.Error("should not be AllTrue")
+	}
 }
 
 func TestSuppress_Clone(t *testing.T) {
@@ -51,6 +57,7 @@ func TestSuppress_Clone(t *testing.T) {
 		SuppressErr:     true,
 		SuppressCompare: true,
 		SuppressAsync:   true,
+		SuppressSucceed: true,
 		ForbidFocus:     false,
 	}
 
@@ -71,5 +78,8 @@ func TestSuppress_Clone(t *testing.T) {
 	}
 	if clone.SuppressErr {
 		t.Error("s.SuppressErr should be false")
+	}
+	if !clone.SuppressSucceed {
+		t.Error("s.SuppressSucceed should be true")
 	}
 }
