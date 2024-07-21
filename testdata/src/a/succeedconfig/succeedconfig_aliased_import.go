@@ -1,6 +1,8 @@
 package succeedconfig
 
 import (
+	"context"
+
 	. "github.com/onsi/ginkgo/v2"
 	gom "github.com/onsi/gomega"
 )
@@ -60,7 +62,7 @@ var _ = Describe("Ensure succeed assertion is used correctly", Label("succeed"),
 		g.Expect(err).ToNot(gom.HaveOccurred())
 	}).Should(gom.Not(gom.Succeed()))
 
-	gom.Consistently(func(g gom.Gomega) {
+	gom.Consistently(func(g gom.Gomega, ctx context.Context) {
 		g.Expect(returnsFloatAndErr(1)).ToNot(gom.Succeed()) // want `ginkgo-linter: Succeed matcher must be asserted against exactly one error value or a function call returning the same, or it will always fail`
 	}).Should(gom.Succeed())
 })

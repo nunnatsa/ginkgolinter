@@ -1793,8 +1793,14 @@ func isExprErrFunc(pass *analysis.Pass, expr ast.Expr) bool {
 	return false
 }
 
-// Returns whether the expression is a function that takes in a single gomega.Gomega argument and
-// returns nothing, e.g. `func(g gomega.Gomega) { g.Expect(myStringMaker()).ToNot(BeEmpty()) }`
+// Returns whether the expression is a function whose first parameter is of type gomega.Gomega and
+// which returns nothing, e.g.
+//
+//    func(g gomega.Gomega) { g.Expect(myStringMaker()).ToNot(BeEmpty()) }
+//
+// or
+//
+//    func(g gomega.Gomega) { g.Expect(myString) }
 func isExprGomegaFunc(pass *analysis.Pass, expr ast.Expr) bool {
 	actualArgType := pass.TypesInfo.TypeOf(expr)
 	t, isFunc := actualArgType.(*gotypes.Signature)
@@ -1802,7 +1808,7 @@ func isExprGomegaFunc(pass *analysis.Pass, expr ast.Expr) bool {
 		return false
 	}
 
-	if t.Results().Len() != 0 || t.Params().Len() != 1 {
+	if t.Results().Len() != 0 || t.Params().Len() == 0 {
 		return false
 	}
 
