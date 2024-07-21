@@ -74,7 +74,6 @@ var _ = Describe("check Expect(err).To(BeNil())", func() {
 		Expect(tt.typeErrorFunc()).ToNot(Equal(nil)) // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(tt\.typeErrorFunc\(\)\)\.ToNot\(Succeed\(\)\). instead`
 		Expect(tt.typeTupleFunc()).ToNot(Equal(nil)) // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(tt\.typeTupleFunc\(\)\)\.ToNot\(Succeed\(\)\). instead`
 		Expect(tt.typeTupleFunc()).ToNot(HaveOccurred())
-		Expect(tt.typeTupleFunc()).To(Succeed())
 		Expect(tt.typeNoErrorFunc()).ToNot(Equal(1))
 	})
 

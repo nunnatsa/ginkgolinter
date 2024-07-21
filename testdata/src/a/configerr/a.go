@@ -72,7 +72,6 @@ var _ = Describe("check Expect(err).To(BeNil())", func() {
 		Expect(tt.typeErrorFunc()).ToNot(Equal(nil))
 		Expect(tt.typeTupleFunc()).ToNot(Equal(nil))
 		Expect(tt.typeTupleFunc()).ToNot(HaveOccurred())
-		Expect(tt.typeTupleFunc()).To(Succeed())
 		Expect(tt.typeNoErrorFunc()).ToNot(Equal(1))
 	})
 
