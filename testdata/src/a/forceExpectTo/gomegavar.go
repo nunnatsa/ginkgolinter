@@ -14,9 +14,10 @@ var _ = Describe("gomega var", func() {
 	})
 
 	It("in an invalid Eventually", func() {
-		Eventually(func(g Gomega) { // want `ginkgo-linter: "Eventually": missing assertion method\. Expected "Should\(\)" or "ShouldNot\(\)"`
+		Eventually(func(g Gomega) error { // want `ginkgo-linter: "Eventually": missing assertion method\. Expected "Should\(\)" or "ShouldNot\(\)"`
 			g.Expect("a").Should(HaveLen(1))    // want `ginkgo-linter: must not use Expect with Should\. Consider using .g\.Expect\("a"\)\.To\(HaveLen\(1\)\). instead`
 			g.Expect(len("a")).Should(Equal(1)) // want `ginkgo-linter: multiple issues: must not use Expect with Should; wrong length assertion\. Consider using .g\.Expect\("a"\)\.To\(HaveLen\(1\)\). instead`
+			return nil
 		})
 	})
 })

@@ -86,6 +86,10 @@ func TestAllUseCases(t *testing.T) {
 			testData: "a/matcherror",
 		},
 		{
+			testName: "Succeed",
+			testData: "a/succeed",
+		},
+		{
 			testName: "issue 124: custom matcher form other packages",
 			testData: "a/issue-124",
 		},
@@ -140,6 +144,11 @@ func TestFlags(t *testing.T) {
 			testName: "test the forbid-focus-container flag",
 			testData: []string{"a/focusconfig"},
 			flags:    map[string]string{"forbid-focus-container": "true"},
+		},
+		{
+			testName: "test the suppress-succeed-assertion flag",
+			testData: []string{"a/succeedconfig"},
+			flags:    map[string]string{"suppress-succeed-assertion": "true"},
 		},
 		{
 			testName: "test the suppress-type-compare-assertion flag",
