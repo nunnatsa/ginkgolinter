@@ -22,6 +22,10 @@ type Handler interface {
 	getFieldType(field *ast.Field) string
 
 	GetActualExpr(assertionFunc *ast.SelectorExpr) *ast.CallExpr
+
+	GetActualExprClone(origFunc, funcClone *ast.SelectorExpr) *ast.CallExpr
+
+	GetNewWrapperMatcher(name string, existing *ast.CallExpr) *ast.CallExpr
 }
 
 // GetGomegaHandler returns a gomegar handler according to the way gomega was imported in the specific file
@@ -95,6 +99,13 @@ func (dotHandler) getFieldType(field *ast.Field) string {
 		}
 	}
 	return ""
+}
+
+func (dotHandler) GetNewWrapperMatcher(name string, existing *ast.CallExpr) *ast.CallExpr {
+	return &ast.CallExpr{
+		Fun:  ast.NewIdent(name),
+		Args: []ast.Expr{existing},
+	}
 }
 
 // nameHandler is used when importing gomega without name; i.e.
@@ -207,6 +218,27 @@ func (h dotHandler) GetActualExpr(assertionFunc *ast.SelectorExpr) *ast.CallExpr
 	return nil
 }
 
+func (h dotHandler) GetActualExprClone(origFunc, funcClone *ast.SelectorExpr) *ast.CallExpr {
+	actualExpr, ok := funcClone.X.(*ast.CallExpr)
+	if !ok {
+		return nil
+	}
+
+	switch funClone := actualExpr.Fun.(type) {
+	case *ast.Ident:
+		return actualExpr
+	case *ast.SelectorExpr:
+		origFun := origFunc.X.(*ast.CallExpr).Fun.(*ast.SelectorExpr)
+		if isHelperMethods(funClone.Sel.Name) {
+			return h.GetActualExprClone(origFun, funClone)
+		}
+		if isGomegaVar(origFun.X, h) {
+			return actualExpr
+		}
+	}
+	return nil
+}
+
 func (g nameHandler) GetActualExpr(assertionFunc *ast.SelectorExpr) *ast.CallExpr {
 	actualExpr, ok := assertionFunc.X.(*ast.CallExpr)
 	if !ok {
@@ -229,6 +261,41 @@ func (g nameHandler) GetActualExpr(assertionFunc *ast.SelectorExpr) *ast.CallExp
 		}
 	}
 	return nil
+}
+
+func (g nameHandler) GetActualExprClone(origFunc, funcClone *ast.SelectorExpr) *ast.CallExpr {
+	actualExpr, ok := funcClone.X.(*ast.CallExpr)
+	if !ok {
+		return nil
+	}
+
+	switch funClone := actualExpr.Fun.(type) {
+	case *ast.Ident:
+		return actualExpr
+	case *ast.SelectorExpr:
+		if x, ok := funClone.X.(*ast.Ident); ok && x.Name == string(g) {
+			return actualExpr
+		}
+		origFun := origFunc.X.(*ast.CallExpr).Fun.(*ast.SelectorExpr)
+		if isHelperMethods(funClone.Sel.Name) {
+			return g.GetActualExprClone(origFun, funClone)
+		}
+
+		if isGomegaVar(origFun.X, g) {
+			return actualExpr
+		}
+	}
+	return nil
+}
+
+func (g nameHandler) GetNewWrapperMatcher(name string, existing *ast.CallExpr) *ast.CallExpr {
+	return &ast.CallExpr{
+		Fun: &ast.SelectorExpr{
+			X:   ast.NewIdent(string(g)),
+			Sel: ast.NewIdent(name),
+		},
+		Args: []ast.Expr{existing},
+	}
 }
 
 func isHelperMethods(funcName string) bool {
