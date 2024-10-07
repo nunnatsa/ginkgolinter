@@ -6,7 +6,7 @@ toolchain go1.22.6
 
 require (
 	github.com/go-toolsmith/astcopy v1.1.0
-	golang.org/x/tools v0.25.0
+	golang.org/x/tools v0.26.0
 )
 
 require (
