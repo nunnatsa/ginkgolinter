@@ -68,7 +68,7 @@ var _ = Describe("compare different types", func() {
 		Expect(a).Should(WithTransform(func(i uint) int { return int(i) }, Equal(5)))
 		Expect(a).Should(WithTransform(uint2int, Equal(5)))
 		Expect(a).Should(WithTransform(uint2int, Equal(uint64(5))))      // want `ginkgo-linter: use Equal with different types: Comparing int with uint64; either change the expected value type if possible, or use the BeEquivalentTo\(\) matcher, instead of Equal\(\)`
-		Expect(a).Should(WithTransform(uint2int, Not(Equal(uint64(5))))) // want `ginkgo-linter: use Equal with different types: Comparing uint with uint64; either change the expected value type if possible, or use the BeEquivalentTo\(\) matcher, instead of Equal\(\)`
+		Expect(a).Should(WithTransform(uint2int, Not(Equal(uint64(5))))) // want `ginkgo-linter: use Equal with different types: Comparing int with uint64; either change the expected value type if possible, or use the BeEquivalentTo\(\) matcher, instead of Equal\(\)`
 		Expect(5).Should(WithTransform(func(i int) myinf { return imp1(i) }, Equal(imp1(5))))
 	})
 

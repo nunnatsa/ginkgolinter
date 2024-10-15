@@ -1,6 +1,7 @@
 package errnil
 
 import (
+	"a/mytypes"
 	"errors"
 	"fmt"
 
@@ -41,6 +42,10 @@ var _ = Describe("check Expect(err).To(BeNil())", func() {
 	tt := t{}
 
 	It("check Expect(err).To(BeNil())", func() {
+		e1 := &mytypes.MyErr{}
+		Expect(nil == e1).To(BeFalse()) // want `ginkgo-linter: wrong nil assertion. Consider using .Expect\(e1\)\.ToNot\(BeNil\(\)\). instead`
+		Expect(e1 == nil).To(BeFalse()) // want `ginkgo-linter: wrong nil assertion. Consider using .Expect\(e1\)\.ToNot\(BeNil\(\)\). instead`
+
 		Expect(errors.New("fake error")).To(Equal(nil))
 		Expect(err).To(BeNil())
 		ExpectWithOffset(1, err).To(BeNil())
@@ -77,18 +82,18 @@ var _ = Describe("check Expect(err).To(BeNil())", func() {
 	})
 
 	It("check err == nil", func() {
-		Expect(err == nil).To(Equal(true))
-		Expect(err == nil).To(Equal(false))
-		Expect(err != nil).To(Equal(true))
-		Expect(err != nil).To(Equal(false))
-		Expect(nil == err).To(Equal(true))
-		Expect(nil == errFunc()).To(Equal(true))
-		Expect(errFunc() != nil).To(Equal(true))
+		Expect(err == nil).To(Equal(true))       // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(err\)\.To\(BeNil\(\)\). instead`
+		Expect(err == nil).To(Equal(false))      // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(err\)\.ToNot\(BeNil\(\)\). instead`
+		Expect(err != nil).To(Equal(true))       // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(err\)\.ToNot\(BeNil\(\)\). instead`
+		Expect(err != nil).To(Equal(false))      // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(err\)\.To\(BeNil\(\)\). instead`
+		Expect(nil == err).To(Equal(true))       // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(err\)\.To\(BeNil\(\)\). instead`
+		Expect(nil == errFunc()).To(Equal(true)) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(errFunc\(\)\)\.To\(BeNil\(\)\). instead`
+		Expect(errFunc() != nil).To(Equal(true)) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(errFunc\(\)\)\.ToNot\(BeNil\(\)\). instead`
 
-		Expect(err == nil).To(BeTrue())
-		Expect(err != nil).To(BeFalse())
-		Expect(nil == err).To(BeTrue())
-		Expect(nil == errFunc()).To(BeTrue())
-		Expect(errFunc() != nil).To(BeFalse())
+		Expect(err == nil).To(BeTrue())        // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(err\)\.To\(BeNil\(\)\). instead`
+		Expect(err != nil).To(BeFalse())       // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(err\)\.To\(BeNil\(\)\). instead`
+		Expect(nil == err).To(BeTrue())        // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(err\)\.To\(BeNil\(\)\). instead`
+		Expect(nil == errFunc()).To(BeTrue())  // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(errFunc\(\)\)\.To\(BeNil\(\)\). instead`
+		Expect(errFunc() != nil).To(BeFalse()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(errFunc\(\)\)\.To\(BeNil\(\)\). instead`
 	})
 })
