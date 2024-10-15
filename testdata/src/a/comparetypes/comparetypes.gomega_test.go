@@ -84,7 +84,7 @@ var _ = Describe("compare different types", func() {
 		gomega.Expect(a).Should(gomega.WithTransform(func(i uint) int { return int(i) }, gomega.Equal(5)))
 		gomega.Expect(a).Should(gomega.WithTransform(uint2int, gomega.Equal(5)))
 		gomega.Expect(a).Should(gomega.WithTransform(uint2int, gomega.Equal(uint64(5))))             // want `ginkgo-linter: use Equal with different types: Comparing int with uint64; either change the expected value type if possible, or use the BeEquivalentTo\(\) matcher, instead of Equal\(\)`
-		gomega.Expect(a).Should(gomega.WithTransform(uint2int, gomega.Not(gomega.Equal(uint64(5))))) // want `ginkgo-linter: use Equal with different types: Comparing uint with uint64; either change the expected value type if possible, or use the BeEquivalentTo\(\) matcher, instead of Equal\(\)`
+		gomega.Expect(a).Should(gomega.WithTransform(uint2int, gomega.Not(gomega.Equal(uint64(5))))) // want `ginkgo-linter: use Equal with different types: Comparing int with uint64; either change the expected value type if possible, or use the BeEquivalentTo\(\) matcher, instead of Equal\(\)`
 		gomega.Expect(5).Should(gomega.WithTransform(func(i int) myinf { return imp1(i) }, gomega.Equal(imp1(5))))
 	})
 

@@ -31,6 +31,10 @@ func NewBuilder(fset *token.FileSet, oldExpr ast.Expr) *Builder {
 	return b
 }
 
+func (b *Builder) OldExp() string {
+	return b.oldExpr
+}
+
 func (b *Builder) AddIssue(suggestFix bool, issue string, args ...any) {
 	if len(args) > 0 {
 		issue = fmt.Sprintf(issue, args...)

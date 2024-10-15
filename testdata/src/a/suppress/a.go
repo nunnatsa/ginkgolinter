@@ -62,7 +62,7 @@ var _ = Describe("Supress wrong length check", func() {
 			Expect(x).To(BeNil())
 			Expect(x == nil).Should(BeTrue()) // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(x\)\.ShouldNot\(HaveOccurred\(\)\). instead`
 			// ginkgo-linter:ignore-err-assert-warning
-			Expect(x == nil).Should(BeTrue())
+			Expect(x == nil).Should(BeTrue()) // want `ginkgo-linter: wrong nil assertion. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
 			/*
 
 				Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
@@ -77,7 +77,7 @@ var _ = Describe("Supress wrong length check", func() {
 				Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
 				occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 			*/
-			Expect(x == nil).Should(BeTrue())
+			Expect(x == nil).Should(BeTrue()) // want `ginkgo-linter: wrong nil assertion. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
 		})
 	})
 })

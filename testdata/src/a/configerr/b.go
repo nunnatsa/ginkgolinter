@@ -31,10 +31,10 @@ var _ = Describe("check Expect(err).To(BeNil())", func() {
 	})
 
 	It("check err == nil", func() {
-		gomega.Expect(err == nil).To(gomega.BeTrue())
-		gomega.Expect(err != nil).To(gomega.BeFalse())
-		gomega.Expect(nil == err).To(gomega.BeTrue())
-		gomega.Expect(nil == errFunc()).To(gomega.BeTrue())
-		gomega.Expect(errFunc() != nil).To(gomega.BeFalse())
+		gomega.Expect(err == nil).To(gomega.BeTrue())        // want `ginkgo-linter: wrong nil assertion\. Consider using .gomega\.Expect\(err\)\.To\(gomega\.BeNil\(\)\). instead`
+		gomega.Expect(err != nil).To(gomega.BeFalse())       // want `ginkgo-linter: wrong nil assertion\. Consider using .gomega\.Expect\(err\)\.To\(gomega\.BeNil\(\)\). instead`
+		gomega.Expect(nil == err).To(gomega.BeTrue())        // want `ginkgo-linter: wrong nil assertion\. Consider using .gomega\.Expect\(err\)\.To\(gomega\.BeNil\(\)\). instead`
+		gomega.Expect(nil == errFunc()).To(gomega.BeTrue())  // want `ginkgo-linter: wrong nil assertion\. Consider using .gomega\.Expect\(errFunc\(\)\)\.To\(gomega\.BeNil\(\)\). instead`
+		gomega.Expect(errFunc() != nil).To(gomega.BeFalse()) // want `ginkgo-linter: wrong nil assertion\. Consider using .gomega\.Expect\(errFunc\(\)\)\.To\(gomega\.BeNil\(\)\). instead`
 	})
 })
