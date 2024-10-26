@@ -82,7 +82,7 @@ func (l *GinkgoLinter) Run(pass *analysis.Pass) (interface{}, error) {
 
 		fileConfig.UpdateFromFile(cm)
 
-		gomegaHndlr := gomegahandler.GetGomegaHandler(file)
+		gomegaHndlr := gomegahandler.GetGomegaHandler(file, pass)
 		ginkgoHndlr := ginkgohandler.GetGinkgoHandler(file)
 
 		if gomegaHndlr == nil && ginkgoHndlr == nil { // no gomega or ginkgo imports => no use in gomega in this file; nothing to do here
