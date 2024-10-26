@@ -3,8 +3,10 @@ package gomegahandler
 
 import (
 	"go/ast"
-	"go/token"
+	gotypes "go/types"
 	"testing"
+
+	"golang.org/x/tools/go/analysis"
 )
 
 func TestGetGomegaHandler_dot(t *testing.T) {
@@ -19,11 +21,11 @@ func TestGetGomegaHandler_dot(t *testing.T) {
 		},
 	}
 
-	h := GetGomegaHandler(file)
+	h := GetGomegaHandler(file, nil)
 	if h == nil {
 		t.Fatalf("should return dotHandler")
 	}
-	_, ok := h.(dotHandler)
+	_, ok := h.(*dotHandler)
 	if !ok {
 		t.Error("should return dotHandler")
 	}
@@ -40,17 +42,17 @@ func TestGetGomegaHandler_noname(t *testing.T) {
 		},
 	}
 
-	h := GetGomegaHandler(file)
+	h := GetGomegaHandler(file, nil)
 	if h == nil {
 		t.Fatalf("should return nameHandler")
 	}
-	n, ok := h.(nameHandler)
+	n, ok := h.(*nameHandler)
 	if !ok {
 		t.Error("should return nameHandler")
 	}
 
-	if string(n) != "gomega" {
-		t.Errorf("import name should be `gomega`, but it's %s", string(n))
+	if n.name != "gomega" {
+		t.Errorf("import name should be `gomega`, but it's %s", n.name)
 	}
 }
 
@@ -66,17 +68,17 @@ func TestGetGomegaHandler_name(t *testing.T) {
 		},
 	}
 
-	h := GetGomegaHandler(file)
+	h := GetGomegaHandler(file, nil)
 	if h == nil {
 		t.Fatalf("should return nameHandler")
 	}
-	n, ok := h.(nameHandler)
+	n, ok := h.(*nameHandler)
 	if !ok {
 		t.Error("should return nameHandler")
 	}
 
-	if string(n) != "name" {
-		t.Errorf("import name should be `name`, but it's %s", string(n))
+	if n.name != "name" {
+		t.Errorf("import name should be `name`, but it's %s", n.name)
 	}
 }
 
@@ -92,7 +94,7 @@ func TestGetGomegaHandler_no_gomega(t *testing.T) {
 		},
 	}
 
-	h := GetGomegaHandler(file)
+	h := GetGomegaHandler(file, nil)
 	if h != nil {
 		t.Fatalf("should return nil")
 	}
@@ -100,8 +102,34 @@ func TestGetGomegaHandler_no_gomega(t *testing.T) {
 
 const actualName = "actual"
 
+var (
+	gVarVar     = ast.NewIdent("g")
+	gVarPointer = ast.NewIdent("g")
+	noGomegaVar = ast.NewIdent("g")
+)
+
+func newGomegaPass() *analysis.Pass {
+	return &analysis.Pass{
+		TypesInfo: &gotypes.Info{
+			Types: map[ast.Expr]gotypes.TypeAndValue{
+				gVarVar: {
+					Type: gotypes.NewNamed(gotypes.NewTypeName(0, gotypes.NewPackage(`github.com/onsi/gomega/internal`, ""), `Gomega`, &gotypes.Named{}), nil, nil),
+				},
+				gVarPointer: {
+					Type: gotypes.NewPointer(gotypes.NewNamed(gotypes.NewTypeName(0, gotypes.NewPackage(`github.com/onsi/gomega/types`, ""), `Gomega`, &gotypes.Named{}), nil, nil)),
+				},
+				noGomegaVar: {
+					Type: gotypes.NewPointer(gotypes.NewNamed(gotypes.NewTypeName(0, gotypes.NewPackage(`github.com/something/else`, ""), `somethingElse`, &gotypes.Named{}), nil, nil)),
+				},
+			},
+		},
+	}
+}
+
 func TestGomegaDotHandler_GetActualFuncName(t *testing.T) {
-	h := dotHandler{}
+	h := &dotHandler{
+		pass: newGomegaPass(),
+	}
 
 	for _, tc := range []struct {
 		name         string
@@ -126,56 +154,35 @@ func TestGomegaDotHandler_GetActualFuncName(t *testing.T) {
 			expectedName: "",
 		},
 		{
-			name:         "var happy case - NewGomega",
-			exp:          getVar("NewGomega"),
+			name: "var happy case gomega var",
+			exp: &ast.CallExpr{
+				Fun: &ast.SelectorExpr{
+					X:   gVarVar,
+					Sel: ast.NewIdent(actualName),
+				},
+			},
 			expectedOK:   true,
 			expectedName: actualName,
 		},
 		{
-			name:         "var happy case - NewWithT",
-			exp:          getVar("NewWithT"),
+			name: "var happy case gomega pointer",
+			exp: &ast.CallExpr{
+				Fun: &ast.SelectorExpr{
+					X:   gVarPointer,
+					Sel: ast.NewIdent(actualName),
+				},
+			},
 			expectedOK:   true,
 			expectedName: actualName,
 		},
 		{
-			name:         "var happy case - NewGomegaWithT",
-			exp:          getVar("NewGomegaWithT"),
-			expectedOK:   true,
-			expectedName: actualName,
-		},
-		{
-			name:         "var error case - no gomega function",
-			exp:          getVar("SomethingElse"),
-			expectedOK:   false,
-			expectedName: "",
-		},
-		{
-			name:         "field happy case - Gomega",
-			exp:          getField("Gomega"),
-			expectedOK:   true,
-			expectedName: actualName,
-		},
-		{
-			name:         "field error case - non Gomega",
-			exp:          getField("SomethingElse"),
-			expectedOK:   false,
-			expectedName: "",
-		},
-		{
-			name:         "field happy case - star - WithT",
-			exp:          getStarField("WithT"),
-			expectedOK:   true,
-			expectedName: actualName,
-		},
-		{
-			name:         "field happy case - star - GomegaWithT",
-			exp:          getStarField("GomegaWithT"),
-			expectedOK:   true,
-			expectedName: actualName,
-		},
-		{
-			name:         "field error case - star - non Gomega type",
-			exp:          getStarField("SomethingElse"),
+			name: "non-gomega var",
+			exp: &ast.CallExpr{
+				Fun: &ast.SelectorExpr{
+					X:   noGomegaVar,
+					Sel: ast.NewIdent(actualName),
+				},
+			},
 			expectedOK:   false,
 			expectedName: "",
 		},
@@ -193,7 +200,7 @@ func TestGomegaDotHandler_GetActualFuncName(t *testing.T) {
 }
 
 func TestGomegaNameHandler_GetActualFuncName(t *testing.T) {
-	h := nameHandler("gomega")
+	h := nameHandler{name: "gomega", pass: newGomegaPass()}
 
 	for _, tc := range []struct {
 		name         string
@@ -240,13 +247,10 @@ func TestGomegaNameHandler_GetActualFuncName(t *testing.T) {
 			expectedName: "",
 		},
 		{
-			name: "gomega variable from NewGomega",
+			name: "gomega variable",
 			exp: &ast.CallExpr{
 				Fun: &ast.SelectorExpr{
-					X: &ast.Ident{
-						Name: "g",
-						Obj:  getGomagaVarObject("gomega", "NewGomega"),
-					},
+					X:   gVarVar,
 					Sel: ast.NewIdent(actualName),
 				},
 			},
@@ -254,27 +258,10 @@ func TestGomegaNameHandler_GetActualFuncName(t *testing.T) {
 			expectedName: actualName,
 		},
 		{
-			name: "gomega variable from NewWithT",
+			name: "gomega pointer",
 			exp: &ast.CallExpr{
 				Fun: &ast.SelectorExpr{
-					X: &ast.Ident{
-						Name: "g",
-						Obj:  getGomagaVarObject("gomega", "NewWithT"),
-					},
-					Sel: ast.NewIdent(actualName),
-				},
-			},
-			expectedOK:   true,
-			expectedName: actualName,
-		},
-		{
-			name: "gomega variable from NewGomegaWithT",
-			exp: &ast.CallExpr{
-				Fun: &ast.SelectorExpr{
-					X: &ast.Ident{
-						Name: "g",
-						Obj:  getGomagaVarObject("gomega", "NewGomegaWithT"),
-					},
+					X:   gVarPointer,
 					Sel: ast.NewIdent(actualName),
 				},
 			},
@@ -285,122 +272,7 @@ func TestGomegaNameHandler_GetActualFuncName(t *testing.T) {
 			name: "gomega variable from non gomega function",
 			exp: &ast.CallExpr{
 				Fun: &ast.SelectorExpr{
-					X: &ast.Ident{
-						Name: "g",
-						Obj:  getGomagaVarObject("gomega", "SomethingElse"),
-					},
-					Sel: ast.NewIdent(actualName),
-				},
-			},
-			expectedOK:   false,
-			expectedName: "",
-		},
-		{
-			name: "gomega variable from non gomega package",
-			exp: &ast.CallExpr{
-				Fun: &ast.SelectorExpr{
-					X: &ast.Ident{
-						Name: "g",
-						Obj:  getGomagaVarObject("SomethingElse", "NewGomegaWithT"),
-					},
-					Sel: ast.NewIdent(actualName),
-				},
-			},
-			expectedOK:   false,
-			expectedName: "",
-		},
-		{
-			name: "gomega field Gomega",
-			exp: &ast.CallExpr{
-				Fun: &ast.SelectorExpr{
-					X: &ast.Ident{
-						Name: "g",
-						Obj:  getGomagaVarObjectForSelectorField("gomega", "Gomega"),
-					},
-					Sel: ast.NewIdent(actualName),
-				},
-			},
-			expectedOK:   true,
-			expectedName: actualName,
-		},
-		{
-			name: "gomega variable from *WithT",
-			exp: &ast.CallExpr{
-				Fun: &ast.SelectorExpr{
-					X: &ast.Ident{
-						Name: "g",
-						Obj:  getGomagaVarObjectForStarField("gomega", "WithT"),
-					},
-					Sel: ast.NewIdent(actualName),
-				},
-			},
-			expectedOK:   true,
-			expectedName: actualName,
-		},
-		{
-			name: "gomega variable from *GomegaWithT",
-			exp: &ast.CallExpr{
-				Fun: &ast.SelectorExpr{
-					X: &ast.Ident{
-						Name: "g",
-						Obj:  getGomagaVarObjectForStarField("gomega", "GomegaWithT"),
-					},
-					Sel: ast.NewIdent(actualName),
-				},
-			},
-			expectedOK:   true,
-			expectedName: actualName,
-		},
-		{
-			name: "gomega variable from non gomega field - selector",
-			exp: &ast.CallExpr{
-				Fun: &ast.SelectorExpr{
-					X: &ast.Ident{
-						Name: "g",
-						Obj:  getGomagaVarObjectForSelectorField("gomega", "SomethingElse"),
-					},
-					Sel: ast.NewIdent(actualName),
-				},
-			},
-			expectedOK:   false,
-			expectedName: "",
-		},
-		{
-			name: "gomega variable from non gomega field - star",
-			exp: &ast.CallExpr{
-				Fun: &ast.SelectorExpr{
-					X: &ast.Ident{
-						Name: "g",
-						Obj:  getGomagaVarObjectForStarField("gomega", "SomethingElse"),
-					},
-					Sel: ast.NewIdent(actualName),
-				},
-			},
-			expectedOK:   false,
-			expectedName: "",
-		},
-		{
-			name: "non-gomega variable from gomega field - selector",
-			exp: &ast.CallExpr{
-				Fun: &ast.SelectorExpr{
-					X: &ast.Ident{
-						Name: "g",
-						Obj:  getGomagaVarObjectForSelectorField("somethingElse", "Gomega"),
-					},
-					Sel: ast.NewIdent(actualName),
-				},
-			},
-			expectedOK:   false,
-			expectedName: "",
-		},
-		{
-			name: "non gomega variable from non gomega field - star",
-			exp: &ast.CallExpr{
-				Fun: &ast.SelectorExpr{
-					X: &ast.Ident{
-						Name: "g",
-						Obj:  getGomagaVarObjectForStarField("somethingElse", "WithT"),
-					},
+					X:   noGomegaVar,
 					Sel: ast.NewIdent(actualName),
 				},
 			},
@@ -438,7 +310,7 @@ func TestGomegaDotHandler_ReplaceFunction(t *testing.T) {
 }
 
 func TestGomegaNameHandler_ReplaceFunction(t *testing.T) {
-	h := nameHandler("gomega")
+	h := &nameHandler{name: "gomega"}
 
 	expr := &ast.CallExpr{
 		Fun: &ast.SelectorExpr{
@@ -481,7 +353,7 @@ func TestGetGomegaHandler_getFieldType(t *testing.T) {
 		},
 		{
 			testName: "nameHandler: SelectorExpr: var name == handler name",
-			h:        nameHandler("g"),
+			h:        &nameHandler{name: "g"},
 			field: &ast.Field{
 				Type: &ast.SelectorExpr{
 					X:   ast.NewIdent("g"),
@@ -492,7 +364,7 @@ func TestGetGomegaHandler_getFieldType(t *testing.T) {
 		},
 		{
 			testName: "nameHandler: SelectorExpr: var name != handler name",
-			h:        nameHandler("g"),
+			h:        &nameHandler{name: "g"},
 			field: &ast.Field{
 				Type: &ast.SelectorExpr{
 					X:   ast.NewIdent("not_g"),
@@ -503,7 +375,7 @@ func TestGetGomegaHandler_getFieldType(t *testing.T) {
 		},
 		{
 			testName: "nameHandler: Star: var name == handler name",
-			h:        nameHandler("g"),
+			h:        &nameHandler{name: "g"},
 			field: &ast.Field{
 				Type: &ast.StarExpr{
 					X: &ast.SelectorExpr{
@@ -516,7 +388,7 @@ func TestGetGomegaHandler_getFieldType(t *testing.T) {
 		},
 		{
 			testName: "nameHandler: Star: var name != handler name",
-			h:        nameHandler("g"),
+			h:        &nameHandler{name: "g"},
 			field: &ast.Field{
 				Type: &ast.StarExpr{
 					X: &ast.SelectorExpr{
@@ -534,106 +406,5 @@ func TestGetGomegaHandler_getFieldType(t *testing.T) {
 				t.Errorf(`should return "%s", but returned "%s"`, tc.expectedName, name)
 			}
 		})
-	}
-}
-
-func getVar(funcName string) *ast.CallExpr {
-	return &ast.CallExpr{
-		Fun: &ast.SelectorExpr{
-			X: &ast.Ident{
-				Name: "g",
-				Obj: &ast.Object{
-					Kind: ast.Var,
-					Decl: &ast.AssignStmt{
-						Tok: token.DEFINE,
-						Rhs: []ast.Expr{
-							&ast.CallExpr{
-								Fun: ast.NewIdent(funcName),
-							},
-						},
-					},
-				},
-			},
-			Sel: ast.NewIdent(actualName),
-		},
-	}
-}
-
-func getStarField(typeName string) *ast.CallExpr {
-	return &ast.CallExpr{
-		Fun: &ast.SelectorExpr{
-			X: &ast.Ident{
-				Name: "g",
-				Obj: &ast.Object{
-					Kind: ast.Var,
-					Decl: &ast.Field{
-						Type: &ast.StarExpr{
-							X: ast.NewIdent(typeName),
-						},
-					},
-				},
-			},
-			Sel: ast.NewIdent(actualName),
-		},
-	}
-}
-
-func getField(typeName string) *ast.CallExpr {
-	return &ast.CallExpr{
-		Fun: &ast.SelectorExpr{
-			X: &ast.Ident{
-				Name: "g",
-				Obj: &ast.Object{
-					Kind: ast.Var,
-					Decl: &ast.Field{
-						Type: ast.NewIdent(typeName),
-					},
-				},
-			},
-			Sel: ast.NewIdent(actualName),
-		},
-	}
-}
-
-func getGomagaVarObject(pkg, funcName string) *ast.Object {
-	return &ast.Object{
-		Kind: ast.Var,
-		Decl: &ast.AssignStmt{
-			Tok: token.DEFINE,
-			Rhs: []ast.Expr{
-				&ast.CallExpr{
-					Fun: &ast.SelectorExpr{
-						X:   ast.NewIdent(pkg),
-						Sel: ast.NewIdent(funcName),
-					},
-				},
-			},
-		},
-	}
-}
-
-func getGomagaVarObjectForSelectorField(pkg, typeName string) *ast.Object {
-	return &ast.Object{
-		Kind: ast.Var,
-		Decl: &ast.Field{
-			Type: &ast.SelectorExpr{
-				X:   ast.NewIdent(pkg),
-				Sel: ast.NewIdent(typeName),
-			},
-		},
-	}
-}
-
-func getGomagaVarObjectForStarField(pkg, typeName string) *ast.Object {
-	return &ast.Object{
-		Kind: ast.Var,
-		Decl: &ast.Field{
-			Type: &ast.StarExpr{
-				X: &ast.SelectorExpr{
-					X:   ast.NewIdent(pkg),
-					Sel: ast.NewIdent(typeName),
-				},
-			},
-		},
 	}
 }

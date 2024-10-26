@@ -2,7 +2,10 @@ package gomegahandler
 
 import (
 	"go/ast"
-	"go/token"
+	gotypes "go/types"
+	"regexp"
+
+	"golang.org/x/tools/go/analysis"
 )
 
 const (
@@ -26,10 +29,12 @@ type Handler interface {
 	GetActualExprClone(origFunc, funcClone *ast.SelectorExpr) *ast.CallExpr
 
 	GetNewWrapperMatcher(name string, existing *ast.CallExpr) *ast.CallExpr
+
+	isGomegaVar(x ast.Expr) bool
 }
 
 // GetGomegaHandler returns a gomegar handler according to the way gomega was imported in the specific file
-func GetGomegaHandler(file *ast.File) Handler {
+func GetGomegaHandler(file *ast.File, pass *analysis.Pass) Handler {
 	for _, imp := range file.Imports {
 		if imp.Path.Value != importPath {
 			continue
@@ -37,11 +42,13 @@ func GetGomegaHandler(file *ast.File) Handler {
 
 		switch name := imp.Name.String(); {
 		case name == ".":
-			return dotHandler{}
+			return &dotHandler{
+				pass: pass,
+			}
 		case name == "<nil>": // import with no local name
-			return nameHandler("gomega")
+			return &nameHandler{name: "gomega", pass: pass}
 		default:
-			return nameHandler(name)
+			return &nameHandler{name: name, pass: pass}
 		}
 	}
 
@@ -50,7 +57,9 @@ func GetGomegaHandler(file *ast.File) Handler {
 
 // dotHandler is used when importing gomega with dot; i.e.
 // import . "github.com/onsi/gomega"
-type dotHandler struct{}
+type dotHandler struct {
+	pass *analysis.Pass
+}
 
 // GetActualFuncName returns the name of the gomega function, e.g. `Expect`
 func (h dotHandler) GetActualFuncName(expr *ast.CallExpr) (string, bool) {
@@ -58,7 +67,7 @@ func (h dotHandler) GetActualFuncName(expr *ast.CallExpr) (string, bool) {
 	case *ast.Ident:
 		return actualFunc.Name, true
 	case *ast.SelectorExpr:
-		if isGomegaVar(actualFunc.X, h) {
+		if h.isGomegaVar(actualFunc.X) {
 			return actualFunc.Sel.Name, true
 		}
 
@@ -113,7 +122,10 @@ func (dotHandler) GetNewWrapperMatcher(name string, existing *ast.CallExpr) *ast
 //
 // or with a custom name; e.g.
 // import customname "github.com/onsi/gomega"
-type nameHandler string
+type nameHandler struct {
+	name string
+	pass *analysis.Pass
+}
 
 // GetActualFuncName returns the name of the gomega function, e.g. `Expect`
 func (g nameHandler) GetActualFuncName(expr *ast.CallExpr) (string, bool) {
@@ -124,8 +136,8 @@ func (g nameHandler) GetActualFuncName(expr *ast.CallExpr) (string, bool) {
 
 	switch x := selector.X.(type) {
 	case *ast.Ident:
-		if x.Name != string(g) {
-			if !isGomegaVar(x, g) {
+		if x.Name != g.name {
+			if !g.isGomegaVar(x) {
 				return "", false
 			}
 		}
@@ -146,7 +158,7 @@ func (nameHandler) ReplaceFunction(caller *ast.CallExpr, newExpr *ast.Ident) {
 
 func (g nameHandler) getDefFuncName(expr *ast.CallExpr) string {
 	if sel, ok := expr.Fun.(*ast.SelectorExpr); ok {
-		if f, ok := sel.X.(*ast.Ident); ok && f.Name == string(g) {
+		if f, ok := sel.X.(*ast.Ident); ok && f.Name == g.name {
 			return sel.Sel.Name
 		}
 	}
@@ -157,13 +169,13 @@ func (g nameHandler) getFieldType(field *ast.Field) string {
 	switch t := field.Type.(type) {
 	case *ast.SelectorExpr:
 		if id, ok := t.X.(*ast.Ident); ok {
-			if id.Name == string(g) {
+			if id.Name == g.name {
 				return t.Sel.Name
 			}
 		}
 	case *ast.StarExpr:
 		if sel, ok := t.X.(*ast.SelectorExpr); ok {
-			if x, ok := sel.X.(*ast.Ident); ok && x.Name == string(g) {
+			if x, ok := sel.X.(*ast.Ident); ok && x.Name == g.name {
 				return sel.Sel.Name
 			}
 		}
@@ -172,29 +184,30 @@ func (g nameHandler) getFieldType(field *ast.Field) string {
 	return ""
 }
 
-func isGomegaVar(x ast.Expr, handler Handler) bool {
-	if i, ok := x.(*ast.Ident); ok {
-		if i.Obj != nil && i.Obj.Kind == ast.Var {
-			switch decl := i.Obj.Decl.(type) {
-			case *ast.AssignStmt:
-				if decl.Tok == token.DEFINE {
-					if defFunc, ok := decl.Rhs[0].(*ast.CallExpr); ok {
-						fName := handler.getDefFuncName(defFunc)
-						switch fName {
-						case "NewGomega", "NewWithT", "NewGomegaWithT":
-							return true
-						}
-					}
-				}
-			case *ast.Field:
-				name := handler.getFieldType(decl)
-				switch name {
-				case "Gomega", "WithT", "GomegaWithT":
-					return true
-				}
-			}
+func (g nameHandler) isGomegaVar(x ast.Expr) bool {
+	return isGomegaVar(x, g.pass)
+}
+
+var gomegaTypeRegex = regexp.MustCompile(`github\.com/onsi/gomega/(?:internal|types)\.Gomega`)
+
+func isGomegaVar(x ast.Expr, pass *analysis.Pass) bool {
+	if tx, ok := pass.TypesInfo.Types[x]; ok {
+		var typeStr string
+		switch ttx := tx.Type.(type) {
+		case *gotypes.Pointer:
+			tp := ttx.Elem()
+			typeStr = tp.String()
+
+		case *gotypes.Named:
+			typeStr = ttx.String()
+
+		default:
+			return false
 		}
+
+		return gomegaTypeRegex.MatchString(typeStr)
 	}
+
 	return false
 }
 
@@ -211,7 +224,7 @@ func (h dotHandler) GetActualExpr(assertionFunc *ast.SelectorExpr) *ast.CallExpr
 		if isHelperMethods(fun.Sel.Name) {
 			return h.GetActualExpr(fun)
 		}
-		if isGomegaVar(fun.X, h) {
+		if h.isGomegaVar(fun.X) {
 			return actualExpr
 		}
 	}
@@ -232,11 +245,15 @@ func (h dotHandler) GetActualExprClone(origFunc, funcClone *ast.SelectorExpr) *a
 		if isHelperMethods(funClone.Sel.Name) {
 			return h.GetActualExprClone(origFun, funClone)
 		}
-		if isGomegaVar(origFun.X, h) {
+		if h.isGomegaVar(origFun.X) {
 			return actualExpr
 		}
 	}
 	return nil
+}
+
+func (h dotHandler) isGomegaVar(x ast.Expr) bool {
+	return isGomegaVar(x, h.pass)
 }
 
 func (g nameHandler) GetActualExpr(assertionFunc *ast.SelectorExpr) *ast.CallExpr {
@@ -249,14 +266,14 @@ func (g nameHandler) GetActualExpr(assertionFunc *ast.SelectorExpr) *ast.CallExp
 	case *ast.Ident:
 		return actualExpr
 	case *ast.SelectorExpr:
-		if x, ok := fun.X.(*ast.Ident); ok && x.Name == string(g) {
+		if x, ok := fun.X.(*ast.Ident); ok && x.Name == g.name {
 			return actualExpr
 		}
 		if isHelperMethods(fun.Sel.Name) {
 			return g.GetActualExpr(fun)
 		}
 
-		if isGomegaVar(fun.X, g) {
+		if g.isGomegaVar(fun.X) {
 			return actualExpr
 		}
 	}
@@ -273,7 +290,7 @@ func (g nameHandler) GetActualExprClone(origFunc, funcClone *ast.SelectorExpr) *
 	case *ast.Ident:
 		return actualExpr
 	case *ast.SelectorExpr:
-		if x, ok := funClone.X.(*ast.Ident); ok && x.Name == string(g) {
+		if x, ok := funClone.X.(*ast.Ident); ok && x.Name == g.name {
 			return actualExpr
 		}
 		origFun := origFunc.X.(*ast.CallExpr).Fun.(*ast.SelectorExpr)
@@ -281,7 +298,7 @@ func (g nameHandler) GetActualExprClone(origFunc, funcClone *ast.SelectorExpr) *
 			return g.GetActualExprClone(origFun, funClone)
 		}
 
-		if isGomegaVar(origFun.X, g) {
+		if g.isGomegaVar(origFun.X) {
 			return actualExpr
 		}
 	}
@@ -291,7 +308,7 @@ func (g nameHandler) GetActualExprClone(origFunc, funcClone *ast.SelectorExpr) *
 func (g nameHandler) GetNewWrapperMatcher(name string, existing *ast.CallExpr) *ast.CallExpr {
 	return &ast.CallExpr{
 		Fun: &ast.SelectorExpr{
-			X:   ast.NewIdent(string(g)),
+			X:   ast.NewIdent(g.name),
 			Sel: ast.NewIdent(name),
 		},
 		Args: []ast.Expr{existing},
