@@ -1,6 +1,7 @@
 package actual
 
 import (
+	"github.com/nunnatsa/ginkgolinter/internal/gomegainfo"
 	"go/ast"
 	"go/token"
 	gotypes "go/types"
@@ -17,7 +18,6 @@ type ArgType uint64
 
 const (
 	UnknownActualArgType ArgType = 1 << iota
-	NoAssertionArgType
 	ErrActualArgType
 	LenFuncActualArgType
 	CapFuncActualArgType
@@ -31,12 +31,14 @@ const (
 	AsyncInvalidFuncCall
 	ErrorTypeArgType
 
+	EqualZero
+	GreaterThanZero
+
 	LastUnusedDontChange
 )
 
-var ActualArgTypeString = map[ArgType]string{
+var argTypeString = map[ArgType]string{
 	UnknownActualArgType:          "UnknownActualArgType",
-	NoAssertionArgType:            "NoAssertionArgType",
 	ErrActualArgType:              "ErrActualArgType",
 	LenFuncActualArgType:          "LenFuncActualArgType",
 	CapFuncActualArgType:          "CapFuncActualArgType",
@@ -47,24 +49,27 @@ var ActualArgTypeString = map[ArgType]string{
 	BinaryComparisonActualArgType: "BinaryComparisonActualArgType",
 	ErrFuncActualArgType:          "ErrFuncActualArgType",
 	AsyncInvalidFuncCall:          "AsyncInvalidFuncCall",
+	ErrorTypeArgType:              "ErrorTypeArgType",
+	EqualZero:                     "EqualZero",
+	GreaterThanZero:               "GreaterThanZero",
 }
 
 func (a ArgType) String() string {
 	var vals []string
 	for mask := UnknownActualArgType; mask < LastUnusedDontChange; mask <<= 1 {
 		if a&mask != 0 {
-			vals = append(vals, ActualArgTypeString[mask])
+			vals = append(vals, argTypeString[mask])
 		}
 	}
 
 	return strings.Join(vals, "|")
 }
 func (a ArgType) Is(val ArgType) bool {
-	return a&val == val
+	return a&val != 0
 }
 
-func getActualArgPayload(origActualExpr, actualExprClone *ast.CallExpr, pass *analysis.Pass, funcName string) (ArgPayload, int) {
-	origArgExpr, argExprClone, actualOffset, isGomegaExpr := getActualArg(origActualExpr, actualExprClone, funcName, pass)
+func getActualArgPayload(origActualExpr, actualExprClone *ast.CallExpr, pass *analysis.Pass, actualMethodName string) (ArgPayload, int) {
+	origArgExpr, argExprClone, actualOffset, isGomegaExpr := getActualArg(origActualExpr, actualExprClone, actualMethodName, pass)
 	if !isGomegaExpr {
 		return nil, 0
 	}
@@ -101,14 +106,14 @@ func getActualArgPayload(origActualExpr, actualExprClone *ast.CallExpr, pass *an
 	return newRegularArgPayload(origArgExpr, argExprClone, pass), actualOffset
 }
 
-func getActualArg(origActualExpr *ast.CallExpr, actualExprClone *ast.CallExpr, funcName string, pass *analysis.Pass) (ast.Expr, ast.Expr, int, bool) {
+func getActualArg(origActualExpr *ast.CallExpr, actualExprClone *ast.CallExpr, actualMethodName string, pass *analysis.Pass) (ast.Expr, ast.Expr, int, bool) {
 	var (
 		origArgExpr  ast.Expr
 		argExprClone ast.Expr
 	)
 
-	funcOffset, ok := funcOffsetMap[funcName]
-	if !ok {
+	funcOffset := gomegainfo.ActualArgOffset(actualMethodName)
+	if funcOffset < 0 {
 		return nil, nil, 0, false
 	}
 
@@ -119,7 +124,7 @@ func getActualArg(origActualExpr *ast.CallExpr, actualExprClone *ast.CallExpr, f
 	origArgExpr = origActualExpr.Args[funcOffset]
 	argExprClone = actualExprClone.Args[funcOffset]
 
-	if isAsync(funcName) {
+	if gomegainfo.IsAsyncActualMethod(actualMethodName) {
 		if pass.TypesInfo.TypeOf(origArgExpr).String() == "context.Context" {
 			funcOffset++
 			if len(origActualExpr.Args) <= funcOffset {
@@ -136,32 +141,6 @@ func getActualArg(origActualExpr *ast.CallExpr, actualExprClone *ast.CallExpr, f
 
 type ArgPayload interface {
 	ArgType() ArgType
-}
-
-type NoAssertionActual struct {
-	allowedAssertionMethods string
-}
-
-func newNoAssertionActual(actualMethodName string) *NoAssertionActual {
-	var allowedAssertionMethods string
-	switch actualMethodName {
-	case expect, expectWithOffset:
-		allowedAssertionMethods = `"To()", "ToNot()" or "NotTo()"`
-	case eventually, eventuallyWithOffset, consistently, consistentlyWithOffset:
-		allowedAssertionMethods = `"Should()" or "ShouldNot()"`
-	case omega:
-		allowedAssertionMethods = `"Should()", "To()", "ShouldNot()", "ToNot()" or "NotTo()"`
-	}
-
-	return &NoAssertionActual{allowedAssertionMethods: allowedAssertionMethods}
-}
-
-func (NoAssertionActual) ArgType() ArgType {
-	return NoAssertionArgType
-}
-
-func (n NoAssertionActual) AllowedMethods() string {
-	return n.allowedAssertionMethods
 }
 
 type RegularArgPayload struct {

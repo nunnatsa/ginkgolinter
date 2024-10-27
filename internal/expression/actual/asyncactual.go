@@ -29,7 +29,7 @@ func newAsyncArg(origExpr, cloneExpr, orig, clone *ast.CallExpr, argType gotypes
 
 	if _, isActualFuncCall := orig.Args[actualOffset].(*ast.CallExpr); isActualFuncCall {
 		fun = clone.Args[actualOffset].(*ast.CallExpr)
-		valid = IsValidAsyncValueType(argType)
+		valid = isValidAsyncValueType(argType)
 	}
 
 	timeoutOffset := actualOffset + 1
@@ -108,4 +108,16 @@ func (a *AsyncArg) TooManyTimeouts() bool {
 
 func (a *AsyncArg) TooManyPolling() bool {
 	return a.tooManyPolling
+}
+
+func isValidAsyncValueType(t gotypes.Type) bool {
+	switch t.(type) {
+	// allow functions that return function or channel.
+	case *gotypes.Signature, *gotypes.Chan, *gotypes.Pointer:
+		return true
+	case *gotypes.Named:
+		return isValidAsyncValueType(t.Underlying())
+	}
+
+	return false
 }

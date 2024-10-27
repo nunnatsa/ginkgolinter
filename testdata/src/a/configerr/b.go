@@ -12,7 +12,7 @@ var _ = Describe("check Expect(err).To(BeNil())", func() {
 	tt := t{}
 
 	It("check Expect(err).To(BeNil())", func() {
-		gomega.Expect(errors.New("fake error")).To(gomega.Equal(nil))
+		gomega.Expect(errors.New("fake error")).To(gomega.Equal(nil)) // want `wrong nil assertion. Consider using .gomega\.Expect\(errors\.New\("fake error"\)\)\.To\(gomega\.BeNil\(\)\). instead`
 		gomega.Expect(err).To(gomega.BeNil())
 		gomega.ExpectWithOffset(1, err).To(gomega.BeNil())
 		gomega.Expect(err).To(gomega.Not(gomega.BeNil()))

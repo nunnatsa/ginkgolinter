@@ -2,6 +2,7 @@ package expression
 
 import (
 	"fmt"
+	"github.com/nunnatsa/ginkgolinter/internal/gomegainfo"
 	"go/ast"
 	"go/token"
 
@@ -19,8 +20,9 @@ type GomegaExpression struct {
 	Orig  *ast.CallExpr
 	Clone *ast.CallExpr
 
-	assertionFuncName string
-	actualFuncName    string
+	assertionFuncName     string
+	origAssertionFuncName string
+	actualFuncName        string
 
 	isAsync bool
 
@@ -31,34 +33,16 @@ type GomegaExpression struct {
 }
 
 func New(origExpr *ast.CallExpr, pass *analysis.Pass, handler gomegahandler.Handler, timePkg string) (*GomegaExpression, bool) {
-	var (
-		origSel          *ast.SelectorExpr
-		actualMethodName string
-	)
-
-	switch expr := origExpr.Fun.(type) {
-	case *ast.SelectorExpr:
-		var ok bool
-		actualMethodName, ok = handler.GetActualFuncName(origExpr)
-		if !ok || !actual.IsActualMethod(actualMethodName) {
-			return nil, false
-		}
-
-		origSel = expr
-	case *ast.Ident:
-		actualMethodName = expr.Name
-		if !actual.IsActualMethod(actualMethodName) {
-			return nil, false
-		}
+	actualMethodName, ok := handler.GetActualFuncName(origExpr)
+	if !ok || !gomegainfo.IsActualMethod(actualMethodName) {
+		return nil, false
 	}
 
-	if origSel == nil || !isAssertionFunc(origSel.Sel.Name) {
-
-		actl := actual.NewNoAssertion(origExpr, handler)
+	origSel, ok := origExpr.Fun.(*ast.SelectorExpr)
+	if !ok || !gomegainfo.IsAssertionFunc(origSel.Sel.Name) {
 		return &GomegaExpression{
 			Orig:           origExpr,
 			actualFuncName: actualMethodName,
-			Actual:         actl,
 		}, true
 	}
 
@@ -98,8 +82,9 @@ func New(origExpr *ast.CallExpr, pass *analysis.Pass, handler gomegahandler.Hand
 		Orig:  origExpr,
 		Clone: exprClone,
 
-		assertionFuncName: origSel.Sel.Name,
-		actualFuncName:    actualMethodName,
+		assertionFuncName:     origSel.Sel.Name,
+		origAssertionFuncName: origSel.Sel.Name,
+		actualFuncName:        actualMethodName,
 
 		isAsync: actl.IsAsync(),
 
@@ -116,6 +101,10 @@ func New(origExpr *ast.CallExpr, pass *analysis.Pass, handler gomegahandler.Hand
 	return gexp, true
 }
 
+func (e *GomegaExpression) IsMissingAssertion() bool {
+	return e.Matcher == nil
+}
+
 func (e *GomegaExpression) GetActualFuncName() string {
 	if e == nil {
 		return ""
@@ -130,6 +119,13 @@ func (e *GomegaExpression) GetAssertFuncName() string {
 	return e.assertionFuncName
 }
 
+func (e *GomegaExpression) GetOrigAssertFuncName() string {
+	if e == nil {
+		return ""
+	}
+	return e.origAssertionFuncName
+}
+
 func (e *GomegaExpression) IsAsync() bool {
 	return e.isAsync
 }
@@ -141,27 +137,8 @@ func (e *GomegaExpression) ReverseAssertionFuncLogic() {
 	e.assertionFuncName = newName
 }
 
-func (e *GomegaExpression) replaceAssertionMethod(name string) {
+func (e *GomegaExpression) ReplaceAssertionMethod(name string) {
 	e.Clone.Fun.(*ast.SelectorExpr).Sel.Name = name
-}
-
-func (e *GomegaExpression) ForceExpectTo() (string, string, bool) {
-	newName := ""
-	assertFuncName := e.Orig.Fun.(*ast.SelectorExpr).Sel.Name
-	if e.actualFuncName == "Expect" || e.actualFuncName == "ExpectWithOffset" {
-		switch e.assertionFuncName {
-		case "Should":
-			newName = "To"
-		case "ShouldNot":
-			newName = "ToNot"
-		default:
-			return "", "", false
-		}
-
-		e.replaceAssertionMethod(newName)
-	}
-
-	return newName, assertFuncName, true
 }
 
 func (e *GomegaExpression) ReplaceMatcherFuncName(name string) {
@@ -198,6 +175,15 @@ func (e *GomegaExpression) SetMatcherBeEmpty() {
 }
 
 func (e *GomegaExpression) SetLenNumericMatcher() {
+	if m, ok := e.Matcher.GetMatcherInfo().(value.Valuer); ok && m.IsValueZero() {
+		e.SetMatcherBeEmpty()
+	} else {
+		e.ReplaceMatcherFuncName("HaveLen")
+		e.ReplaceMatcherArgs([]ast.Expr{m.GetValueExpr()})
+	}
+}
+
+func (e *GomegaExpression) SetLenNumericActual() {
 	if m, ok := e.Matcher.GetMatcherInfo().(value.Valuer); ok && m.IsValueZero() {
 		e.SetMatcherBeEmpty()
 	} else {
@@ -267,12 +253,4 @@ func (e *GomegaExpression) SetMatcherBeNumerically(op token.Token, arg ast.Expr)
 
 func (e *GomegaExpression) IsNegativeAssertion() bool {
 	return reverseassertion.IsNegativeLogic(e.assertionFuncName)
-}
-
-func isAssertionFunc(name string) bool {
-	switch name {
-	case "To", "ToNot", "NotTo", "Should", "ShouldNot":
-		return true
-	}
-	return false
 }

@@ -1,6 +1,7 @@
 package actual
 
 import (
+	"github.com/nunnatsa/ginkgolinter/internal/gomegainfo"
 	"go/ast"
 	gotypes "go/types"
 
@@ -8,21 +9,6 @@ import (
 
 	"github.com/nunnatsa/ginkgolinter/internal/gomegahandler"
 )
-
-const ( // gomega actual method names
-	expect                 = "Expect"
-	expectWithOffset       = "ExpectWithOffset"
-	omega                  = "Ω"
-	eventually             = "Eventually"
-	eventuallyWithOffset   = "EventuallyWithOffset"
-	consistently           = "Consistently"
-	consistentlyWithOffset = "ConsistentlyWithOffset"
-)
-
-func IsActualMethod(name string) bool {
-	_, found := funcOffsetMap[name]
-	return found
-}
 
 type Actual struct {
 	Orig         *ast.CallExpr
@@ -45,8 +31,6 @@ func New(origExpr, cloneExpr *ast.CallExpr, orig *ast.CallExpr, clone *ast.CallE
 		return nil, false
 	}
 
-	isAsyncExpr := isAsync(funcName)
-
 	argType := pass.TypesInfo.TypeOf(orig.Args[actualOffset])
 
 	if tpl, ok := argType.(*gotypes.Tuple); ok {
@@ -56,6 +40,8 @@ func New(origExpr, cloneExpr *ast.CallExpr, orig *ast.CallExpr, clone *ast.CallE
 			argType = nil
 		}
 	}
+
+	isAsyncExpr := gomegainfo.IsAsyncActualMethod(funcName)
 
 	var asyncArg *AsyncArg
 	if isAsyncExpr {
@@ -71,13 +57,6 @@ func New(origExpr, cloneExpr *ast.CallExpr, orig *ast.CallExpr, clone *ast.CallE
 		asyncArg:     asyncArg,
 		actualOffset: actualOffset,
 	}, true
-}
-
-func NewNoAssertion(expr *ast.CallExpr, handler gomegahandler.Handler) *Actual {
-	funcName, _ := handler.GetActualFuncName(expr)
-	return &Actual{
-		Arg: newNoAssertionActual(funcName),
-	}
 }
 
 func (a *Actual) ReplaceActual(newArgs ast.Expr) {
@@ -127,38 +106,4 @@ func (a *Actual) AppendWithArgsMethod() {
 
 func (a *Actual) GetActualArg() ast.Expr {
 	return a.Clone.Args[a.actualOffset]
-}
-
-var asyncFuncSet = map[string]struct{}{
-	eventually:             {},
-	eventuallyWithOffset:   {},
-	consistently:           {},
-	consistentlyWithOffset: {},
-}
-
-func isAsync(name string) bool {
-	_, ok := asyncFuncSet[name]
-	return ok
-}
-
-var funcOffsetMap = map[string]int{
-	expect:                 0,
-	expectWithOffset:       1,
-	omega:                  0,
-	eventually:             0,
-	eventuallyWithOffset:   1,
-	consistently:           0,
-	consistentlyWithOffset: 1,
-}
-
-func IsValidAsyncValueType(t gotypes.Type) bool {
-	switch t.(type) {
-	// allow functions that return function or channel.
-	case *gotypes.Signature, *gotypes.Chan, *gotypes.Pointer:
-		return true
-	case *gotypes.Named:
-		return IsValidAsyncValueType(t.Underlying())
-	}
-
-	return false
 }

@@ -10,7 +10,7 @@ import (
 var _ = Describe("suppress file", func() {
 	var x *int
 	It("should ignore nil warning", func() {
-		Expect(x == nil).Should(Equal(true))
+		Expect(x == nil).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion\. Consider using .Expect\(x == nil\)\.Should\(BeTrue\(\)\). instead`
 		Expect(x == nil).ShouldNot(BeTrue())
 	})
 })

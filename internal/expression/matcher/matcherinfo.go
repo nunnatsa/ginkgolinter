@@ -32,8 +32,12 @@ const (
 	HaveValueMatherType
 	WithTransformMatherType
 
-	BoolValueMatcherType
-	NilValueMatcherType
+	EqualBoolValueMatcherType
+	EqualValueMatcherType
+	BoolValueFalse
+	BoolValueTrue
+
+	EqualNilMatcherType
 
 	OrMatherType
 	AndMatherType
@@ -42,6 +46,9 @@ const (
 	ErrMatchWithErrFunc
 	ErrMatchWithString
 	ErrMatchWithMatcher
+
+	EqualZero
+	GreaterThanZero
 )
 
 func (t Type) Is(other Type) bool {
@@ -279,7 +286,7 @@ type EqualNilMatcher struct {
 }
 
 func (EqualNilMatcher) Type() Type {
-	return EqualMatcherType | NilValueMatcherType
+	return EqualNilMatcherType | EqualMatcherType | EqualValueMatcherType
 }
 
 func (EqualNilMatcher) MatcherName() string {
@@ -293,7 +300,7 @@ func (n EqualNilMatcher) GetType() gotypes.Type {
 type EqualTrueMatcher struct{}
 
 func (EqualTrueMatcher) Type() Type {
-	return EqualMatcherType | BoolValueMatcherType
+	return EqualMatcherType | EqualBoolValueMatcherType | BoolValueTrue
 }
 
 func (EqualTrueMatcher) MatcherName() string {
@@ -303,7 +310,7 @@ func (EqualTrueMatcher) MatcherName() string {
 type EqualFalseMatcher struct{}
 
 func (EqualFalseMatcher) Type() Type {
-	return EqualMatcherType | BoolValueMatcherType
+	return EqualMatcherType | EqualBoolValueMatcherType | BoolValueFalse
 }
 
 func (EqualFalseMatcher) MatcherName() string {
@@ -333,7 +340,7 @@ func (BeEmptyMatcher) MatcherName() string {
 type BeTrueMatcher struct{}
 
 func (BeTrueMatcher) Type() Type {
-	return BeTrueMatcherType
+	return BeTrueMatcherType | BoolValueTrue
 }
 
 func (BeTrueMatcher) MatcherName() string {
@@ -343,7 +350,7 @@ func (BeTrueMatcher) MatcherName() string {
 type BeFalseMatcher struct{}
 
 func (BeFalseMatcher) Type() Type {
-	return BeFalseMatcherType
+	return BeFalseMatcherType | BoolValueFalse
 }
 
 func (BeFalseMatcher) MatcherName() string {
@@ -371,11 +378,12 @@ func (BeNilMatcher) MatcherName() string {
 }
 
 type BeNumericallyMatcher struct {
-	op    token.Token
-	value value.Valuer
+	op      token.Token
+	value   value.Valuer
+	argType Type
 }
 
-var copareOps = map[string]token.Token{
+var compareOps = map[string]token.Token{
 	`"=="`: token.EQL,
 	`"<"`:  token.LSS,
 	`">"`:  token.GTR,
@@ -394,7 +402,7 @@ func getCompareOp(opExp ast.Expr) token.Token {
 		return token.ILLEGAL
 	}
 
-	if tk, ok := copareOps[basic.Value]; ok {
+	if tk, ok := compareOps[basic.Value]; ok {
 		return tk
 	}
 
@@ -410,15 +418,31 @@ func newBeNumericallyMatcher(opExp, orig, clone ast.Expr, pass *analysis.Pass) I
 	}
 
 	val := value.GetValuer(orig, clone, pass)
+	argType := BeNumericallyMatcherType
+
+	if val.IsValueNumeric() {
+		if v := val.GetValue().String(); v == "0" {
+			switch op {
+			case token.EQL:
+				argType |= EqualZero
+
+			case token.NEQ, token.GTR:
+				argType |= GreaterThanZero
+			}
+		} else if v == "1" && op == token.GEQ {
+			argType |= GreaterThanZero
+		}
+	}
 
 	return &BeNumericallyMatcher{
-		op:    op,
-		value: val,
+		op:      op,
+		value:   val,
+		argType: argType,
 	}
 }
 
-func (BeNumericallyMatcher) Type() Type {
-	return BeNumericallyMatcherType
+func (m BeNumericallyMatcher) Type() Type {
+	return m.argType
 }
 
 func (BeNumericallyMatcher) MatcherName() string {

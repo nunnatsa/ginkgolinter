@@ -26,12 +26,12 @@ var _ = Describe("suppress file", func() {
 	})
 	It("should ignore nil warning", func() {
 		var x *int
-		Expect(x == nil).Should(Equal(true))
+		Expect(x == nil).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion\. Consider using .Expect\(x == nil\)\.Should\(BeTrue\(\)\). instead`
 		Expect(x == nil).ShouldNot(BeTrue())
 	})
 	It("should ignore error warning", func() {
 		var x error
-		Expect(x == nil).Should(Equal(true)) // want `ginkgo-linter: wrong nil assertion. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
-		Expect(x == nil).ShouldNot(BeTrue()) // want `ginkgo-linter: wrong nil assertion. Consider using .Expect\(x\)\.ShouldNot\(BeNil\(\)\). instead`
+		Expect(x == nil).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion\. Consider using .Expect\(x == nil\)\.Should\(BeTrue\(\)\). instead`
+		Expect(x == nil).ShouldNot(BeTrue())
 	})
 })

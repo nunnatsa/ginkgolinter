@@ -26,9 +26,6 @@ type FuncComparisonPayload struct {
 }
 
 func newFuncComparisonPayload(origLeft, leftClone *ast.CallExpr, origRight, rightClone ast.Expr, op token.Token, pass *analysis.Pass) (*FuncComparisonPayload, bool) {
-	if op != token.EQL && op != token.NEQ {
-		return nil, false
-	}
 
 	funcName, ok := builtinFuncName(origLeft)
 	if !ok {
@@ -39,18 +36,41 @@ func newFuncComparisonPayload(origLeft, leftClone *ast.CallExpr, origRight, righ
 		return nil, false
 	}
 
+	left := value.GetValuer(origLeft, leftClone, pass)
+	val := value.GetValuer(origRight, rightClone, pass)
+
 	argType := ComparisonActualArgType
 	switch funcName {
 	case "len":
 		argType |= LenComparisonActualArgType
+
+		if val.IsValueNumeric() {
+			if val.IsValueZero() {
+				switch op {
+				case token.EQL:
+					argType |= EqualZero
+
+				case token.NEQ, token.GTR:
+					argType |= GreaterThanZero
+				}
+			} else if val.GetValue().String() == "1" && op == token.GEQ {
+				argType |= GreaterThanZero
+			}
+		}
+
+		if !argType.Is(GreaterThanZero) && op != token.EQL && op != token.NEQ {
+			return nil, false
+		}
+
 	case "cap":
+		if op != token.EQL && op != token.NEQ {
+			return nil, false
+		}
 		argType |= CapComparisonActualArgType
+
 	default:
 		return nil, false
 	}
-
-	left := value.GetValuer(origLeft, leftClone, pass)
-	val := value.GetValuer(origRight, rightClone, pass)
 
 	return &FuncComparisonPayload{
 		op:      op,
