@@ -60,58 +60,58 @@ var _ = Describe("", func() {
 			})
 			Context("test Equal(true)", func() {
 				It("test nil value", func() {
-					Expect(x == nil).Should(Equal(true))
-					Expect(nil == x).Should(Equal(true))
+					Expect(x == nil).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion\. Consider using .Expect\(x == nil\)\.Should\(BeTrue\(\)\). instead`
+					Expect(nil == x).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion\. Consider using .Expect\(nil == x\)\.Should\(BeTrue\(\)\). instead`
 				})
 				It("test non-nil value", func() {
-					Expect(y != nil).Should(Equal(true))
-					Expect(nil != y).Should(Equal(true))
+					Expect(y != nil).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion\. Consider using .Expect\(y != nil\)\.Should\(BeTrue\(\)\). instead`
+					Expect(nil != y).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion\. Consider using .Expect\(nil != y\)\.Should\(BeTrue\(\)\). instead`
 				})
 				It("test nil func", func() {
-					Expect(fNil() == nil).Should(Equal(true))
-					Expect(nil == fNil()).Should(Equal(true))
+					Expect(fNil() == nil).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion\. Consider using .Expect\(fNil\(\) == nil\)\.Should\(BeTrue\(\)\). instead`
+					Expect(nil == fNil()).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion\. Consider using .Expect\(nil == fNil\(\)\)\.Should\(BeTrue\(\)\). instead`
 				})
 				It("test non-nil func", func() {
-					Expect(fNotNil() != nil).Should(Equal(true))
-					Expect(nil != fNotNil()).Should(Equal(true))
+					Expect(fNotNil() != nil).Should(Equal(true)) // want `wrong boolean assertion`
+					Expect(nil != fNotNil()).Should(Equal(true)) // want `wrong boolean assertion`
 				})
 			})
 			Context("test Equal(false)", func() {
 				It("test nil value", func() {
-					Expect(x != nil).Should(Equal(false))
-					Expect(nil != x).Should(Equal(false))
+					Expect(x != nil).Should(Equal(false)) // want `wrong boolean assertion`
+					Expect(nil != x).Should(Equal(false)) // want `wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Expect(y == nil).Should(Equal(false))
-					Expect(nil == y).Should(Equal(false))
+					Expect(y == nil).Should(Equal(false)) // want `wrong boolean assertion`
+					Expect(nil == y).Should(Equal(false)) // want `wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Expect(fNil() != nil).Should(Equal(false))
-					Expect(nil != fNil()).Should(Equal(false))
+					Expect(fNil() != nil).Should(Equal(false)) // want `wrong boolean assertion`
+					Expect(nil != fNil()).Should(Equal(false)) // want `wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Expect(fNotNil() == nil).Should(Equal(false))
-					Expect(nil == fNotNil()).Should(Equal(false))
+					Expect(fNotNil() == nil).Should(Equal(false)) // want `wrong boolean assertion`
+					Expect(nil == fNotNil()).Should(Equal(false)) // want `wrong boolean assertion`
 				})
 			})
 		})
 		Context("test Should(Not())", func() {
 			Context("test BeTrue", func() {
 				It("test nil value", func() {
-					Expect(x == nil).Should(Not(BeFalse()))
-					Expect(nil == x).Should(Not(BeFalse()))
+					Expect(x == nil).Should(Not(BeFalse())) // want `avoid double negative assertion`
+					Expect(nil == x).Should(Not(BeFalse())) // want `avoid double negative assertion`
 				})
 				It("test non-nil value", func() {
-					Expect(y != nil).Should(Not(BeFalse()))
-					Expect(nil != y).Should(Not(BeFalse()))
+					Expect(y != nil).Should(Not(BeFalse())) // want `avoid double negative assertion`
+					Expect(nil != y).Should(Not(BeFalse())) // want `avoid double negative assertion`
 				})
 				It("test nil func", func() {
-					Expect(fNil() == nil).Should(Not(BeFalse()))
-					Expect(nil == fNil()).Should(Not(BeFalse()))
+					Expect(fNil() == nil).Should(Not(BeFalse())) // want `avoid double negative assertion`
+					Expect(nil == fNil()).Should(Not(BeFalse())) // want `avoid double negative assertion`
 				})
 				It("test non-nil func", func() {
-					Expect(fNotNil() != nil).Should(Not(BeFalse()))
-					Expect(nil != fNotNil()).Should(Not(BeFalse()))
+					Expect(fNotNil() != nil).Should(Not(BeFalse())) // want `avoid double negative assertion`
+					Expect(nil != fNotNil()).Should(Not(BeFalse())) // want `avoid double negative assertion`
 				})
 			})
 			Context("test BeFalse", func() {
@@ -134,38 +134,38 @@ var _ = Describe("", func() {
 			})
 			Context("test Equal(false)", func() {
 				It("test nil value", func() {
-					Expect(x == nil).Should(Not(Equal(false)))
-					Expect(nil == x).Should(Not(Equal(false)))
+					Expect(x == nil).Should(Not(Equal(false))) // want `wrong boolean assertion`
+					Expect(nil == x).Should(Not(Equal(false))) // want `wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Expect(y != nil).Should(Not(Equal(false)))
-					Expect(nil != y).Should(Not(Equal(false)))
+					Expect(y != nil).Should(Not(Equal(false))) // want `wrong boolean assertion`
+					Expect(nil != y).Should(Not(Equal(false))) // want `wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Expect(fNil() == nil).Should(Not(Equal(false)))
-					Expect(nil == fNil()).Should(Not(Equal(false)))
+					Expect(fNil() == nil).Should(Not(Equal(false))) // want `wrong boolean assertion`
+					Expect(nil == fNil()).Should(Not(Equal(false))) // want `wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Expect(fNotNil() != nil).Should(Not(Equal(false)))
-					Expect(nil != fNotNil()).Should(Not(Equal(false)))
+					Expect(fNotNil() != nil).Should(Not(Equal(false))) // want `wrong boolean assertion`
+					Expect(nil != fNotNil()).Should(Not(Equal(false))) // want `wrong boolean assertion`
 				})
 			})
 			Context("test Equal(true)", func() {
 				It("test nil value", func() {
-					Expect(x != nil).Should(Not(Equal(true)))
-					Expect(nil != x).Should(Not(Equal(true)))
+					Expect(x != nil).Should(Not(Equal(true))) // want `wrong boolean assertion`
+					Expect(nil != x).Should(Not(Equal(true))) // want `wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Expect(y == nil).Should(Not(Equal(true)))
-					Expect(nil == y).Should(Not(Equal(true)))
+					Expect(y == nil).Should(Not(Equal(true))) // want `wrong boolean assertion`
+					Expect(nil == y).Should(Not(Equal(true))) // want `wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Expect(fNil() != nil).Should(Not(Equal(true)))
-					Expect(nil != fNil()).Should(Not(Equal(true)))
+					Expect(fNil() != nil).Should(Not(Equal(true))) // want `wrong boolean assertion`
+					Expect(nil != fNil()).Should(Not(Equal(true))) // want `wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Expect(fNotNil() == nil).Should(Not(Equal(true)))
-					Expect(nil == fNotNil()).Should(Not(Equal(true)))
+					Expect(fNotNil() == nil).Should(Not(Equal(true))) // want `wrong boolean assertion`
+					Expect(nil == fNotNil()).Should(Not(Equal(true))) // want `wrong boolean assertion`
 				})
 			})
 		})
@@ -209,58 +209,58 @@ var _ = Describe("", func() {
 			})
 			Context("test Equal(true)", func() {
 				It("test nil value", func() {
-					Expect(x == nil).To(Equal(true))
-					Expect(nil == x).To(Equal(true))
+					Expect(x == nil).To(Equal(true)) // want `wrong boolean assertion`
+					Expect(nil == x).To(Equal(true)) // want `wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Expect(y != nil).To(Equal(true))
-					Expect(nil != y).To(Equal(true))
+					Expect(y != nil).To(Equal(true)) // want `wrong boolean assertion`
+					Expect(nil != y).To(Equal(true)) // want `wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Expect(fNil() == nil).To(Equal(true))
-					Expect(nil == fNil()).To(Equal(true))
+					Expect(fNil() == nil).To(Equal(true)) // want `wrong boolean assertion`
+					Expect(nil == fNil()).To(Equal(true)) // want `wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Expect(fNotNil() != nil).To(Equal(true))
-					Expect(nil != fNotNil()).To(Equal(true))
+					Expect(fNotNil() != nil).To(Equal(true)) // want `wrong boolean assertion`
+					Expect(nil != fNotNil()).To(Equal(true)) // want `wrong boolean assertion`
 				})
 			})
 			Context("test Equal(false)", func() {
 				It("test nil value", func() {
-					Expect(x != nil).To(Equal(false))
-					Expect(nil != x).To(Equal(false))
+					Expect(x != nil).To(Equal(false)) // want `wrong boolean assertion`
+					Expect(nil != x).To(Equal(false)) // want `wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Expect(y == nil).To(Equal(false))
-					Expect(nil == y).To(Equal(false))
+					Expect(y == nil).To(Equal(false)) // want `wrong boolean assertion`
+					Expect(nil == y).To(Equal(false)) // want `wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Expect(fNil() != nil).To(Equal(false))
-					Expect(nil != fNil()).To(Equal(false))
+					Expect(fNil() != nil).To(Equal(false)) // want `wrong boolean assertion`
+					Expect(nil != fNil()).To(Equal(false)) // want `wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Expect(fNotNil() == nil).To(Equal(false))
-					Expect(nil == fNotNil()).To(Equal(false))
+					Expect(fNotNil() == nil).To(Equal(false)) // want `wrong boolean assertion`
+					Expect(nil == fNotNil()).To(Equal(false)) // want `wrong boolean assertion`
 				})
 			})
 		})
 		Context("test To(Not())", func() {
 			Context("test BeTrue", func() {
 				It("test nil value", func() {
-					Expect(x == nil).To(Not(BeFalse()))
-					Expect(nil == x).To(Not(BeFalse()))
+					Expect(x == nil).To(Not(BeFalse())) // want `avoid double negative assertion`
+					Expect(nil == x).To(Not(BeFalse())) // want `avoid double negative assertion`
 				})
 				It("test non-nil value", func() {
-					Expect(y != nil).To(Not(BeFalse()))
-					Expect(nil != y).To(Not(BeFalse()))
+					Expect(y != nil).To(Not(BeFalse())) // want `avoid double negative assertion`
+					Expect(nil != y).To(Not(BeFalse())) // want `avoid double negative assertion`
 				})
 				It("test nil func", func() {
-					Expect(fNil() == nil).To(Not(BeFalse()))
-					Expect(nil == fNil()).To(Not(BeFalse()))
+					Expect(fNil() == nil).To(Not(BeFalse())) // want `avoid double negative assertion`
+					Expect(nil == fNil()).To(Not(BeFalse())) // want `avoid double negative assertion`
 				})
 				It("test non-nil func", func() {
-					Expect(fNotNil() != nil).To(Not(BeFalse()))
-					Expect(nil != fNotNil()).To(Not(BeFalse()))
+					Expect(fNotNil() != nil).To(Not(BeFalse())) // want `avoid double negative assertion`
+					Expect(nil != fNotNil()).To(Not(BeFalse())) // want `avoid double negative assertion`
 				})
 			})
 			Context("test BeFalse", func() {
@@ -283,38 +283,38 @@ var _ = Describe("", func() {
 			})
 			Context("test Equal(false)", func() {
 				It("test nil value", func() {
-					Expect(x == nil).To(Not(Equal(false)))
-					Expect(nil == x).To(Not(Equal(false)))
+					Expect(x == nil).To(Not(Equal(false))) // want `wrong boolean assertion`
+					Expect(nil == x).To(Not(Equal(false))) // want `wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Expect(y != nil).To(Not(Equal(false)))
-					Expect(nil != y).To(Not(Equal(false)))
+					Expect(y != nil).To(Not(Equal(false))) // want `wrong boolean assertion`
+					Expect(nil != y).To(Not(Equal(false))) // want `wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Expect(fNil() == nil).To(Not(Equal(false)))
-					Expect(nil == fNil()).To(Not(Equal(false)))
+					Expect(fNil() == nil).To(Not(Equal(false))) // want `wrong boolean assertion`
+					Expect(nil == fNil()).To(Not(Equal(false))) // want `wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Expect(fNotNil() != nil).To(Not(Equal(false)))
-					Expect(nil != fNotNil()).To(Not(Equal(false)))
+					Expect(fNotNil() != nil).To(Not(Equal(false))) // want `wrong boolean assertion`
+					Expect(nil != fNotNil()).To(Not(Equal(false))) // want `wrong boolean assertion`
 				})
 			})
 			Context("test Equal(true)", func() {
 				It("test nil value", func() {
-					Expect(x != nil).To(Not(Equal(true)))
-					Expect(nil != x).To(Not(Equal(true)))
+					Expect(x != nil).To(Not(Equal(true))) // want `wrong boolean assertion`
+					Expect(nil != x).To(Not(Equal(true))) // want `wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Expect(y == nil).To(Not(Equal(true)))
-					Expect(nil == y).To(Not(Equal(true)))
+					Expect(y == nil).To(Not(Equal(true))) // want `wrong boolean assertion`
+					Expect(nil == y).To(Not(Equal(true))) // want `wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Expect(fNil() != nil).To(Not(Equal(true)))
-					Expect(nil != fNil()).To(Not(Equal(true)))
+					Expect(fNil() != nil).To(Not(Equal(true))) // want `wrong boolean assertion`
+					Expect(nil != fNil()).To(Not(Equal(true))) // want `wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Expect(fNotNil() == nil).To(Not(Equal(true)))
-					Expect(nil == fNotNil()).To(Not(Equal(true)))
+					Expect(fNotNil() == nil).To(Not(Equal(true))) // want `wrong boolean assertion`
+					Expect(nil == fNotNil()).To(Not(Equal(true))) // want `wrong boolean assertion`
 				})
 			})
 		})
@@ -322,20 +322,20 @@ var _ = Describe("", func() {
 		Context("test ShouldNot", func() {
 			Context("test BeFalse", func() {
 				It("test nil value", func() {
-					Expect(x == nil).ShouldNot(BeFalse())
-					Expect(nil == x).ShouldNot(BeFalse())
+					Expect(x == nil).ShouldNot(BeFalse()) // want `avoid double negative assertion`
+					Expect(nil == x).ShouldNot(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test non-nil value", func() {
-					Expect(y != nil).ShouldNot(BeFalse())
-					Expect(nil != y).ShouldNot(BeFalse())
+					Expect(y != nil).ShouldNot(BeFalse()) // want `avoid double negative assertion`
+					Expect(nil != y).ShouldNot(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test nil func", func() {
-					Expect(fNil() == nil).ShouldNot(BeFalse())
-					Expect(nil == fNil()).ShouldNot(BeFalse())
+					Expect(fNil() == nil).ShouldNot(BeFalse()) // want `avoid double negative assertion`
+					Expect(nil == fNil()).ShouldNot(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test non-nil func", func() {
-					Expect(fNotNil() != nil).ShouldNot(BeFalse())
-					Expect(nil != fNotNil()).ShouldNot(BeFalse())
+					Expect(fNotNil() != nil).ShouldNot(BeFalse()) // want `avoid double negative assertion`
+					Expect(nil != fNotNil()).ShouldNot(BeFalse()) // want `avoid double negative assertion`
 				})
 			})
 			Context("test BeTrue", func() {
@@ -358,38 +358,38 @@ var _ = Describe("", func() {
 			})
 			Context("test Equal(true)", func() {
 				It("test nil value", func() {
-					Expect(x != nil).ShouldNot(Equal(true))
-					Expect(nil != x).ShouldNot(Equal(true))
+					Expect(x != nil).ShouldNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Expect(nil != x).ShouldNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Expect(y == nil).ShouldNot(Equal(true))
-					Expect(nil == y).ShouldNot(Equal(true))
+					Expect(y == nil).ShouldNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Expect(nil == y).ShouldNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Expect(fNil() != nil).ShouldNot(Equal(true))
-					Expect(nil != fNil()).ShouldNot(Equal(true))
+					Expect(fNil() != nil).ShouldNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Expect(nil != fNil()).ShouldNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Expect(fNotNil() == nil).ShouldNot(Equal(true))
-					Expect(nil == fNotNil()).ShouldNot(Equal(true))
+					Expect(fNotNil() == nil).ShouldNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Expect(nil == fNotNil()).ShouldNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 			Context("test Equal(false)", func() {
 				It("test nil value", func() {
-					Expect(x == nil).ShouldNot(Equal(false))
-					Expect(nil == x).ShouldNot(Equal(false))
+					Expect(x == nil).ShouldNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Expect(nil == x).ShouldNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Expect(y != nil).ShouldNot(Equal(false))
-					Expect(nil != y).ShouldNot(Equal(false))
+					Expect(y != nil).ShouldNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Expect(nil != y).ShouldNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Expect(fNil() == nil).ShouldNot(Equal(false))
-					Expect(nil == fNil()).ShouldNot(Equal(false))
+					Expect(fNil() == nil).ShouldNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Expect(nil == fNil()).ShouldNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Expect(fNotNil() != nil).ShouldNot(Equal(false))
-					Expect(nil != fNotNil()).ShouldNot(Equal(false))
+					Expect(fNotNil() != nil).ShouldNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Expect(nil != fNotNil()).ShouldNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 		})
@@ -397,20 +397,20 @@ var _ = Describe("", func() {
 		Context("test NotTo", func() {
 			Context("test BeFalse", func() {
 				It("test nil value", func() {
-					Expect(x == nil).NotTo(BeFalse())
-					Expect(nil == x).NotTo(BeFalse())
+					Expect(x == nil).NotTo(BeFalse()) // want `avoid double negative assertion`
+					Expect(nil == x).NotTo(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test non-nil value", func() {
-					Expect(y != nil).NotTo(BeFalse())
-					Expect(nil != y).NotTo(BeFalse())
+					Expect(y != nil).NotTo(BeFalse()) // want `avoid double negative assertion`
+					Expect(nil != y).NotTo(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test nil func", func() {
-					Expect(fNil() == nil).NotTo(BeFalse())
-					Expect(nil == fNil()).NotTo(BeFalse())
+					Expect(fNil() == nil).NotTo(BeFalse()) // want `avoid double negative assertion`
+					Expect(nil == fNil()).NotTo(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test non-nil func", func() {
-					Expect(fNotNil() != nil).NotTo(BeFalse())
-					Expect(nil != fNotNil()).NotTo(BeFalse())
+					Expect(fNotNil() != nil).NotTo(BeFalse()) // want `avoid double negative assertion`
+					Expect(nil != fNotNil()).NotTo(BeFalse()) // want `avoid double negative assertion`
 				})
 			})
 			Context("test BeTrue", func() {
@@ -433,58 +433,58 @@ var _ = Describe("", func() {
 			})
 			Context("test Equal(true)", func() {
 				It("test nil value", func() {
-					Expect(x != nil).NotTo(Equal(true))
-					Expect(nil != x).NotTo(Equal(true))
+					Expect(x != nil).NotTo(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Expect(nil != x).NotTo(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Expect(y == nil).NotTo(Equal(true))
-					Expect(nil == y).NotTo(Equal(true))
+					Expect(y == nil).NotTo(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Expect(nil == y).NotTo(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Expect(fNil() != nil).NotTo(Equal(true))
-					Expect(nil != fNil()).NotTo(Equal(true))
+					Expect(fNil() != nil).NotTo(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Expect(nil != fNil()).NotTo(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Expect(fNotNil() == nil).NotTo(Equal(true))
-					Expect(nil == fNotNil()).NotTo(Equal(true))
+					Expect(fNotNil() == nil).NotTo(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Expect(nil == fNotNil()).NotTo(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 			Context("test Equal(false)", func() {
 				It("test nil value", func() {
-					Expect(x == nil).NotTo(Equal(false))
-					Expect(nil == x).NotTo(Equal(false))
+					Expect(x == nil).NotTo(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Expect(nil == x).NotTo(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Expect(y != nil).NotTo(Equal(false))
-					Expect(nil != y).NotTo(Equal(false))
+					Expect(y != nil).NotTo(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Expect(nil != y).NotTo(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Expect(fNil() == nil).NotTo(Equal(false))
-					Expect(nil == fNil()).NotTo(Equal(false))
+					Expect(fNil() == nil).NotTo(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Expect(nil == fNil()).NotTo(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Expect(fNotNil() != nil).NotTo(Equal(false))
-					Expect(nil != fNotNil()).NotTo(Equal(false))
+					Expect(fNotNil() != nil).NotTo(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Expect(nil != fNotNil()).NotTo(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 		})
 		Context("test ToNot", func() {
 			Context("test BeFalse", func() {
 				It("test nil value", func() {
-					Expect(x == nil).ToNot(BeFalse())
-					Expect(nil == x).ToNot(BeFalse())
+					Expect(x == nil).ToNot(BeFalse()) // want `avoid double negative assertion`
+					Expect(nil == x).ToNot(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test non-nil value", func() {
-					Expect(y != nil).ToNot(BeFalse())
-					Expect(nil != y).ToNot(BeFalse())
+					Expect(y != nil).ToNot(BeFalse()) // want `avoid double negative assertion`
+					Expect(nil != y).ToNot(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test nil func", func() {
-					Expect(fNil() == nil).ToNot(BeFalse())
-					Expect(nil == fNil()).ToNot(BeFalse())
+					Expect(fNil() == nil).ToNot(BeFalse()) // want `avoid double negative assertion`
+					Expect(nil == fNil()).ToNot(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test non-nil func", func() {
-					Expect(fNotNil() != nil).ToNot(BeFalse())
-					Expect(nil != fNotNil()).ToNot(BeFalse())
+					Expect(fNotNil() != nil).ToNot(BeFalse()) // want `avoid double negative assertion`
+					Expect(nil != fNotNil()).ToNot(BeFalse()) // want `avoid double negative assertion`
 				})
 			})
 			Context("test BeTrue", func() {
@@ -507,38 +507,38 @@ var _ = Describe("", func() {
 			})
 			Context("test Equal(true)", func() {
 				It("test nil value", func() {
-					Expect(x != nil).ToNot(Equal(true))
-					Expect(nil != x).ToNot(Equal(true))
+					Expect(x != nil).ToNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Expect(nil != x).ToNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Expect(y == nil).ToNot(Equal(true))
-					Expect(nil == y).ToNot(Equal(true))
+					Expect(y == nil).ToNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Expect(nil == y).ToNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Expect(fNil() != nil).ToNot(Equal(true))
-					Expect(nil != fNil()).ToNot(Equal(true))
+					Expect(fNil() != nil).ToNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Expect(nil != fNil()).ToNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Expect(fNotNil() == nil).ToNot(Equal(true))
-					Expect(nil == fNotNil()).ToNot(Equal(true))
+					Expect(fNotNil() == nil).ToNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Expect(nil == fNotNil()).ToNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 			Context("test Equal(false)", func() {
 				It("test nil value", func() {
-					Expect(x == nil).ToNot(Equal(false))
-					Expect(nil == x).ToNot(Equal(false))
+					Expect(x == nil).ToNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Expect(nil == x).ToNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Expect(y != nil).ToNot(Equal(false))
-					Expect(nil != y).ToNot(Equal(false))
+					Expect(y != nil).ToNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Expect(nil != y).ToNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Expect(fNil() == nil).ToNot(Equal(false))
-					Expect(nil == fNil()).ToNot(Equal(false))
+					Expect(fNil() == nil).ToNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Expect(nil == fNil()).ToNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Expect(fNotNil() != nil).ToNot(Equal(false))
-					Expect(nil != fNotNil()).ToNot(Equal(false))
+					Expect(fNotNil() != nil).ToNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Expect(nil != fNotNil()).ToNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 		})
@@ -584,58 +584,58 @@ var _ = Describe("", func() {
 			})
 			Context("test Equal(true)", func() {
 				It("test nil value", func() {
-					ExpectWithOffset(1, x == nil).Should(Equal(true))
-					ExpectWithOffset(1, nil == x).Should(Equal(true))
+					ExpectWithOffset(1, x == nil).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == x).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					ExpectWithOffset(1, y != nil).Should(Equal(true))
-					ExpectWithOffset(1, nil != y).Should(Equal(true))
+					ExpectWithOffset(1, y != nil).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != y).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					ExpectWithOffset(1, fNil() == nil).Should(Equal(true))
-					ExpectWithOffset(1, nil == fNil()).Should(Equal(true))
+					ExpectWithOffset(1, fNil() == nil).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == fNil()).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					ExpectWithOffset(1, fNotNil() != nil).Should(Equal(true))
-					ExpectWithOffset(1, nil != fNotNil()).Should(Equal(true))
+					ExpectWithOffset(1, fNotNil() != nil).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != fNotNil()).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 			Context("test Equal(false)", func() {
 				It("test nil value", func() {
-					ExpectWithOffset(1, x != nil).Should(Equal(false))
-					ExpectWithOffset(1, nil != x).Should(Equal(false))
+					ExpectWithOffset(1, x != nil).Should(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != x).Should(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					ExpectWithOffset(1, y == nil).Should(Equal(false))
-					ExpectWithOffset(1, nil == y).Should(Equal(false))
+					ExpectWithOffset(1, y == nil).Should(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == y).Should(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					ExpectWithOffset(1, fNil() != nil).Should(Equal(false))
-					ExpectWithOffset(1, nil != fNil()).Should(Equal(false))
+					ExpectWithOffset(1, fNil() != nil).Should(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != fNil()).Should(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					ExpectWithOffset(1, fNotNil() == nil).Should(Equal(false))
-					ExpectWithOffset(1, nil == fNotNil()).Should(Equal(false))
+					ExpectWithOffset(1, fNotNil() == nil).Should(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == fNotNil()).Should(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 		})
 		Context("test Should(Not())", func() {
 			Context("test BeTrue", func() {
 				It("test nil value", func() {
-					ExpectWithOffset(1, x == nil).Should(Not(BeFalse()))
-					ExpectWithOffset(1, nil == x).Should(Not(BeFalse()))
+					ExpectWithOffset(1, x == nil).Should(Not(BeFalse())) // want `avoid double negative assertion`
+					ExpectWithOffset(1, nil == x).Should(Not(BeFalse())) // want `avoid double negative assertion`
 				})
 				It("test non-nil value", func() {
-					ExpectWithOffset(1, y != nil).Should(Not(BeFalse()))
-					ExpectWithOffset(1, nil != y).Should(Not(BeFalse()))
+					ExpectWithOffset(1, y != nil).Should(Not(BeFalse())) // want `avoid double negative assertion`
+					ExpectWithOffset(1, nil != y).Should(Not(BeFalse())) // want `avoid double negative assertion`
 				})
 				It("test nil func", func() {
-					ExpectWithOffset(1, fNil() == nil).Should(Not(BeFalse()))
-					ExpectWithOffset(1, nil == fNil()).Should(Not(BeFalse()))
+					ExpectWithOffset(1, fNil() == nil).Should(Not(BeFalse())) // want `avoid double negative assertion`
+					ExpectWithOffset(1, nil == fNil()).Should(Not(BeFalse())) // want `avoid double negative assertion`
 				})
 				It("test non-nil func", func() {
-					ExpectWithOffset(1, fNotNil() != nil).Should(Not(BeFalse()))
-					ExpectWithOffset(1, nil != fNotNil()).Should(Not(BeFalse()))
+					ExpectWithOffset(1, fNotNil() != nil).Should(Not(BeFalse())) // want `avoid double negative assertion`
+					ExpectWithOffset(1, nil != fNotNil()).Should(Not(BeFalse())) // want `avoid double negative assertion`
 				})
 			})
 			Context("test BeFalse", func() {
@@ -658,38 +658,38 @@ var _ = Describe("", func() {
 			})
 			Context("test Equal(false)", func() {
 				It("test nil value", func() {
-					ExpectWithOffset(1, x == nil).Should(Not(Equal(false)))
-					ExpectWithOffset(1, nil == x).Should(Not(Equal(false)))
+					ExpectWithOffset(1, x == nil).Should(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == x).Should(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					ExpectWithOffset(1, y != nil).Should(Not(Equal(false)))
-					ExpectWithOffset(1, nil != y).Should(Not(Equal(false)))
+					ExpectWithOffset(1, y != nil).Should(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != y).Should(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					ExpectWithOffset(1, fNil() == nil).Should(Not(Equal(false)))
-					ExpectWithOffset(1, nil == fNil()).Should(Not(Equal(false)))
+					ExpectWithOffset(1, fNil() == nil).Should(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == fNil()).Should(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					ExpectWithOffset(1, fNotNil() != nil).Should(Not(Equal(false)))
-					ExpectWithOffset(1, nil != fNotNil()).Should(Not(Equal(false)))
+					ExpectWithOffset(1, fNotNil() != nil).Should(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != fNotNil()).Should(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 			Context("test Equal(true)", func() {
 				It("test nil value", func() {
-					ExpectWithOffset(1, x != nil).Should(Not(Equal(true)))
-					ExpectWithOffset(1, nil != x).Should(Not(Equal(true)))
+					ExpectWithOffset(1, x != nil).Should(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != x).Should(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					ExpectWithOffset(1, y == nil).Should(Not(Equal(true)))
-					ExpectWithOffset(1, nil == y).Should(Not(Equal(true)))
+					ExpectWithOffset(1, y == nil).Should(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == y).Should(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					ExpectWithOffset(1, fNil() != nil).Should(Not(Equal(true)))
-					ExpectWithOffset(1, nil != fNil()).Should(Not(Equal(true)))
+					ExpectWithOffset(1, fNil() != nil).Should(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != fNil()).Should(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					ExpectWithOffset(1, fNotNil() == nil).Should(Not(Equal(true)))
-					ExpectWithOffset(1, nil == fNotNil()).Should(Not(Equal(true)))
+					ExpectWithOffset(1, fNotNil() == nil).Should(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == fNotNil()).Should(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 		})
@@ -733,58 +733,58 @@ var _ = Describe("", func() {
 			})
 			Context("test Equal(true)", func() {
 				It("test nil value", func() {
-					ExpectWithOffset(1, x == nil).To(Equal(true))
-					ExpectWithOffset(1, nil == x).To(Equal(true))
+					ExpectWithOffset(1, x == nil).To(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == x).To(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					ExpectWithOffset(1, y != nil).To(Equal(true))
-					ExpectWithOffset(1, nil != y).To(Equal(true))
+					ExpectWithOffset(1, y != nil).To(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != y).To(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					ExpectWithOffset(1, fNil() == nil).To(Equal(true))
-					ExpectWithOffset(1, nil == fNil()).To(Equal(true))
+					ExpectWithOffset(1, fNil() == nil).To(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == fNil()).To(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					ExpectWithOffset(1, fNotNil() != nil).To(Equal(true))
-					ExpectWithOffset(1, nil != fNotNil()).To(Equal(true))
+					ExpectWithOffset(1, fNotNil() != nil).To(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != fNotNil()).To(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 			Context("test Equal(false)", func() {
 				It("test nil value", func() {
-					ExpectWithOffset(1, x != nil).To(Equal(false))
-					ExpectWithOffset(1, nil != x).To(Equal(false))
+					ExpectWithOffset(1, x != nil).To(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != x).To(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					ExpectWithOffset(1, y == nil).To(Equal(false))
-					ExpectWithOffset(1, nil == y).To(Equal(false))
+					ExpectWithOffset(1, y == nil).To(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == y).To(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					ExpectWithOffset(1, fNil() != nil).To(Equal(false))
-					ExpectWithOffset(1, nil != fNil()).To(Equal(false))
+					ExpectWithOffset(1, fNil() != nil).To(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != fNil()).To(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					ExpectWithOffset(1, fNotNil() == nil).To(Equal(false))
-					ExpectWithOffset(1, nil == fNotNil()).To(Equal(false))
+					ExpectWithOffset(1, fNotNil() == nil).To(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == fNotNil()).To(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 		})
 		Context("test To(Not())", func() {
 			Context("test BeTrue", func() {
 				It("test nil value", func() {
-					ExpectWithOffset(1, x == nil).To(Not(BeFalse()))
-					ExpectWithOffset(1, nil == x).To(Not(BeFalse()))
+					ExpectWithOffset(1, x == nil).To(Not(BeFalse())) // want `avoid double negative assertion`
+					ExpectWithOffset(1, nil == x).To(Not(BeFalse())) // want `avoid double negative assertion`
 				})
 				It("test non-nil value", func() {
-					ExpectWithOffset(1, y != nil).To(Not(BeFalse()))
-					ExpectWithOffset(1, nil != y).To(Not(BeFalse()))
+					ExpectWithOffset(1, y != nil).To(Not(BeFalse())) // want `avoid double negative assertion`
+					ExpectWithOffset(1, nil != y).To(Not(BeFalse())) // want `avoid double negative assertion`
 				})
 				It("test nil func", func() {
-					ExpectWithOffset(1, fNil() == nil).To(Not(BeFalse()))
-					ExpectWithOffset(1, nil == fNil()).To(Not(BeFalse()))
+					ExpectWithOffset(1, fNil() == nil).To(Not(BeFalse())) // want `avoid double negative assertion`
+					ExpectWithOffset(1, nil == fNil()).To(Not(BeFalse())) // want `avoid double negative assertion`
 				})
 				It("test non-nil func", func() {
-					ExpectWithOffset(1, fNotNil() != nil).To(Not(BeFalse()))
-					ExpectWithOffset(1, nil != fNotNil()).To(Not(BeFalse()))
+					ExpectWithOffset(1, fNotNil() != nil).To(Not(BeFalse())) // want `avoid double negative assertion`
+					ExpectWithOffset(1, nil != fNotNil()).To(Not(BeFalse())) // want `avoid double negative assertion`
 				})
 			})
 			Context("test BeFalse", func() {
@@ -807,38 +807,38 @@ var _ = Describe("", func() {
 			})
 			Context("test Equal(false)", func() {
 				It("test nil value", func() {
-					ExpectWithOffset(1, x == nil).To(Not(Equal(false)))
-					ExpectWithOffset(1, nil == x).To(Not(Equal(false)))
+					ExpectWithOffset(1, x == nil).To(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == x).To(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					ExpectWithOffset(1, y != nil).To(Not(Equal(false)))
-					ExpectWithOffset(1, nil != y).To(Not(Equal(false)))
+					ExpectWithOffset(1, y != nil).To(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != y).To(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					ExpectWithOffset(1, fNil() == nil).To(Not(Equal(false)))
-					ExpectWithOffset(1, nil == fNil()).To(Not(Equal(false)))
+					ExpectWithOffset(1, fNil() == nil).To(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == fNil()).To(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					ExpectWithOffset(1, fNotNil() != nil).To(Not(Equal(false)))
-					ExpectWithOffset(1, nil != fNotNil()).To(Not(Equal(false)))
+					ExpectWithOffset(1, fNotNil() != nil).To(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != fNotNil()).To(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 			Context("test Equal(true)", func() {
 				It("test nil value", func() {
-					ExpectWithOffset(1, x != nil).To(Not(Equal(true)))
-					ExpectWithOffset(1, nil != x).To(Not(Equal(true)))
+					ExpectWithOffset(1, x != nil).To(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != x).To(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					ExpectWithOffset(1, y == nil).To(Not(Equal(true)))
-					ExpectWithOffset(1, nil == y).To(Not(Equal(true)))
+					ExpectWithOffset(1, y == nil).To(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == y).To(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					ExpectWithOffset(1, fNil() != nil).To(Not(Equal(true)))
-					ExpectWithOffset(1, nil != fNil()).To(Not(Equal(true)))
+					ExpectWithOffset(1, fNil() != nil).To(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != fNil()).To(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					ExpectWithOffset(1, fNotNil() == nil).To(Not(Equal(true)))
-					ExpectWithOffset(1, nil == fNotNil()).To(Not(Equal(true)))
+					ExpectWithOffset(1, fNotNil() == nil).To(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == fNotNil()).To(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 		})
@@ -846,20 +846,20 @@ var _ = Describe("", func() {
 		Context("test ShouldNot", func() {
 			Context("test BeFalse", func() {
 				It("test nil value", func() {
-					ExpectWithOffset(1, x == nil).ShouldNot(BeFalse())
-					ExpectWithOffset(1, nil == x).ShouldNot(BeFalse())
+					ExpectWithOffset(1, x == nil).ShouldNot(BeFalse()) // want `avoid double negative assertion`
+					ExpectWithOffset(1, nil == x).ShouldNot(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test non-nil value", func() {
-					ExpectWithOffset(1, y != nil).ShouldNot(BeFalse())
-					ExpectWithOffset(1, nil != y).ShouldNot(BeFalse())
+					ExpectWithOffset(1, y != nil).ShouldNot(BeFalse()) // want `avoid double negative assertion`
+					ExpectWithOffset(1, nil != y).ShouldNot(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test nil func", func() {
-					ExpectWithOffset(1, fNil() == nil).ShouldNot(BeFalse())
-					ExpectWithOffset(1, nil == fNil()).ShouldNot(BeFalse())
+					ExpectWithOffset(1, fNil() == nil).ShouldNot(BeFalse()) // want `avoid double negative assertion`
+					ExpectWithOffset(1, nil == fNil()).ShouldNot(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test non-nil func", func() {
-					ExpectWithOffset(1, fNotNil() != nil).ShouldNot(BeFalse())
-					ExpectWithOffset(1, nil != fNotNil()).ShouldNot(BeFalse())
+					ExpectWithOffset(1, fNotNil() != nil).ShouldNot(BeFalse()) // want `avoid double negative assertion`
+					ExpectWithOffset(1, nil != fNotNil()).ShouldNot(BeFalse()) // want `avoid double negative assertion`
 				})
 			})
 			Context("test BeTrue", func() {
@@ -882,38 +882,38 @@ var _ = Describe("", func() {
 			})
 			Context("test Equal(true)", func() {
 				It("test nil value", func() {
-					ExpectWithOffset(1, x != nil).ShouldNot(Equal(true))
-					ExpectWithOffset(1, nil != x).ShouldNot(Equal(true))
+					ExpectWithOffset(1, x != nil).ShouldNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != x).ShouldNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					ExpectWithOffset(1, y == nil).ShouldNot(Equal(true))
-					ExpectWithOffset(1, nil == y).ShouldNot(Equal(true))
+					ExpectWithOffset(1, y == nil).ShouldNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == y).ShouldNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					ExpectWithOffset(1, fNil() != nil).ShouldNot(Equal(true))
-					ExpectWithOffset(1, nil != fNil()).ShouldNot(Equal(true))
+					ExpectWithOffset(1, fNil() != nil).ShouldNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != fNil()).ShouldNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					ExpectWithOffset(1, fNotNil() == nil).ShouldNot(Equal(true))
-					ExpectWithOffset(1, nil == fNotNil()).ShouldNot(Equal(true))
+					ExpectWithOffset(1, fNotNil() == nil).ShouldNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == fNotNil()).ShouldNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 			Context("test Equal(false)", func() {
 				It("test nil value", func() {
-					ExpectWithOffset(1, x == nil).ShouldNot(Equal(false))
-					ExpectWithOffset(1, nil == x).ShouldNot(Equal(false))
+					ExpectWithOffset(1, x == nil).ShouldNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == x).ShouldNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					ExpectWithOffset(1, y != nil).ShouldNot(Equal(false))
-					ExpectWithOffset(1, nil != y).ShouldNot(Equal(false))
+					ExpectWithOffset(1, y != nil).ShouldNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != y).ShouldNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					ExpectWithOffset(1, fNil() == nil).ShouldNot(Equal(false))
-					ExpectWithOffset(1, nil == fNil()).ShouldNot(Equal(false))
+					ExpectWithOffset(1, fNil() == nil).ShouldNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == fNil()).ShouldNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					ExpectWithOffset(1, fNotNil() != nil).ShouldNot(Equal(false))
-					ExpectWithOffset(1, nil != fNotNil()).ShouldNot(Equal(false))
+					ExpectWithOffset(1, fNotNil() != nil).ShouldNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != fNotNil()).ShouldNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 		})
@@ -921,20 +921,20 @@ var _ = Describe("", func() {
 		Context("test NotTo", func() {
 			Context("test BeFalse", func() {
 				It("test nil value", func() {
-					ExpectWithOffset(1, x == nil).NotTo(BeFalse())
-					ExpectWithOffset(1, nil == x).NotTo(BeFalse())
+					ExpectWithOffset(1, x == nil).NotTo(BeFalse()) // want `avoid double negative assertion`
+					ExpectWithOffset(1, nil == x).NotTo(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test non-nil value", func() {
-					ExpectWithOffset(1, y != nil).NotTo(BeFalse())
-					ExpectWithOffset(1, nil != y).NotTo(BeFalse())
+					ExpectWithOffset(1, y != nil).NotTo(BeFalse()) // want `avoid double negative assertion`
+					ExpectWithOffset(1, nil != y).NotTo(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test nil func", func() {
-					ExpectWithOffset(1, fNil() == nil).NotTo(BeFalse())
-					ExpectWithOffset(1, nil == fNil()).NotTo(BeFalse())
+					ExpectWithOffset(1, fNil() == nil).NotTo(BeFalse()) // want `avoid double negative assertion`
+					ExpectWithOffset(1, nil == fNil()).NotTo(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test non-nil func", func() {
-					ExpectWithOffset(1, fNotNil() != nil).NotTo(BeFalse())
-					ExpectWithOffset(1, nil != fNotNil()).NotTo(BeFalse())
+					ExpectWithOffset(1, fNotNil() != nil).NotTo(BeFalse()) // want `avoid double negative assertion`
+					ExpectWithOffset(1, nil != fNotNil()).NotTo(BeFalse()) // want `avoid double negative assertion`
 				})
 			})
 			Context("test BeTrue", func() {
@@ -957,58 +957,58 @@ var _ = Describe("", func() {
 			})
 			Context("test Equal(true)", func() {
 				It("test nil value", func() {
-					ExpectWithOffset(1, x != nil).NotTo(Equal(true))
-					ExpectWithOffset(1, nil != x).NotTo(Equal(true))
+					ExpectWithOffset(1, x != nil).NotTo(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != x).NotTo(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					ExpectWithOffset(1, y == nil).NotTo(Equal(true))
-					ExpectWithOffset(1, nil == y).NotTo(Equal(true))
+					ExpectWithOffset(1, y == nil).NotTo(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == y).NotTo(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					ExpectWithOffset(1, fNil() != nil).NotTo(Equal(true))
-					ExpectWithOffset(1, nil != fNil()).NotTo(Equal(true))
+					ExpectWithOffset(1, fNil() != nil).NotTo(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != fNil()).NotTo(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					ExpectWithOffset(1, fNotNil() == nil).NotTo(Equal(true))
-					ExpectWithOffset(1, nil == fNotNil()).NotTo(Equal(true))
+					ExpectWithOffset(1, fNotNil() == nil).NotTo(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == fNotNil()).NotTo(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 			Context("test Equal(false)", func() {
 				It("test nil value", func() {
-					ExpectWithOffset(1, x == nil).NotTo(Equal(false))
-					ExpectWithOffset(1, nil == x).NotTo(Equal(false))
+					ExpectWithOffset(1, x == nil).NotTo(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == x).NotTo(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					ExpectWithOffset(1, y != nil).NotTo(Equal(false))
-					ExpectWithOffset(1, nil != y).NotTo(Equal(false))
+					ExpectWithOffset(1, y != nil).NotTo(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != y).NotTo(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					ExpectWithOffset(1, fNil() == nil).NotTo(Equal(false))
-					ExpectWithOffset(1, nil == fNil()).NotTo(Equal(false))
+					ExpectWithOffset(1, fNil() == nil).NotTo(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == fNil()).NotTo(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					ExpectWithOffset(1, fNotNil() != nil).NotTo(Equal(false))
-					ExpectWithOffset(1, nil != fNotNil()).NotTo(Equal(false))
+					ExpectWithOffset(1, fNotNil() != nil).NotTo(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != fNotNil()).NotTo(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 		})
 		Context("test ToNot", func() {
 			Context("test BeFalse", func() {
 				It("test nil value", func() {
-					ExpectWithOffset(1, x == nil).ToNot(BeFalse())
-					ExpectWithOffset(1, nil == x).ToNot(BeFalse())
+					ExpectWithOffset(1, x == nil).ToNot(BeFalse()) // want `avoid double negative assertion`
+					ExpectWithOffset(1, nil == x).ToNot(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test non-nil value", func() {
-					ExpectWithOffset(1, y != nil).ToNot(BeFalse())
-					ExpectWithOffset(1, nil != y).ToNot(BeFalse())
+					ExpectWithOffset(1, y != nil).ToNot(BeFalse()) // want `avoid double negative assertion`
+					ExpectWithOffset(1, nil != y).ToNot(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test nil func", func() {
-					ExpectWithOffset(1, fNil() == nil).ToNot(BeFalse())
-					ExpectWithOffset(1, nil == fNil()).ToNot(BeFalse())
+					ExpectWithOffset(1, fNil() == nil).ToNot(BeFalse()) // want `avoid double negative assertion`
+					ExpectWithOffset(1, nil == fNil()).ToNot(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test non-nil func", func() {
-					ExpectWithOffset(1, fNotNil() != nil).ToNot(BeFalse())
-					ExpectWithOffset(1, nil != fNotNil()).ToNot(BeFalse())
+					ExpectWithOffset(1, fNotNil() != nil).ToNot(BeFalse()) // want `avoid double negative assertion`
+					ExpectWithOffset(1, nil != fNotNil()).ToNot(BeFalse()) // want `avoid double negative assertion`
 				})
 			})
 			Context("test BeTrue", func() {
@@ -1031,38 +1031,38 @@ var _ = Describe("", func() {
 			})
 			Context("test Equal(true)", func() {
 				It("test nil value", func() {
-					ExpectWithOffset(1, x != nil).ToNot(Equal(true))
-					ExpectWithOffset(1, nil != x).ToNot(Equal(true))
+					ExpectWithOffset(1, x != nil).ToNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != x).ToNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					ExpectWithOffset(1, y == nil).ToNot(Equal(true))
-					ExpectWithOffset(1, nil == y).ToNot(Equal(true))
+					ExpectWithOffset(1, y == nil).ToNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == y).ToNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					ExpectWithOffset(1, fNil() != nil).ToNot(Equal(true))
-					ExpectWithOffset(1, nil != fNil()).ToNot(Equal(true))
+					ExpectWithOffset(1, fNil() != nil).ToNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != fNil()).ToNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					ExpectWithOffset(1, fNotNil() == nil).ToNot(Equal(true))
-					ExpectWithOffset(1, nil == fNotNil()).ToNot(Equal(true))
+					ExpectWithOffset(1, fNotNil() == nil).ToNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == fNotNil()).ToNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 			Context("test Equal(false)", func() {
 				It("test nil value", func() {
-					ExpectWithOffset(1, x == nil).ToNot(Equal(false))
-					ExpectWithOffset(1, nil == x).ToNot(Equal(false))
+					ExpectWithOffset(1, x == nil).ToNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == x).ToNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					ExpectWithOffset(1, y != nil).ToNot(Equal(false))
-					ExpectWithOffset(1, nil != y).ToNot(Equal(false))
+					ExpectWithOffset(1, y != nil).ToNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != y).ToNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					ExpectWithOffset(1, fNil() == nil).ToNot(Equal(false))
-					ExpectWithOffset(1, nil == fNil()).ToNot(Equal(false))
+					ExpectWithOffset(1, fNil() == nil).ToNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil == fNil()).ToNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					ExpectWithOffset(1, fNotNil() != nil).ToNot(Equal(false))
-					ExpectWithOffset(1, nil != fNotNil()).ToNot(Equal(false))
+					ExpectWithOffset(1, fNotNil() != nil).ToNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					ExpectWithOffset(1, nil != fNotNil()).ToNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 		})
@@ -1108,58 +1108,58 @@ var _ = Describe("", func() {
 			})
 			Context("test Equal(true)", func() {
 				It("test nil value", func() {
-					Ω(x == nil).Should(Equal(true))
-					Ω(nil == x).Should(Equal(true))
+					Ω(x == nil).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == x).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Ω(y != nil).Should(Equal(true))
-					Ω(nil != y).Should(Equal(true))
+					Ω(y != nil).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != y).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Ω(fNil() == nil).Should(Equal(true))
-					Ω(nil == fNil()).Should(Equal(true))
+					Ω(fNil() == nil).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == fNil()).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Ω(fNotNil() != nil).Should(Equal(true))
-					Ω(nil != fNotNil()).Should(Equal(true))
+					Ω(fNotNil() != nil).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != fNotNil()).Should(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 			Context("test Equal(false)", func() {
 				It("test nil value", func() {
-					Ω(x != nil).Should(Equal(false))
-					Ω(nil != x).Should(Equal(false))
+					Ω(x != nil).Should(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != x).Should(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Ω(y == nil).Should(Equal(false))
-					Ω(nil == y).Should(Equal(false))
+					Ω(y == nil).Should(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == y).Should(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Ω(fNil() != nil).Should(Equal(false))
-					Ω(nil != fNil()).Should(Equal(false))
+					Ω(fNil() != nil).Should(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != fNil()).Should(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Ω(fNotNil() == nil).Should(Equal(false))
-					Ω(nil == fNotNil()).Should(Equal(false))
+					Ω(fNotNil() == nil).Should(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == fNotNil()).Should(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 		})
 		Context("test Should(Not())", func() {
 			Context("test BeTrue", func() {
 				It("test nil value", func() {
-					Ω(x == nil).Should(Not(BeFalse()))
-					Ω(nil == x).Should(Not(BeFalse()))
+					Ω(x == nil).Should(Not(BeFalse())) // want `avoid double negative assertion`
+					Ω(nil == x).Should(Not(BeFalse())) // want `avoid double negative assertion`
 				})
 				It("test non-nil value", func() {
-					Ω(y != nil).Should(Not(BeFalse()))
-					Ω(nil != y).Should(Not(BeFalse()))
+					Ω(y != nil).Should(Not(BeFalse())) // want `avoid double negative assertion`
+					Ω(nil != y).Should(Not(BeFalse())) // want `avoid double negative assertion`
 				})
 				It("test nil func", func() {
-					Ω(fNil() == nil).Should(Not(BeFalse()))
-					Ω(nil == fNil()).Should(Not(BeFalse()))
+					Ω(fNil() == nil).Should(Not(BeFalse())) // want `avoid double negative assertion`
+					Ω(nil == fNil()).Should(Not(BeFalse())) // want `avoid double negative assertion`
 				})
 				It("test non-nil func", func() {
-					Ω(fNotNil() != nil).Should(Not(BeFalse()))
-					Ω(nil != fNotNil()).Should(Not(BeFalse()))
+					Ω(fNotNil() != nil).Should(Not(BeFalse())) // want `avoid double negative assertion`
+					Ω(nil != fNotNil()).Should(Not(BeFalse())) // want `avoid double negative assertion`
 				})
 			})
 			Context("test BeFalse", func() {
@@ -1182,38 +1182,38 @@ var _ = Describe("", func() {
 			})
 			Context("test Equal(false)", func() {
 				It("test nil value", func() {
-					Ω(x == nil).Should(Not(Equal(false)))
-					Ω(nil == x).Should(Not(Equal(false)))
+					Ω(x == nil).Should(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == x).Should(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Ω(y != nil).Should(Not(Equal(false)))
-					Ω(nil != y).Should(Not(Equal(false)))
+					Ω(y != nil).Should(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != y).Should(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Ω(fNil() == nil).Should(Not(Equal(false)))
-					Ω(nil == fNil()).Should(Not(Equal(false)))
+					Ω(fNil() == nil).Should(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == fNil()).Should(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Ω(fNotNil() != nil).Should(Not(Equal(false)))
-					Ω(nil != fNotNil()).Should(Not(Equal(false)))
+					Ω(fNotNil() != nil).Should(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != fNotNil()).Should(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 			Context("test Equal(true)", func() {
 				It("test nil value", func() {
-					Ω(x != nil).Should(Not(Equal(true)))
-					Ω(nil != x).Should(Not(Equal(true)))
+					Ω(x != nil).Should(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != x).Should(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Ω(y == nil).Should(Not(Equal(true)))
-					Ω(nil == y).Should(Not(Equal(true)))
+					Ω(y == nil).Should(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == y).Should(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Ω(fNil() != nil).Should(Not(Equal(true)))
-					Ω(nil != fNil()).Should(Not(Equal(true)))
+					Ω(fNil() != nil).Should(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != fNil()).Should(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Ω(fNotNil() == nil).Should(Not(Equal(true)))
-					Ω(nil == fNotNil()).Should(Not(Equal(true)))
+					Ω(fNotNil() == nil).Should(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == fNotNil()).Should(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 		})
@@ -1257,58 +1257,58 @@ var _ = Describe("", func() {
 			})
 			Context("test Equal(true)", func() {
 				It("test nil value", func() {
-					Ω(x == nil).To(Equal(true))
-					Ω(nil == x).To(Equal(true))
+					Ω(x == nil).To(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == x).To(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Ω(y != nil).To(Equal(true))
-					Ω(nil != y).To(Equal(true))
+					Ω(y != nil).To(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != y).To(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Ω(fNil() == nil).To(Equal(true))
-					Ω(nil == fNil()).To(Equal(true))
+					Ω(fNil() == nil).To(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == fNil()).To(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Ω(fNotNil() != nil).To(Equal(true))
-					Ω(nil != fNotNil()).To(Equal(true))
+					Ω(fNotNil() != nil).To(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != fNotNil()).To(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 			Context("test Equal(false)", func() {
 				It("test nil value", func() {
-					Ω(x != nil).To(Equal(false))
-					Ω(nil != x).To(Equal(false))
+					Ω(x != nil).To(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != x).To(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Ω(y == nil).To(Equal(false))
-					Ω(nil == y).To(Equal(false))
+					Ω(y == nil).To(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == y).To(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Ω(fNil() != nil).To(Equal(false))
-					Ω(nil != fNil()).To(Equal(false))
+					Ω(fNil() != nil).To(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != fNil()).To(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Ω(fNotNil() == nil).To(Equal(false))
-					Ω(nil == fNotNil()).To(Equal(false))
+					Ω(fNotNil() == nil).To(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == fNotNil()).To(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 		})
 		Context("test To(Not())", func() {
 			Context("test BeTrue", func() {
 				It("test nil value", func() {
-					Ω(x == nil).To(Not(BeFalse()))
-					Ω(nil == x).To(Not(BeFalse()))
+					Ω(x == nil).To(Not(BeFalse())) // want `avoid double negative assertion`
+					Ω(nil == x).To(Not(BeFalse())) // want `avoid double negative assertion`
 				})
 				It("test non-nil value", func() {
-					Ω(y != nil).To(Not(BeFalse()))
-					Ω(nil != y).To(Not(BeFalse()))
+					Ω(y != nil).To(Not(BeFalse())) // want `avoid double negative assertion`
+					Ω(nil != y).To(Not(BeFalse())) // want `avoid double negative assertion`
 				})
 				It("test nil func", func() {
-					Ω(fNil() == nil).To(Not(BeFalse()))
-					Ω(nil == fNil()).To(Not(BeFalse()))
+					Ω(fNil() == nil).To(Not(BeFalse())) // want `avoid double negative assertion`
+					Ω(nil == fNil()).To(Not(BeFalse())) // want `avoid double negative assertion`
 				})
 				It("test non-nil func", func() {
-					Ω(fNotNil() != nil).To(Not(BeFalse()))
-					Ω(nil != fNotNil()).To(Not(BeFalse()))
+					Ω(fNotNil() != nil).To(Not(BeFalse())) // want `avoid double negative assertion`
+					Ω(nil != fNotNil()).To(Not(BeFalse())) // want `avoid double negative assertion`
 				})
 			})
 			Context("test BeFalse", func() {
@@ -1331,38 +1331,38 @@ var _ = Describe("", func() {
 			})
 			Context("test Equal(false)", func() {
 				It("test nil value", func() {
-					Ω(x == nil).To(Not(Equal(false)))
-					Ω(nil == x).To(Not(Equal(false)))
+					Ω(x == nil).To(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == x).To(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Ω(y != nil).To(Not(Equal(false)))
-					Ω(nil != y).To(Not(Equal(false)))
+					Ω(y != nil).To(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != y).To(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Ω(fNil() == nil).To(Not(Equal(false)))
-					Ω(nil == fNil()).To(Not(Equal(false)))
+					Ω(fNil() == nil).To(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == fNil()).To(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Ω(fNotNil() != nil).To(Not(Equal(false)))
-					Ω(nil != fNotNil()).To(Not(Equal(false)))
+					Ω(fNotNil() != nil).To(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != fNotNil()).To(Not(Equal(false))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 			Context("test Equal(true)", func() {
 				It("test nil value", func() {
-					Ω(x != nil).To(Not(Equal(true)))
-					Ω(nil != x).To(Not(Equal(true)))
+					Ω(x != nil).To(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != x).To(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Ω(y == nil).To(Not(Equal(true)))
-					Ω(nil == y).To(Not(Equal(true)))
+					Ω(y == nil).To(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == y).To(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Ω(fNil() != nil).To(Not(Equal(true)))
-					Ω(nil != fNil()).To(Not(Equal(true)))
+					Ω(fNil() != nil).To(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != fNil()).To(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Ω(fNotNil() == nil).To(Not(Equal(true)))
-					Ω(nil == fNotNil()).To(Not(Equal(true)))
+					Ω(fNotNil() == nil).To(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == fNotNil()).To(Not(Equal(true))) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 		})
@@ -1370,20 +1370,20 @@ var _ = Describe("", func() {
 		Context("test ShouldNot", func() {
 			Context("test BeFalse", func() {
 				It("test nil value", func() {
-					Ω(x == nil).ShouldNot(BeFalse())
-					Ω(nil == x).ShouldNot(BeFalse())
+					Ω(x == nil).ShouldNot(BeFalse()) // want `avoid double negative assertion`
+					Ω(nil == x).ShouldNot(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test non-nil value", func() {
-					Ω(y != nil).ShouldNot(BeFalse())
-					Ω(nil != y).ShouldNot(BeFalse())
+					Ω(y != nil).ShouldNot(BeFalse()) // want `avoid double negative assertion`
+					Ω(nil != y).ShouldNot(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test nil func", func() {
-					Ω(fNil() == nil).ShouldNot(BeFalse())
-					Ω(nil == fNil()).ShouldNot(BeFalse())
+					Ω(fNil() == nil).ShouldNot(BeFalse()) // want `avoid double negative assertion`
+					Ω(nil == fNil()).ShouldNot(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test non-nil func", func() {
-					Ω(fNotNil() != nil).ShouldNot(BeFalse())
-					Ω(nil != fNotNil()).ShouldNot(BeFalse())
+					Ω(fNotNil() != nil).ShouldNot(BeFalse()) // want `avoid double negative assertion`
+					Ω(nil != fNotNil()).ShouldNot(BeFalse()) // want `avoid double negative assertion`
 				})
 			})
 			Context("test BeTrue", func() {
@@ -1406,38 +1406,38 @@ var _ = Describe("", func() {
 			})
 			Context("test Equal(true)", func() {
 				It("test nil value", func() {
-					Ω(x != nil).ShouldNot(Equal(true))
-					Ω(nil != x).ShouldNot(Equal(true))
+					Ω(x != nil).ShouldNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != x).ShouldNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Ω(y == nil).ShouldNot(Equal(true))
-					Ω(nil == y).ShouldNot(Equal(true))
+					Ω(y == nil).ShouldNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == y).ShouldNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Ω(fNil() != nil).ShouldNot(Equal(true))
-					Ω(nil != fNil()).ShouldNot(Equal(true))
+					Ω(fNil() != nil).ShouldNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != fNil()).ShouldNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Ω(fNotNil() == nil).ShouldNot(Equal(true))
-					Ω(nil == fNotNil()).ShouldNot(Equal(true))
+					Ω(fNotNil() == nil).ShouldNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == fNotNil()).ShouldNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 			Context("test Equal(false)", func() {
 				It("test nil value", func() {
-					Ω(x == nil).ShouldNot(Equal(false))
-					Ω(nil == x).ShouldNot(Equal(false))
+					Ω(x == nil).ShouldNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == x).ShouldNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Ω(y != nil).ShouldNot(Equal(false))
-					Ω(nil != y).ShouldNot(Equal(false))
+					Ω(y != nil).ShouldNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != y).ShouldNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Ω(fNil() == nil).ShouldNot(Equal(false))
-					Ω(nil == fNil()).ShouldNot(Equal(false))
+					Ω(fNil() == nil).ShouldNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == fNil()).ShouldNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Ω(fNotNil() != nil).ShouldNot(Equal(false))
-					Ω(nil != fNotNil()).ShouldNot(Equal(false))
+					Ω(fNotNil() != nil).ShouldNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != fNotNil()).ShouldNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 		})
@@ -1445,20 +1445,20 @@ var _ = Describe("", func() {
 		Context("test NotTo", func() {
 			Context("test BeFalse", func() {
 				It("test nil value", func() {
-					Ω(x == nil).NotTo(BeFalse())
-					Ω(nil == x).NotTo(BeFalse())
+					Ω(x == nil).NotTo(BeFalse()) // want `avoid double negative assertion`
+					Ω(nil == x).NotTo(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test non-nil value", func() {
-					Ω(y != nil).NotTo(BeFalse())
-					Ω(nil != y).NotTo(BeFalse())
+					Ω(y != nil).NotTo(BeFalse()) // want `avoid double negative assertion`
+					Ω(nil != y).NotTo(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test nil func", func() {
-					Ω(fNil() == nil).NotTo(BeFalse())
-					Ω(nil == fNil()).NotTo(BeFalse())
+					Ω(fNil() == nil).NotTo(BeFalse()) // want `avoid double negative assertion`
+					Ω(nil == fNil()).NotTo(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test non-nil func", func() {
-					Ω(fNotNil() != nil).NotTo(BeFalse())
-					Ω(nil != fNotNil()).NotTo(BeFalse())
+					Ω(fNotNil() != nil).NotTo(BeFalse()) // want `avoid double negative assertion`
+					Ω(nil != fNotNil()).NotTo(BeFalse()) // want `avoid double negative assertion`
 				})
 			})
 			Context("test BeTrue", func() {
@@ -1481,58 +1481,58 @@ var _ = Describe("", func() {
 			})
 			Context("test Equal(true)", func() {
 				It("test nil value", func() {
-					Ω(x != nil).NotTo(Equal(true))
-					Ω(nil != x).NotTo(Equal(true))
+					Ω(x != nil).NotTo(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != x).NotTo(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Ω(y == nil).NotTo(Equal(true))
-					Ω(nil == y).NotTo(Equal(true))
+					Ω(y == nil).NotTo(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == y).NotTo(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Ω(fNil() != nil).NotTo(Equal(true))
-					Ω(nil != fNil()).NotTo(Equal(true))
+					Ω(fNil() != nil).NotTo(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != fNil()).NotTo(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Ω(fNotNil() == nil).NotTo(Equal(true))
-					Ω(nil == fNotNil()).NotTo(Equal(true))
+					Ω(fNotNil() == nil).NotTo(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == fNotNil()).NotTo(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 			Context("test Equal(false)", func() {
 				It("test nil value", func() {
-					Ω(x == nil).NotTo(Equal(false))
-					Ω(nil == x).NotTo(Equal(false))
+					Ω(x == nil).NotTo(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == x).NotTo(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Ω(y != nil).NotTo(Equal(false))
-					Ω(nil != y).NotTo(Equal(false))
+					Ω(y != nil).NotTo(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != y).NotTo(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Ω(fNil() == nil).NotTo(Equal(false))
-					Ω(nil == fNil()).NotTo(Equal(false))
+					Ω(fNil() == nil).NotTo(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == fNil()).NotTo(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Ω(fNotNil() != nil).NotTo(Equal(false))
-					Ω(nil != fNotNil()).NotTo(Equal(false))
+					Ω(fNotNil() != nil).NotTo(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != fNotNil()).NotTo(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 		})
 		Context("test ToNot", func() {
 			Context("test BeFalse", func() {
 				It("test nil value", func() {
-					Ω(x == nil).ToNot(BeFalse())
-					Ω(nil == x).ToNot(BeFalse())
+					Ω(x == nil).ToNot(BeFalse()) // want `avoid double negative assertion`
+					Ω(nil == x).ToNot(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test non-nil value", func() {
-					Ω(y != nil).ToNot(BeFalse())
-					Ω(nil != y).ToNot(BeFalse())
+					Ω(y != nil).ToNot(BeFalse()) // want `avoid double negative assertion`
+					Ω(nil != y).ToNot(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test nil func", func() {
-					Ω(fNil() == nil).ToNot(BeFalse())
-					Ω(nil == fNil()).ToNot(BeFalse())
+					Ω(fNil() == nil).ToNot(BeFalse()) // want `avoid double negative assertion`
+					Ω(nil == fNil()).ToNot(BeFalse()) // want `avoid double negative assertion`
 				})
 				It("test non-nil func", func() {
-					Ω(fNotNil() != nil).ToNot(BeFalse())
-					Ω(nil != fNotNil()).ToNot(BeFalse())
+					Ω(fNotNil() != nil).ToNot(BeFalse()) // want `avoid double negative assertion`
+					Ω(nil != fNotNil()).ToNot(BeFalse()) // want `avoid double negative assertion`
 				})
 			})
 			Context("test BeTrue", func() {
@@ -1555,38 +1555,38 @@ var _ = Describe("", func() {
 			})
 			Context("test Equal(true)", func() {
 				It("test nil value", func() {
-					Ω(x != nil).ToNot(Equal(true))
-					Ω(nil != x).ToNot(Equal(true))
+					Ω(x != nil).ToNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != x).ToNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Ω(y == nil).ToNot(Equal(true))
-					Ω(nil == y).ToNot(Equal(true))
+					Ω(y == nil).ToNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == y).ToNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Ω(fNil() != nil).ToNot(Equal(true))
-					Ω(nil != fNil()).ToNot(Equal(true))
+					Ω(fNil() != nil).ToNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != fNil()).ToNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Ω(fNotNil() == nil).ToNot(Equal(true))
-					Ω(nil == fNotNil()).ToNot(Equal(true))
+					Ω(fNotNil() == nil).ToNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == fNotNil()).ToNot(Equal(true)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 			Context("test Equal(false)", func() {
 				It("test nil value", func() {
-					Ω(x == nil).ToNot(Equal(false))
-					Ω(nil == x).ToNot(Equal(false))
+					Ω(x == nil).ToNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == x).ToNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil value", func() {
-					Ω(y != nil).ToNot(Equal(false))
-					Ω(nil != y).ToNot(Equal(false))
+					Ω(y != nil).ToNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != y).ToNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test nil func", func() {
-					Ω(fNil() == nil).ToNot(Equal(false))
-					Ω(nil == fNil()).ToNot(Equal(false))
+					Ω(fNil() == nil).ToNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil == fNil()).ToNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 				It("test non-nil func", func() {
-					Ω(fNotNil() != nil).ToNot(Equal(false))
-					Ω(nil != fNotNil()).ToNot(Equal(false))
+					Ω(fNotNil() != nil).ToNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
+					Ω(nil != fNotNil()).ToNot(Equal(false)) // want `ginkgo-linter: wrong boolean assertion`
 				})
 			})
 		})

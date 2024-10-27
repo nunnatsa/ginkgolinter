@@ -20,17 +20,11 @@ type Handler interface {
 	// ReplaceFunction replaces the function with another one, for fix suggestions
 	ReplaceFunction(*ast.CallExpr, *ast.Ident)
 
-	getDefFuncName(expr *ast.CallExpr) string
-
-	getFieldType(field *ast.Field) string
-
 	GetActualExpr(assertionFunc *ast.SelectorExpr) *ast.CallExpr
 
 	GetActualExprClone(origFunc, funcClone *ast.SelectorExpr) *ast.CallExpr
 
 	GetNewWrapperMatcher(name string, existing *ast.CallExpr) *ast.CallExpr
-
-	isGomegaVar(x ast.Expr) bool
 }
 
 // GetGomegaHandler returns a gomegar handler according to the way gomega was imported in the specific file
@@ -91,25 +85,6 @@ func (dotHandler) ReplaceFunction(caller *ast.CallExpr, newExpr *ast.Ident) {
 	}
 }
 
-func (dotHandler) getDefFuncName(expr *ast.CallExpr) string {
-	if f, ok := expr.Fun.(*ast.Ident); ok {
-		return f.Name
-	}
-	return ""
-}
-
-func (dotHandler) getFieldType(field *ast.Field) string {
-	switch t := field.Type.(type) {
-	case *ast.Ident:
-		return t.Name
-	case *ast.StarExpr:
-		if name, ok := t.X.(*ast.Ident); ok {
-			return name.Name
-		}
-	}
-	return ""
-}
-
 func (dotHandler) GetNewWrapperMatcher(name string, existing *ast.CallExpr) *ast.CallExpr {
 	return &ast.CallExpr{
 		Fun:  ast.NewIdent(name),
@@ -154,34 +129,6 @@ func (g nameHandler) GetActualFuncName(expr *ast.CallExpr) (string, bool) {
 // ReplaceFunction replaces the function with another one, for fix suggestions
 func (nameHandler) ReplaceFunction(caller *ast.CallExpr, newExpr *ast.Ident) {
 	caller.Fun.(*ast.SelectorExpr).Sel = newExpr
-}
-
-func (g nameHandler) getDefFuncName(expr *ast.CallExpr) string {
-	if sel, ok := expr.Fun.(*ast.SelectorExpr); ok {
-		if f, ok := sel.X.(*ast.Ident); ok && f.Name == g.name {
-			return sel.Sel.Name
-		}
-	}
-	return ""
-}
-
-func (g nameHandler) getFieldType(field *ast.Field) string {
-	switch t := field.Type.(type) {
-	case *ast.SelectorExpr:
-		if id, ok := t.X.(*ast.Ident); ok {
-			if id.Name == g.name {
-				return t.Sel.Name
-			}
-		}
-	case *ast.StarExpr:
-		if sel, ok := t.X.(*ast.SelectorExpr); ok {
-			if x, ok := sel.X.(*ast.Ident); ok && x.Name == g.name {
-				return sel.Sel.Name
-			}
-		}
-
-	}
-	return ""
 }
 
 func (g nameHandler) isGomegaVar(x ast.Expr) bool {
