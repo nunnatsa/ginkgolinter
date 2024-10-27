@@ -17,6 +17,7 @@ type ArgType uint64
 
 const (
 	UnknownActualArgType ArgType = 1 << iota
+	NoAssertionArgType
 	ErrActualArgType
 	LenFuncActualArgType
 	CapFuncActualArgType
@@ -35,6 +36,7 @@ const (
 
 var ActualArgTypeString = map[ArgType]string{
 	UnknownActualArgType:          "UnknownActualArgType",
+	NoAssertionArgType:            "NoAssertionArgType",
 	ErrActualArgType:              "ErrActualArgType",
 	LenFuncActualArgType:          "LenFuncActualArgType",
 	CapFuncActualArgType:          "CapFuncActualArgType",
@@ -82,7 +84,6 @@ func getActualArgPayload(origActualExpr, actualExprClone *ast.CallExpr, pass *an
 
 	}
 
-	//	if arg == nil {
 	t := pass.TypesInfo.TypeOf(origArgExpr)
 	if sig, ok := t.(*gotypes.Signature); ok {
 		if sig.Results().Len() == 1 {
@@ -135,6 +136,32 @@ func getActualArg(origActualExpr *ast.CallExpr, actualExprClone *ast.CallExpr, f
 
 type ArgPayload interface {
 	ArgType() ArgType
+}
+
+type NoAssertionActual struct {
+	allowedAssertionMethods string
+}
+
+func newNoAssertionActual(actualMethodName string) *NoAssertionActual {
+	var allowedAssertionMethods string
+	switch actualMethodName {
+	case expect, expectWithOffset:
+		allowedAssertionMethods = `"To()", "ToNot()" or "NotTo()"`
+	case eventually, eventuallyWithOffset, consistently, consistentlyWithOffset:
+		allowedAssertionMethods = `"Should()" or "ShouldNot()"`
+	case omega:
+		allowedAssertionMethods = `"Should()", "To()", "ShouldNot()", "ToNot()" or "NotTo()"`
+	}
+
+	return &NoAssertionActual{allowedAssertionMethods: allowedAssertionMethods}
+}
+
+func (NoAssertionActual) ArgType() ArgType {
+	return NoAssertionArgType
+}
+
+func (n NoAssertionActual) AllowedMethods() string {
+	return n.allowedAssertionMethods
 }
 
 type RegularArgPayload struct {
