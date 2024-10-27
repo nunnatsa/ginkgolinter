@@ -9,7 +9,6 @@ import (
 	gotypes "go/types"
 	"time"
 
-	"github.com/go-toolsmith/astcopy"
 	"golang.org/x/tools/go/analysis"
 
 	"github.com/nunnatsa/ginkgolinter/internal/expression"
@@ -52,16 +51,6 @@ const (
 	onlyUseTimeDurationForInterval = "only use time.Duration for timeout and polling in Eventually() or Consistently()"
 )
 
-const ( // gomega actuals
-	omega                  = "Ω"
-	expect                 = "Expect"
-	expectWithOffset       = "ExpectWithOffset"
-	eventually             = "Eventually"
-	eventuallyWithOffset   = "EventuallyWithOffset"
-	consistently           = "Consistently"
-	consistentlyWithOffset = "ConsistentlyWithOffset"
-)
-
 type GinkgoLinter struct {
 	config *types.Config
 }
@@ -95,15 +84,7 @@ func (l *GinkgoLinter) Run(pass *analysis.Pass) (interface{}, error) {
 				spec, ok := n.(*ast.ValueSpec)
 				if ok {
 					for _, val := range spec.Values {
-						if exp, ok := val.(*ast.CallExpr); ok {
-							if bool(fileConfig.ForbidFocus) && checkFocusContainer(pass, ginkgoHndlr, exp) {
-								goDeeper = true
-							}
-
-							if bool(fileConfig.ForbidSpecPollution) && checkAssignmentsInContainer(pass, ginkgoHndlr, exp) {
-								goDeeper = true
-							}
-						}
+						goDeeper = handleGinkgoSpecs(val, fileConfig, pass, ginkgoHndlr) || goDeeper
 					}
 				}
 				if goDeeper {
@@ -129,44 +110,39 @@ func (l *GinkgoLinter) Run(pass *analysis.Pass) (interface{}, error) {
 			}
 
 			if ginkgoHndlr != nil {
-				goDeeper := false
-				if bool(config.ForbidFocus) && checkFocusContainer(pass, ginkgoHndlr, assertionExp) {
-					goDeeper = true
-				}
-				if bool(config.ForbidSpecPollution) && checkAssignmentsInContainer(pass, ginkgoHndlr, assertionExp) {
-					goDeeper = true
-				}
-				if goDeeper {
+				if handleGinkgoSpecs(assertionExp, config, pass, ginkgoHndlr) {
 					return true
 				}
 			}
 
-			// no more ginkgo checks. From here it's only gomega. So if there is no gomega handler, exit here. This is
-			// mostly to prevent nil pointer error.
+			// no more ginkgo checks. From here it's only gomega. So if there is no gomega handler, exit here.
 			if gomegaHndlr == nil {
 				return true
 			}
 
-			assertionFunc, ok := assertionExp.Fun.(*ast.SelectorExpr)
-			if !ok {
-				checkNoAssertion(pass, assertionExp, gomegaHndlr)
+			gexp, ok := expression.New(assertionExp, pass, gomegaHndlr, getTimePkg(file))
+			if !ok || gexp == nil {
 				return true
 			}
 
-			if !isAssertionFunc(assertionFunc.Sel.Name) {
-				checkNoAssertion(pass, assertionExp, gomegaHndlr)
-				return true
-			}
-
-			actualExpr := gomegaHndlr.GetActualExpr(assertionFunc)
-			if actualExpr == nil {
-				return true
-			}
-
-			return checkExpression(pass, config, assertionExp, gomegaHndlr, getTimePkg(file))
+			return checkExpression(pass, config, gexp)
 		})
 	}
 	return nil, nil
+}
+
+func handleGinkgoSpecs(expr ast.Expr, fileConfig types.Config, pass *analysis.Pass, ginkgoHndlr ginkgohandler.Handler) bool {
+	goDeeper := false
+	if exp, ok := expr.(*ast.CallExpr); ok {
+		if bool(fileConfig.ForbidFocus) && checkFocusContainer(pass, ginkgoHndlr, exp) {
+			goDeeper = true
+		}
+
+		if bool(fileConfig.ForbidSpecPollution) && checkAssignmentsInContainer(pass, ginkgoHndlr, exp) {
+			goDeeper = true
+		}
+	}
+	return goDeeper
 }
 
 func checkAssignmentsInContainer(pass *analysis.Pass, ginkgoHndlr ginkgohandler.Handler, exp *ast.CallExpr) bool {
@@ -270,14 +246,17 @@ func checkFocusContainer(pass *analysis.Pass, ginkgoHndlr ginkgohandler.Handler,
 	return foundFocus
 }
 
-func checkExpression(pass *analysis.Pass, config types.Config, assertionExp *ast.CallExpr, handler gomegahandler.Handler, timePkg string) bool {
-	expr := astcopy.CallExpr(assertionExp)
+func checkExpression(pass *analysis.Pass, config types.Config, gexp *expression.GomegaExpression) bool {
 
-	reportBuilder := reports.NewBuilder(pass.Fset, expr)
-	gexp, ok := expression.New(assertionExp, pass, handler, timePkg)
-	if !ok || gexp == nil {
-		return false
+	if noAssertion, isNoAssertion := gexp.Actual.Arg.(*actual.NoAssertionActual); isNoAssertion {
+		if allowedMethods := noAssertion.AllowedMethods(); len(allowedMethods) > 0 {
+			reportNoFix(pass, gexp.Orig.Pos(), missingAssertionMessage, gexp.GetActualFuncName(), allowedMethods)
+		}
+
+		return true
 	}
+
+	reportBuilder := reports.NewBuilder(pass.Fset, gexp.Clone)
 
 	goNested := false
 	if gexp.IsAsync() {
@@ -561,8 +540,7 @@ func checkAsyncAssertion(gexp *expression.GomegaExpression, pass *analysis.Pass,
 		if !asyncArg.IsValid() {
 			gexp.Actual.AppendWithArgsMethod()
 
-			funcName := gexp.Actual.FuncName()
-			reportBuilder.AddIssue(true, valueInEventually, funcName)
+			reportBuilder.AddIssue(true, valueInEventually, gexp.GetActualFuncName())
 		}
 
 		if config.ValidateAsyncIntervals {
@@ -935,14 +913,6 @@ func handleCapBeNumerically(gexp *expression.GomegaExpression, matcher *matcher.
 	return false
 }
 
-func isAssertionFunc(name string) bool {
-	switch name {
-	case "To", "ToNot", "NotTo", "Should", "ShouldNot":
-		return true
-	}
-	return false
-}
-
 func reportLengthAssertion(gexp *expression.GomegaExpression, reportBuilder *reports.Builder) {
 	gexp.ReplaceActualWithItsFirstArg()
 
@@ -989,24 +959,6 @@ func goFmt(fset *token.FileSet, x ast.Expr) string {
 	var b bytes.Buffer
 	_ = printer.Fprint(&b, fset, x)
 	return b.String()
-}
-
-func checkNoAssertion(pass *analysis.Pass, expr *ast.CallExpr, handler gomegahandler.Handler) {
-	funcName, ok := handler.GetActualFuncName(expr)
-	if ok {
-		var allowedFunction string
-		switch funcName {
-		case expect, expectWithOffset:
-			allowedFunction = `"To()", "ToNot()" or "NotTo()"`
-		case eventually, eventuallyWithOffset, consistently, consistentlyWithOffset:
-			allowedFunction = `"Should()" or "ShouldNot()"`
-		case omega:
-			allowedFunction = `"Should()", "To()", "ShouldNot()", "ToNot()" or "NotTo()"`
-		default:
-			return
-		}
-		reportNoFix(pass, expr.Pos(), missingAssertionMessage, funcName, allowedFunction)
-	}
 }
 
 func is[T any](x any) bool {

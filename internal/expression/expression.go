@@ -31,9 +31,35 @@ type GomegaExpression struct {
 }
 
 func New(origExpr *ast.CallExpr, pass *analysis.Pass, handler gomegahandler.Handler, timePkg string) (*GomegaExpression, bool) {
-	origSel, ok := origExpr.Fun.(*ast.SelectorExpr)
-	if !ok {
-		return nil, false
+	var (
+		origSel          *ast.SelectorExpr
+		actualMethodName string
+	)
+
+	switch expr := origExpr.Fun.(type) {
+	case *ast.SelectorExpr:
+		var ok bool
+		actualMethodName, ok = handler.GetActualFuncName(origExpr)
+		if !ok || !actual.IsActualMethod(actualMethodName) {
+			return nil, false
+		}
+
+		origSel = expr
+	case *ast.Ident:
+		actualMethodName = expr.Name
+		if !actual.IsActualMethod(actualMethodName) {
+			return nil, false
+		}
+	}
+
+	if origSel == nil || !isAssertionFunc(origSel.Sel.Name) {
+
+		actl := actual.NewNoAssertion(origExpr, handler)
+		return &GomegaExpression{
+			Orig:           origExpr,
+			actualFuncName: actualMethodName,
+			Actual:         actl,
+		}, true
 	}
 
 	exprClone := astcopy.CallExpr(origExpr)
@@ -73,7 +99,7 @@ func New(origExpr *ast.CallExpr, pass *analysis.Pass, handler gomegahandler.Hand
 		Clone: exprClone,
 
 		assertionFuncName: origSel.Sel.Name,
-		actualFuncName:    actl.FuncName(),
+		actualFuncName:    actualMethodName,
 
 		isAsync: actl.IsAsync(),
 
@@ -241,4 +267,12 @@ func (e *GomegaExpression) SetMatcherBeNumerically(op token.Token, arg ast.Expr)
 
 func (e *GomegaExpression) IsNegativeAssertion() bool {
 	return reverseassertion.IsNegativeLogic(e.assertionFuncName)
+}
+
+func isAssertionFunc(name string) bool {
+	switch name {
+	case "To", "ToNot", "NotTo", "Should", "ShouldNot":
+		return true
+	}
+	return false
 }

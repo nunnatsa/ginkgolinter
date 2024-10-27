@@ -19,10 +19,14 @@ const ( // gomega actual method names
 	consistentlyWithOffset = "ConsistentlyWithOffset"
 )
 
+func IsActualMethod(name string) bool {
+	_, found := funcOffsetMap[name]
+	return found
+}
+
 type Actual struct {
 	Orig         *ast.CallExpr
 	Clone        *ast.CallExpr
-	funcName     string
 	Arg          ArgPayload
 	argType      gotypes.Type
 	isAsync      bool
@@ -59,7 +63,6 @@ func New(origExpr, cloneExpr *ast.CallExpr, orig *ast.CallExpr, clone *ast.CallE
 	}
 
 	return &Actual{
-		funcName:     funcName,
 		Orig:         orig,
 		Clone:        clone,
 		Arg:          arg,
@@ -70,8 +73,11 @@ func New(origExpr, cloneExpr *ast.CallExpr, orig *ast.CallExpr, clone *ast.CallE
 	}, true
 }
 
-func (a *Actual) FuncName() string {
-	return a.funcName
+func NewNoAssertion(expr *ast.CallExpr, handler gomegahandler.Handler) *Actual {
+	funcName, _ := handler.GetActualFuncName(expr)
+	return &Actual{
+		Arg: newNoAssertionActual(funcName),
+	}
 }
 
 func (a *Actual) ReplaceActual(newArgs ast.Expr) {
