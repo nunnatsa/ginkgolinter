@@ -31,13 +31,14 @@ const (
 	MultipleMatcherMatherType
 	HaveValueMatherType
 	WithTransformMatherType
-
 	EqualBoolValueMatcherType
 	EqualValueMatcherType
+	HaveOccurredMatcherType
+	SucceedMatcherType
+	EqualNilMatcherType
+
 	BoolValueFalse
 	BoolValueTrue
-
-	EqualNilMatcherType
 
 	OrMatherType
 	AndMatherType
@@ -126,6 +127,13 @@ func getMatcherInfo(orig, clone *ast.CallExpr, matcherName string, pass *analysi
 		if m, ok := newMultipleMatchersMatcher(matcherType, orig.Args, clone.Args, pass, handler); ok {
 			return m
 		}
+
+	case succeed:
+		return &SucceedMatcher{}
+
+	case haveOccurred:
+		return &HaveOccurredMatcher{}
+
 	}
 
 	return &UnspecifiedMatcher{matcherName: matcherName}
@@ -733,4 +741,22 @@ func isFuncErrBool(t gotypes.Type) bool {
 func IsString(exp ast.Expr, pass *analysis.Pass) bool {
 	t := pass.TypesInfo.TypeOf(exp)
 	return gotypes.Identical(t, gotypes.Typ[gotypes.String])
+}
+
+type HaveOccurredMatcher struct{}
+
+func (m *HaveOccurredMatcher) Type() Type {
+	return HaveOccurredMatcherType
+}
+func (m *HaveOccurredMatcher) MatcherName() string {
+	return haveOccurred
+}
+
+type SucceedMatcher struct{}
+
+func (m *SucceedMatcher) Type() Type {
+	return SucceedMatcherType
+}
+func (m *SucceedMatcher) MatcherName() string {
+	return succeed
 }

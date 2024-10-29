@@ -93,6 +93,10 @@ func TestAllUseCases(t *testing.T) {
 			testName: "cap",
 			testData: "a/cap",
 		},
+		{
+			testName: "HaveOccurred matcher tests",
+			testData: "a/haveoccurred",
+		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
 			analysistest.Run(tt, analysistest.TestData(), ginkgolinter.NewAnalyzer(), tc.testData)
@@ -167,6 +171,13 @@ func TestFlags(t *testing.T) {
 			flags: map[string]string{
 				"forbid-spec-pollution":  "true",
 				"forbid-focus-container": "true",
+			},
+		},
+		{
+			testName: "force Succeed/HaveOccurred",
+			testData: []string{"a/confighaveoccurred"},
+			flags: map[string]string{
+				"force-succeed": "true",
 			},
 		},
 	} {

@@ -4,13 +4,10 @@ import (
 	"go/ast"
 	"go/token"
 	gotypes "go/types"
-	"strings"
-
 	"golang.org/x/tools/go/analysis"
 
 	"github.com/nunnatsa/ginkgolinter/internal/expression/value"
 	"github.com/nunnatsa/ginkgolinter/internal/gomegainfo"
-	"github.com/nunnatsa/ginkgolinter/internal/interfaces"
 	"github.com/nunnatsa/ginkgolinter/internal/reverseassertion"
 )
 
@@ -26,44 +23,17 @@ const (
 	CapComparisonActualArgType
 	NilComparisonActualArgType
 	BinaryComparisonActualArgType
+	FuncSigArgType
 	ErrFuncActualArgType
+	GomegaParamArgType
+	MultiRetsArgType
 
-	AsyncInvalidFuncCall
 	ErrorTypeArgType
 
 	EqualZero
 	GreaterThanZero
-
-	LastUnusedDontChange
 )
 
-var argTypeString = map[ArgType]string{
-	UnknownActualArgType:          "UnknownActualArgType",
-	ErrActualArgType:              "ErrActualArgType",
-	LenFuncActualArgType:          "LenFuncActualArgType",
-	CapFuncActualArgType:          "CapFuncActualArgType",
-	ComparisonActualArgType:       "ComparisonActualArgType",
-	LenComparisonActualArgType:    "LenComparisonActualArgType",
-	CapComparisonActualArgType:    "CapComparisonActualArgType",
-	NilComparisonActualArgType:    "NilComparisonActualArgType",
-	BinaryComparisonActualArgType: "BinaryComparisonActualArgType",
-	ErrFuncActualArgType:          "ErrFuncActualArgType",
-	AsyncInvalidFuncCall:          "AsyncInvalidFuncCall",
-	ErrorTypeArgType:              "ErrorTypeArgType",
-	EqualZero:                     "EqualZero",
-	GreaterThanZero:               "GreaterThanZero",
-}
-
-func (a ArgType) String() string {
-	var vals []string
-	for mask := UnknownActualArgType; mask < LastUnusedDontChange; mask <<= 1 {
-		if a&mask != 0 {
-			vals = append(vals, argTypeString[mask])
-		}
-	}
-
-	return strings.Join(vals, "|")
-}
 func (a ArgType) Is(val ArgType) bool {
 	return a&val != 0
 }
@@ -85,19 +55,15 @@ func getActualArgPayload(origActualExpr, actualExprClone *ast.CallExpr, pass *an
 
 		case *ast.BinaryExpr:
 			arg = parseBinaryExpr(expr, argExprClone.(*ast.BinaryExpr), pass)
-		}
 
-	}
-
-	t := pass.TypesInfo.TypeOf(origArgExpr)
-	if sig, ok := t.(*gotypes.Signature); ok {
-		if sig.Results().Len() == 1 {
-			if interfaces.ImplementsError(sig.Results().At(0).Type().Underlying()) {
-				arg = &ErrFuncArgPayload{}
+		default:
+			t := pass.TypesInfo.TypeOf(origArgExpr)
+			if sig, ok := t.(*gotypes.Signature); ok {
+				arg = getAsyncFuncArg(sig)
 			}
 		}
+
 	}
-	//	}
 
 	if arg != nil {
 		return arg, actualOffset
@@ -198,12 +164,6 @@ func newFuncCallArgPayload(orig, clone *ast.CallExpr) ArgPayload {
 
 func (f *FuncCallArgPayload) ArgType() ArgType {
 	return f.argType
-}
-
-type ErrFuncArgPayload struct{}
-
-func (*ErrFuncArgPayload) ArgType() ArgType {
-	return ErrFuncActualArgType | ErrorTypeArgType
 }
 
 type ErrPayload struct {

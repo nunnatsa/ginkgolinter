@@ -139,23 +139,27 @@ var gomegaTypeRegex = regexp.MustCompile(`github\.com/onsi/gomega/(?:internal|ty
 
 func isGomegaVar(x ast.Expr, pass *analysis.Pass) bool {
 	if tx, ok := pass.TypesInfo.Types[x]; ok {
-		var typeStr string
-		switch ttx := tx.Type.(type) {
-		case *gotypes.Pointer:
-			tp := ttx.Elem()
-			typeStr = tp.String()
-
-		case *gotypes.Named:
-			typeStr = ttx.String()
-
-		default:
-			return false
-		}
-
-		return gomegaTypeRegex.MatchString(typeStr)
+		return IsGomegaType(tx.Type)
 	}
 
 	return false
+}
+
+func IsGomegaType(t gotypes.Type) bool {
+	var typeStr string
+	switch ttx := t.(type) {
+	case *gotypes.Pointer:
+		tp := ttx.Elem()
+		typeStr = tp.String()
+
+	case *gotypes.Named:
+		typeStr = ttx.String()
+
+	default:
+		return false
+	}
+
+	return gomegaTypeRegex.MatchString(typeStr)
 }
 
 func (h dotHandler) GetActualExpr(assertionFunc *ast.SelectorExpr) *ast.CallExpr {
