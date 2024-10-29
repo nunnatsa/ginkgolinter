@@ -30,7 +30,7 @@ const (
 type MatchErrorRule struct{}
 
 func (r MatchErrorRule) isApplied(gexp *expression.GomegaExpression) bool {
-	return gexp.Matcher.GetMatcherInfo().Type().Is(matcher.MatchErrorMatcherType | matcher.MultipleMatcherMatherType)
+	return gexp.MatcherTypeIs(matcher.MatchErrorMatcherType | matcher.MultipleMatcherMatherType)
 }
 
 func (r MatchErrorRule) Apply(gexp *expression.GomegaExpression, _ types.Config, reportBuilder *reports.Builder) bool {
@@ -42,17 +42,17 @@ func (r MatchErrorRule) Apply(gexp *expression.GomegaExpression, _ types.Config,
 }
 
 func checkMatchError(gexp *expression.GomegaExpression, reportBuilder *reports.Builder) bool {
-	mtchr := gexp.Matcher.GetMatcherInfo()
+	mtchr := gexp.GetMatcherInfo()
 	switch m := mtchr.(type) {
 	case matcher.MatchErrorMatcher:
-		return checkMatchErrorMatcher(gexp, gexp.Matcher, m, reportBuilder)
+		return checkMatchErrorMatcher(gexp, gexp.GetMatcher(), m, reportBuilder)
 
 	case *matcher.MultipleMatchersMatcher:
 		res := false
 		for i := range m.Len() {
 			nested := m.At(i)
 			if specific, ok := nested.GetMatcherInfo().(matcher.MatchErrorMatcher); ok {
-				if valid := checkMatchErrorMatcher(gexp, gexp.Matcher, specific, reportBuilder); valid {
+				if valid := checkMatchErrorMatcher(gexp, gexp.GetMatcher(), specific, reportBuilder); valid {
 					res = true
 				}
 			}
@@ -64,8 +64,8 @@ func checkMatchError(gexp *expression.GomegaExpression, reportBuilder *reports.B
 }
 
 func checkMatchErrorMatcher(gexp *expression.GomegaExpression, mtchr *matcher.Matcher, mtchrInfo matcher.MatchErrorMatcher, reportBuilder *reports.Builder) bool {
-	if !gexp.Actual.Arg.ArgType().Is(actual.ErrorTypeArgType) {
-		reportBuilder.AddIssue(false, matchErrorArgWrongType, reportBuilder.FormatExpr(gexp.Actual.GetActualArg()))
+	if !gexp.ActualArgTypeIs(actual.ErrorTypeArgType) {
+		reportBuilder.AddIssue(false, matchErrorArgWrongType, reportBuilder.FormatExpr(gexp.GetActualArgExpr()))
 	}
 
 	switch m := mtchrInfo.(type) {

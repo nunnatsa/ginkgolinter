@@ -1,13 +1,13 @@
 package actual
 
 import (
-	"github.com/nunnatsa/ginkgolinter/internal/gomegainfo"
 	"go/ast"
 	gotypes "go/types"
 
 	"golang.org/x/tools/go/analysis"
 
 	"github.com/nunnatsa/ginkgolinter/internal/gomegahandler"
+	"github.com/nunnatsa/ginkgolinter/internal/gomegainfo"
 )
 
 type Actual struct {

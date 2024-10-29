@@ -12,7 +12,7 @@ const wrongBoolWarningTemplate = "wrong boolean assertion"
 type EqualBoolRule struct{}
 
 func (r EqualBoolRule) isApplied(gexp *expression.GomegaExpression) bool {
-	return gexp.Matcher.GetMatcherInfo().Type().Is(matcher.EqualBoolValueMatcherType)
+	return gexp.MatcherTypeIs(matcher.EqualBoolValueMatcherType)
 }
 
 func (r EqualBoolRule) Apply(gexp *expression.GomegaExpression, _ types.Config, reportBuilder *reports.Builder) bool {
@@ -20,7 +20,7 @@ func (r EqualBoolRule) Apply(gexp *expression.GomegaExpression, _ types.Config, 
 		return false
 	}
 
-	if gexp.Matcher.GetMatcherInfo().Type().Is(matcher.BoolValueTrue) {
+	if gexp.MatcherTypeIs(matcher.BoolValueTrue) {
 		gexp.SetMatcherBeTrue()
 	} else {
 		if gexp.IsNegativeAssertion() {

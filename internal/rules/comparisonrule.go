@@ -19,7 +19,7 @@ func (r ComparisonRule) isApplied(gexp *expression.GomegaExpression, config type
 		return false
 	}
 
-	return gexp.Actual.Arg.ArgType().Is(actual.ComparisonActualArgType)
+	return gexp.ActualArgTypeIs(actual.ComparisonActualArgType)
 }
 
 func (r ComparisonRule) Apply(gexp *expression.GomegaExpression, config types.Config, reportBuilder *reports.Builder) bool {
@@ -27,7 +27,7 @@ func (r ComparisonRule) Apply(gexp *expression.GomegaExpression, config types.Co
 		return false
 	}
 
-	actl, ok := gexp.Actual.Arg.(actual.ComparisonActualPayload)
+	actl, ok := gexp.GetActualArg().(actual.ComparisonActualPayload)
 	if !ok {
 		return false
 	}
@@ -50,7 +50,7 @@ func (r ComparisonRule) Apply(gexp *expression.GomegaExpression, config types.Co
 		return false
 	}
 
-	if gexp.Matcher.GetMatcherInfo().Type().Is(matcher.BoolValueFalse) {
+	if gexp.MatcherTypeIs(matcher.BoolValueFalse) {
 		gexp.ReverseAssertionFuncLogic()
 	}
 

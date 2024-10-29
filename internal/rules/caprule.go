@@ -34,19 +34,19 @@ func (r *CapRule) isApplied(gexp *expression.GomegaExpression, config types.Conf
 		return false
 	}
 
-	matcherType := gexp.Matcher.GetMatcherInfo().Type()
-	if gexp.Actual.Arg.ArgType().Is(actual.CapFuncActualArgType) {
-		if matcherType.Is(matcher.EqualMatcherType | matcher.BeZeroMatcherType) {
+	//matcherType := gexp.matcher.GetMatcherInfo().Type()
+	if gexp.ActualArgTypeIs(actual.CapFuncActualArgType) {
+		if gexp.MatcherTypeIs(matcher.EqualMatcherType | matcher.BeZeroMatcherType) {
 			return true
 		}
 
-		if matcherType.Is(matcher.BeNumericallyMatcherType) {
-			mtchr := gexp.Matcher.GetMatcherInfo().(*matcher.BeNumericallyMatcher)
-			return mtchr.GetOp() == token.EQL || mtchr.GetOp() == token.NEQ || matcherType.Is(matcher.EqualZero|matcher.GreaterThanZero)
+		if gexp.MatcherTypeIs(matcher.BeNumericallyMatcherType) {
+			mtchr := gexp.GetMatcherInfo().(*matcher.BeNumericallyMatcher)
+			return mtchr.GetOp() == token.EQL || mtchr.GetOp() == token.NEQ || gexp.MatcherTypeIs(matcher.EqualZero|matcher.GreaterThanZero)
 		}
 	}
 
-	if gexp.Actual.Arg.ArgType().Is(actual.CapComparisonActualArgType) && matcherType.Is(matcher.BeTrueMatcherType|matcher.BeFalseMatcherType|matcher.EqualBoolValueMatcherType) {
+	if gexp.ActualArgTypeIs(actual.CapComparisonActualArgType) && gexp.MatcherTypeIs(matcher.BeTrueMatcherType|matcher.BeFalseMatcherType|matcher.EqualBoolValueMatcherType) {
 		return true
 	}
 
@@ -54,11 +54,11 @@ func (r *CapRule) isApplied(gexp *expression.GomegaExpression, config types.Conf
 }
 
 func (r *CapRule) fixExpression(gexp *expression.GomegaExpression) bool {
-	if gexp.Actual.Arg.ArgType().Is(actual.CapFuncActualArgType) {
+	if gexp.ActualArgTypeIs(actual.CapFuncActualArgType) {
 		return r.fixEqual(gexp)
 	}
 
-	if gexp.Actual.Arg.ArgType().Is(actual.CapComparisonActualArgType) {
+	if gexp.ActualArgTypeIs(actual.CapComparisonActualArgType) {
 		return r.fixComparison(gexp)
 	}
 
@@ -66,7 +66,7 @@ func (r *CapRule) fixExpression(gexp *expression.GomegaExpression) bool {
 }
 
 func (r *CapRule) fixEqual(gexp *expression.GomegaExpression) bool {
-	matcherInfo := gexp.Matcher.GetMatcherInfo()
+	matcherInfo := gexp.GetMatcherInfo()
 	switch mtchr := matcherInfo.(type) {
 	case *matcher.EqualMatcher:
 		gexp.SetMatcherCap(mtchr.GetValueExpr())
@@ -89,7 +89,7 @@ func (r *CapRule) fixEqual(gexp *expression.GomegaExpression) bool {
 }
 
 func (r *CapRule) fixComparison(gexp *expression.GomegaExpression) bool {
-	actl := gexp.Actual.Arg.(*actual.FuncComparisonPayload)
+	actl := gexp.GetActualArg().(*actual.FuncComparisonPayload)
 	if op := actl.GetOp(); op == token.NEQ {
 		gexp.ReverseAssertionFuncLogic()
 	} else if op != token.EQL {
@@ -99,7 +99,7 @@ func (r *CapRule) fixComparison(gexp *expression.GomegaExpression) bool {
 	gexp.SetMatcherCap(actl.GetValueExpr())
 	gexp.ReplaceActual(actl.GetFuncArg())
 
-	if gexp.Matcher.GetMatcherInfo().Type().Is(matcher.BoolValueFalse) {
+	if gexp.MatcherTypeIs(matcher.BoolValueFalse) {
 		gexp.ReverseAssertionFuncLogic()
 	}
 
