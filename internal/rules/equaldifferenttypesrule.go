@@ -21,11 +21,11 @@ func (r EqualDifferentTypesRule) Apply(gexp *expression.GomegaExpression, config
 		return false
 	}
 
-	return r.checkEqualDifferentTypes(gexp, gexp.Matcher, false, reportBuilder)
+	return r.checkEqualDifferentTypes(gexp, gexp.GetMatcher(), false, reportBuilder)
 }
 
 func (r EqualDifferentTypesRule) checkEqualDifferentTypes(gexp *expression.GomegaExpression, mtchr *matcher.Matcher, parentPointer bool, reportBuilder *reports.Builder) bool {
-	actualType := gexp.Actual.ArgGOType()
+	actualType := gexp.GetActualArgGOType()
 
 	if parentPointer {
 		if t, ok := actualType.(*gotypes.Pointer); ok {

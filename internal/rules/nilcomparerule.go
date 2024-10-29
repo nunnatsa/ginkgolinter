@@ -22,21 +22,21 @@ func (r NilCompareRule) Apply(gexp *expression.GomegaExpression, config types.Co
 		return false
 	}
 
-	if gexp.Matcher.GetMatcherInfo().Type().Is(matcher.BoolValueFalse) {
+	if gexp.MatcherTypeIs(matcher.BoolValueFalse) {
 		gexp.ReverseAssertionFuncLogic()
 	}
 
-	r.handleNilBeBoolMatcher(gexp, gexp.Actual.Arg.(*actual.NilComparisonPayload), reportBuilder, isErr)
+	r.handleNilBeBoolMatcher(gexp, gexp.GetActualArg().(*actual.NilComparisonPayload), reportBuilder, isErr)
 
 	return true
 }
 
 func (r NilCompareRule) isApplied(gexp *expression.GomegaExpression, config types.Config) (bool, bool) {
-	if !gexp.Matcher.GetMatcherInfo().Type().Is(matcher.EqualBoolValueMatcherType | matcher.BeTrueMatcherType | matcher.BeFalseMatcherType) {
+	if !gexp.MatcherTypeIs(matcher.EqualBoolValueMatcherType | matcher.BeTrueMatcherType | matcher.BeFalseMatcherType) {
 		return false, false
 	}
 
-	actl, ok := gexp.Actual.Arg.(*actual.NilComparisonPayload)
+	actl, ok := gexp.GetActualArg().(*actual.NilComparisonPayload)
 	if !ok {
 		return false, false
 	}

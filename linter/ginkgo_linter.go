@@ -99,7 +99,8 @@ func (l *GinkgoLinter) Run(pass *analysis.Pass) (any, error) {
 				return true
 			}
 
-			return checkGomegaExpression(pass, config, gexp)
+			reportBuilder := reports.NewBuilder(assertionExp, formatter.NewGoFmtFormatter(pass.Fset))
+			return checkGomegaExpression(gexp, config, reportBuilder, pass)
 		})
 	}
 	return nil, nil
@@ -220,9 +221,7 @@ func checkFocusContainer(pass *analysis.Pass, ginkgoHndlr ginkgohandler.Handler,
 	return foundFocus
 }
 
-func checkGomegaExpression(pass *analysis.Pass, config types.Config, gexp *expression.GomegaExpression) bool {
-	reportBuilder := reports.NewBuilder(gexp.Orig, formatter.NewGoFmtFormatter(pass.Fset))
-
+func checkGomegaExpression(gexp *expression.GomegaExpression, config types.Config, reportBuilder *reports.Builder, pass *analysis.Pass) bool {
 	goNested := false
 	if rules.GetMissingAssertionRule().Apply(gexp, config, reportBuilder) {
 		goNested = true
@@ -236,7 +235,7 @@ func checkGomegaExpression(pass *analysis.Pass, config types.Config, gexp *expre
 	}
 
 	if reportBuilder.HasReport() {
-		reportBuilder.SetFixOffer(gexp.Clone)
+		reportBuilder.SetFixOffer(gexp.GetClone())
 		pass.Report(reportBuilder.Build())
 	}
 

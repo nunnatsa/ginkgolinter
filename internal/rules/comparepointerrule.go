@@ -13,7 +13,7 @@ const comparePointerToValue = "comparing a pointer to a value will always fail"
 type ComparePointRule struct{}
 
 func (r ComparePointRule) isApplied(gexp *expression.GomegaExpression) bool {
-	actl, ok := gexp.Actual.Arg.(*actual.RegularArgPayload)
+	actl, ok := gexp.GetActualArg().(*actual.RegularArgPayload)
 	if !ok {
 		return false
 	}
@@ -26,7 +26,7 @@ func (r ComparePointRule) Apply(gexp *expression.GomegaExpression, config types.
 		return false
 	}
 
-	switch mtchr := gexp.Matcher.GetMatcherInfo().(type) {
+	switch mtchr := gexp.GetMatcherInfo().(type) {
 	case *matcher.EqualMatcher:
 		if mtchr.IsPointer() || mtchr.IsInterface() {
 			return false

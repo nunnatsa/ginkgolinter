@@ -2,9 +2,10 @@ package expression
 
 import (
 	"fmt"
-	"github.com/nunnatsa/ginkgolinter/internal/gomegainfo"
+	"github.com/nunnatsa/ginkgolinter/internal/formatter"
 	"go/ast"
 	"go/token"
+	gotypes "go/types"
 
 	"github.com/go-toolsmith/astcopy"
 	"golang.org/x/tools/go/analysis"
@@ -13,12 +14,13 @@ import (
 	"github.com/nunnatsa/ginkgolinter/internal/expression/matcher"
 	"github.com/nunnatsa/ginkgolinter/internal/expression/value"
 	"github.com/nunnatsa/ginkgolinter/internal/gomegahandler"
+	"github.com/nunnatsa/ginkgolinter/internal/gomegainfo"
 	"github.com/nunnatsa/ginkgolinter/internal/reverseassertion"
 )
 
 type GomegaExpression struct {
-	Orig  *ast.CallExpr
-	Clone *ast.CallExpr
+	orig  *ast.CallExpr
+	clone *ast.CallExpr
 
 	assertionFuncName     string
 	origAssertionFuncName string
@@ -26,8 +28,8 @@ type GomegaExpression struct {
 
 	isAsync bool
 
-	Actual  *actual.Actual
-	Matcher *matcher.Matcher
+	actual  *actual.Actual
+	matcher *matcher.Matcher
 
 	handler gomegahandler.Handler
 }
@@ -41,7 +43,7 @@ func New(origExpr *ast.CallExpr, pass *analysis.Pass, handler gomegahandler.Hand
 	origSel, ok := origExpr.Fun.(*ast.SelectorExpr)
 	if !ok || !gomegainfo.IsAssertionFunc(origSel.Sel.Name) {
 		return &GomegaExpression{
-			Orig:           origExpr,
+			orig:           origExpr,
 			actualFuncName: actualMethodName,
 		}, true
 	}
@@ -79,8 +81,8 @@ func New(origExpr *ast.CallExpr, pass *analysis.Pass, handler gomegahandler.Hand
 	exprClone.Args[0] = mtchr.Clone
 
 	gexp := &GomegaExpression{
-		Orig:  origExpr,
-		Clone: exprClone,
+		orig:  origExpr,
+		clone: exprClone,
 
 		assertionFuncName:     origSel.Sel.Name,
 		origAssertionFuncName: origSel.Sel.Name,
@@ -88,8 +90,8 @@ func New(origExpr *ast.CallExpr, pass *analysis.Pass, handler gomegahandler.Hand
 
 		isAsync: actl.IsAsync(),
 
-		Actual:  actl,
-		Matcher: mtchr,
+		actual:  actl,
+		matcher: mtchr,
 
 		handler: handler,
 	}
@@ -102,7 +104,7 @@ func New(origExpr *ast.CallExpr, pass *analysis.Pass, handler gomegahandler.Hand
 }
 
 func (e *GomegaExpression) IsMissingAssertion() bool {
-	return e.Matcher == nil
+	return e.matcher == nil
 }
 
 func (e *GomegaExpression) GetActualFuncName() string {
@@ -131,38 +133,38 @@ func (e *GomegaExpression) IsAsync() bool {
 }
 
 func (e *GomegaExpression) ReverseAssertionFuncLogic() {
-	assertionFunc := e.Clone.Fun.(*ast.SelectorExpr).Sel
+	assertionFunc := e.clone.Fun.(*ast.SelectorExpr).Sel
 	newName := reverseassertion.ChangeAssertionLogic(assertionFunc.Name)
 	assertionFunc.Name = newName
 	e.assertionFuncName = newName
 }
 
 func (e *GomegaExpression) ReplaceAssertionMethod(name string) {
-	e.Clone.Fun.(*ast.SelectorExpr).Sel.Name = name
+	e.clone.Fun.(*ast.SelectorExpr).Sel.Name = name
 }
 
 func (e *GomegaExpression) ReplaceMatcherFuncName(name string) {
-	e.Matcher.ReplaceMatcherFuncName(name)
+	e.matcher.ReplaceMatcherFuncName(name)
 }
 
 func (e *GomegaExpression) ReplaceMatcherArgs(newArgs []ast.Expr) {
-	e.Matcher.ReplaceMatcherArgs(newArgs)
+	e.matcher.ReplaceMatcherArgs(newArgs)
 }
 
 func (e *GomegaExpression) RemoveMatcherArgs() {
-	e.Matcher.ReplaceMatcherArgs(nil)
+	e.matcher.ReplaceMatcherArgs(nil)
 }
 
 func (e *GomegaExpression) ReplaceActual(newArg ast.Expr) {
-	e.Actual.ReplaceActual(newArg)
+	e.actual.ReplaceActual(newArg)
 }
 
 func (e *GomegaExpression) ReplaceActualWithItsFirstArg() {
-	e.Actual.ReplaceActualWithItsFirstArg()
+	e.actual.ReplaceActualWithItsFirstArg()
 }
 
 func (e *GomegaExpression) replaceMathcerFuncNoArgs(name string) {
-	e.Matcher.ReplaceMatcherFuncName(name)
+	e.matcher.ReplaceMatcherFuncName(name)
 	e.RemoveMatcherArgs()
 }
 
@@ -175,7 +177,7 @@ func (e *GomegaExpression) SetMatcherBeEmpty() {
 }
 
 func (e *GomegaExpression) SetLenNumericMatcher() {
-	if m, ok := e.Matcher.GetMatcherInfo().(value.Valuer); ok && m.IsValueZero() {
+	if m, ok := e.matcher.GetMatcherInfo().(value.Valuer); ok && m.IsValueZero() {
 		e.SetMatcherBeEmpty()
 	} else {
 		e.ReplaceMatcherFuncName("HaveLen")
@@ -184,7 +186,7 @@ func (e *GomegaExpression) SetLenNumericMatcher() {
 }
 
 func (e *GomegaExpression) SetLenNumericActual() {
-	if m, ok := e.Matcher.GetMatcherInfo().(value.Valuer); ok && m.IsValueZero() {
+	if m, ok := e.matcher.GetMatcherInfo().(value.Valuer); ok && m.IsValueZero() {
 		e.SetMatcherBeEmpty()
 	} else {
 		e.ReplaceMatcherFuncName("HaveLen")
@@ -228,9 +230,9 @@ func (e *GomegaExpression) SetMatcherBeFalse() {
 }
 
 func (e *GomegaExpression) SetMatcherHaveValue() {
-	newMatcherExp := e.handler.GetNewWrapperMatcher("HaveValue", e.Matcher.Clone)
-	e.Clone.Args[0] = newMatcherExp
-	e.Matcher.Clone = newMatcherExp
+	newMatcherExp := e.handler.GetNewWrapperMatcher("HaveValue", e.matcher.Clone)
+	e.clone.Args[0] = newMatcherExp
+	e.matcher.Clone = newMatcherExp
 }
 
 func (e *GomegaExpression) SetMatcherEqual(arg ast.Expr) {
@@ -253,4 +255,56 @@ func (e *GomegaExpression) SetMatcherBeNumerically(op token.Token, arg ast.Expr)
 
 func (e *GomegaExpression) IsNegativeAssertion() bool {
 	return reverseassertion.IsNegativeLogic(e.assertionFuncName)
+}
+
+func (e *GomegaExpression) GetClone() *ast.CallExpr {
+	return e.clone
+}
+
+// Actual proxies:
+
+func (e *GomegaExpression) GetActualClone() *ast.CallExpr {
+	return e.actual.Clone
+}
+
+func (e *GomegaExpression) AppendWithArgsToActual() {
+	e.actual.AppendWithArgsMethod()
+}
+
+func (e *GomegaExpression) GetAsyncActualArg() *actual.AsyncArg {
+	return e.actual.GetAsyncArg()
+}
+
+func (e *GomegaExpression) GetActualArg() actual.ArgPayload {
+	return e.actual.Arg
+}
+
+func (e *GomegaExpression) GetActualArgExpr() ast.Expr {
+	return e.actual.GetActualArg()
+}
+
+func (e *GomegaExpression) GetActualArgGOType() gotypes.Type {
+	return e.actual.ArgGOType()
+}
+
+func (e *GomegaExpression) ActualArgTypeIs(other actual.ArgType) bool {
+	return e.actual.Arg.ArgType().Is(other)
+}
+
+// Matcher proxies
+
+func (e *GomegaExpression) GetMatcher() *matcher.Matcher {
+	return e.matcher
+}
+
+func (e *GomegaExpression) GetMatcherInfo() matcher.Info {
+	return e.matcher.GetMatcherInfo()
+}
+
+func (e *GomegaExpression) MatcherTypeIs(other matcher.Type) bool {
+	return e.matcher.GetMatcherInfo().Type().Is(other)
+}
+
+func (e *GomegaExpression) FormatOrig(frm *formatter.GoFmtFormatter) string {
+	return frm.Format(e.orig)
 }

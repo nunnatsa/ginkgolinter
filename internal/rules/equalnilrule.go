@@ -13,7 +13,7 @@ type EqualNilRule struct{}
 
 func (r EqualNilRule) isApplied(gexp *expression.GomegaExpression, config types.Config) bool {
 	return !bool(config.SuppressNil) &&
-		gexp.Matcher.GetMatcherInfo().Type().Is(matcher.EqualValueMatcherType)
+		gexp.MatcherTypeIs(matcher.EqualValueMatcherType)
 }
 
 func (r EqualNilRule) Apply(gexp *expression.GomegaExpression, config types.Config, reportBuilder *reports.Builder) bool {

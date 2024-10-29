@@ -12,7 +12,7 @@ const doubleNegativeWarningTemplate = "avoid double negative assertion"
 type DoubleNegativeRule struct{}
 
 func (DoubleNegativeRule) isApplied(gexp *expression.GomegaExpression) bool {
-	return gexp.Matcher.GetMatcherInfo().Type().Is(matcher.BeFalseMatcherType) &&
+	return gexp.MatcherTypeIs(matcher.BeFalseMatcherType) &&
 		gexp.IsNegativeAssertion()
 }
 

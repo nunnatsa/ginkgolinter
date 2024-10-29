@@ -34,19 +34,18 @@ func (r *LenRule) isApplied(gexp *expression.GomegaExpression, config types.Conf
 		return false
 	}
 
-	matcherType := gexp.Matcher.GetMatcherInfo().Type()
-	if gexp.Actual.Arg.ArgType().Is(actual.LenFuncActualArgType) {
-		if matcherType.Is(matcher.EqualMatcherType | matcher.BeZeroMatcherType) {
+	if gexp.ActualArgTypeIs(actual.LenFuncActualArgType) {
+		if gexp.MatcherTypeIs(matcher.EqualMatcherType | matcher.BeZeroMatcherType) {
 			return true
 		}
 
-		if matcherType.Is(matcher.BeNumericallyMatcherType) {
-			mtchr := gexp.Matcher.GetMatcherInfo().(*matcher.BeNumericallyMatcher)
-			return mtchr.GetOp() == token.EQL || mtchr.GetOp() == token.NEQ || matcherType.Is(matcher.EqualZero|matcher.GreaterThanZero)
+		if gexp.MatcherTypeIs(matcher.BeNumericallyMatcherType) {
+			mtchr := gexp.GetMatcherInfo().(*matcher.BeNumericallyMatcher)
+			return mtchr.GetOp() == token.EQL || mtchr.GetOp() == token.NEQ || gexp.MatcherTypeIs(matcher.EqualZero|matcher.GreaterThanZero)
 		}
 	}
 
-	if gexp.Actual.Arg.ArgType().Is(actual.LenComparisonActualArgType) && matcherType.Is(matcher.BeTrueMatcherType|matcher.BeFalseMatcherType|matcher.EqualBoolValueMatcherType) {
+	if gexp.ActualArgTypeIs(actual.LenComparisonActualArgType) && gexp.MatcherTypeIs(matcher.BeTrueMatcherType|matcher.BeFalseMatcherType|matcher.EqualBoolValueMatcherType) {
 		return true
 	}
 
@@ -54,11 +53,11 @@ func (r *LenRule) isApplied(gexp *expression.GomegaExpression, config types.Conf
 }
 
 func (r *LenRule) fixExpression(gexp *expression.GomegaExpression) bool {
-	if gexp.Actual.Arg.ArgType().Is(actual.LenFuncActualArgType) {
+	if gexp.ActualArgTypeIs(actual.LenFuncActualArgType) {
 		return r.fixEqual(gexp)
 	}
 
-	if gexp.Actual.Arg.ArgType().Is(actual.LenComparisonActualArgType) {
+	if gexp.ActualArgTypeIs(actual.LenComparisonActualArgType) {
 		return r.fixComparison(gexp)
 	}
 
@@ -67,15 +66,14 @@ func (r *LenRule) fixExpression(gexp *expression.GomegaExpression) bool {
 
 func (r *LenRule) fixEqual(gexp *expression.GomegaExpression) bool {
 
-	matcherType := gexp.Matcher.GetMatcherInfo().Type()
-	if matcherType.Is(matcher.EqualMatcherType) {
+	if gexp.MatcherTypeIs(matcher.EqualMatcherType) {
 		gexp.SetLenNumericMatcher()
 
-	} else if matcherType.Is(matcher.BeZeroMatcherType) {
+	} else if gexp.MatcherTypeIs(matcher.BeZeroMatcherType) {
 		gexp.SetMatcherBeEmpty()
 
-	} else if matcherType.Is(matcher.BeNumericallyMatcherType) {
-		mtchr := gexp.Matcher.GetMatcherInfo().(*matcher.BeNumericallyMatcher)
+	} else if gexp.MatcherTypeIs(matcher.BeNumericallyMatcherType) {
+		mtchr := gexp.GetMatcherInfo().(*matcher.BeNumericallyMatcher)
 		op := mtchr.GetOp()
 
 		if op == token.EQL {
@@ -83,7 +81,7 @@ func (r *LenRule) fixEqual(gexp *expression.GomegaExpression) bool {
 		} else if op == token.NEQ {
 			gexp.ReverseAssertionFuncLogic()
 			gexp.SetLenNumericMatcher()
-		} else if matcherType.Is(matcher.GreaterThanZero) {
+		} else if gexp.MatcherTypeIs(matcher.GreaterThanZero) {
 			gexp.ReverseAssertionFuncLogic()
 			gexp.SetMatcherBeEmpty()
 		} else {
@@ -98,14 +96,14 @@ func (r *LenRule) fixEqual(gexp *expression.GomegaExpression) bool {
 }
 
 func (r *LenRule) fixComparison(gexp *expression.GomegaExpression) bool {
-	actl := gexp.Actual.Arg.(*actual.FuncComparisonPayload)
+	actl := gexp.GetActualArg().(*actual.FuncComparisonPayload)
 	if op := actl.GetOp(); op == token.NEQ {
 		gexp.ReverseAssertionFuncLogic()
 	} else if op != token.EQL {
 		return false
 	}
 
-	if gexp.Matcher.GetMatcherInfo().Type().Is(matcher.BoolValueFalse) {
+	if gexp.MatcherTypeIs(matcher.BoolValueFalse) {
 		gexp.ReverseAssertionFuncLogic()
 	}
 

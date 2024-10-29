@@ -25,7 +25,7 @@ func (r AsyncTimeIntervalsRule) isApplied(gexp *expression.GomegaExpression, con
 
 func (r AsyncTimeIntervalsRule) Apply(gexp *expression.GomegaExpression, config types.Config, reportBuilder *reports.Builder) bool {
 	if r.isApplied(gexp, config) {
-		asyncArg := gexp.Actual.GetAsyncArg()
+		asyncArg := gexp.GetAsyncActualArg()
 		if asyncArg.TooManyTimeouts() {
 			reportBuilder.AddIssue(false, multipleTimeouts)
 		}
@@ -51,7 +51,7 @@ func checkInterval(gexp *expression.GomegaExpression, durVal intervals.DurationV
 		case *intervals.RealDurationValue, *intervals.UnknownDurationTypeValue:
 
 		case *intervals.NumericDurationValue:
-			if checkNumericInterval(gexp.Actual.Clone, to) {
+			if checkNumericInterval(gexp.GetActualClone(), to) {
 				reportBuilder.AddIssue(true, onlyUseTimeDurationForInterval)
 			}
 

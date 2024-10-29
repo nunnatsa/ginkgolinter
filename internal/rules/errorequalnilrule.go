@@ -13,8 +13,8 @@ type ErrorEqualNilRule struct{}
 
 func (ErrorEqualNilRule) isApplied(gexp *expression.GomegaExpression, config types.Config) bool {
 	return !bool(config.SuppressErr) &&
-		gexp.Actual.Arg.ArgType().Is(actual.ErrorTypeArgType) &&
-		gexp.Matcher.GetMatcherInfo().Type().Is(matcher.BeNilMatcherType|matcher.EqualNilMatcherType)
+		gexp.ActualArgTypeIs(actual.ErrorTypeArgType) &&
+		gexp.MatcherTypeIs(matcher.BeNilMatcherType|matcher.EqualNilMatcherType)
 }
 
 func (r ErrorEqualNilRule) Apply(gexp *expression.GomegaExpression, config types.Config, reportBuilder *reports.Builder) bool {
@@ -22,7 +22,7 @@ func (r ErrorEqualNilRule) Apply(gexp *expression.GomegaExpression, config types
 		return false
 	}
 
-	if v, ok := gexp.Actual.Arg.(value.Valuer); ok && v.IsFunc() || gexp.Actual.Arg.ArgType().Is(actual.ErrFuncActualArgType) {
+	if v, ok := gexp.GetActualArg().(value.Valuer); ok && v.IsFunc() || gexp.ActualArgTypeIs(actual.ErrFuncActualArgType) {
 		gexp.SetMatcherSucceed()
 	} else {
 		gexp.ReverseAssertionFuncLogic()

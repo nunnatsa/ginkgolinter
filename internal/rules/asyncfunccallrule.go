@@ -23,7 +23,7 @@ func (r AsyncFuncCallRule) isApplied(gexp *expression.GomegaExpression, config t
 		return false
 	}
 
-	if asyncArg := gexp.Actual.GetAsyncArg(); asyncRules != nil {
+	if asyncArg := gexp.GetAsyncActualArg(); asyncRules != nil {
 		return !asyncArg.IsValid()
 	}
 
@@ -33,7 +33,7 @@ func (r AsyncFuncCallRule) isApplied(gexp *expression.GomegaExpression, config t
 func (r AsyncFuncCallRule) Apply(gexp *expression.GomegaExpression, config types.Config, reportBuilder *reports.Builder) bool {
 	if r.isApplied(gexp, config) {
 
-		gexp.Actual.AppendWithArgsMethod()
+		gexp.AppendWithArgsToActual()
 
 		reportBuilder.AddIssue(true, valueInEventually, gexp.GetActualFuncName())
 	}
