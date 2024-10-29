@@ -24,6 +24,8 @@ const ( // gomega matchers
 	or             = "Or"
 	withTransform  = "WithTransform"
 	matchError     = "MatchError"
+	haveOccurred   = "HaveOccurred"
+	succeed        = "Succeed"
 )
 
 type Matcher struct {

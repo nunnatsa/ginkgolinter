@@ -15,6 +15,7 @@ type Actual struct {
 	Clone        *ast.CallExpr
 	Arg          ArgPayload
 	argType      gotypes.Type
+	isTuple      bool
 	isAsync      bool
 	asyncArg     *AsyncArg
 	actualOffset int
@@ -32,6 +33,7 @@ func New(origExpr, cloneExpr *ast.CallExpr, orig *ast.CallExpr, clone *ast.CallE
 	}
 
 	argType := pass.TypesInfo.TypeOf(orig.Args[actualOffset])
+	isTuple := false
 
 	if tpl, ok := argType.(*gotypes.Tuple); ok {
 		if tpl.Len() > 0 {
@@ -39,6 +41,8 @@ func New(origExpr, cloneExpr *ast.CallExpr, orig *ast.CallExpr, clone *ast.CallE
 		} else {
 			argType = nil
 		}
+
+		isTuple = tpl.Len() > 1
 	}
 
 	isAsyncExpr := gomegainfo.IsAsyncActualMethod(funcName)
@@ -53,6 +57,7 @@ func New(origExpr, cloneExpr *ast.CallExpr, orig *ast.CallExpr, clone *ast.CallE
 		Clone:        clone,
 		Arg:          arg,
 		argType:      argType,
+		isTuple:      isTuple,
 		isAsync:      isAsyncExpr,
 		asyncArg:     asyncArg,
 		actualOffset: actualOffset,
@@ -70,6 +75,10 @@ func (a *Actual) ReplaceActualWithItsFirstArg() {
 
 func (a *Actual) IsAsync() bool {
 	return a.isAsync
+}
+
+func (a *Actual) IsTuple() bool {
+	return a.isTuple
 }
 
 func (a *Actual) ArgGOType() gotypes.Type {

@@ -21,6 +21,8 @@ var rules = Rules{
 	&MatchErrorRule{},
 	getMatcherOnlyRules(),
 	&EqualDifferentTypesRule{},
+	&HaveOccurredRule{},
+	&SucceedRule{},
 }
 
 var asyncRules = Rules{
@@ -28,6 +30,7 @@ var asyncRules = Rules{
 	&AsyncTimeIntervalsRule{},
 	&ErrorEqualNilRule{},
 	&MatchErrorRule{},
+	&AsyncSucceedRule{},
 	getMatcherOnlyRules(),
 }
 

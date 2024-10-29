@@ -291,6 +291,10 @@ func (e *GomegaExpression) ActualArgTypeIs(other actual.ArgType) bool {
 	return e.actual.Arg.ArgType().Is(other)
 }
 
+func (e *GomegaExpression) IsActualTuple() bool {
+	return e.actual.IsTuple()
+}
+
 // Matcher proxies
 
 func (e *GomegaExpression) GetMatcher() *matcher.Matcher {
