@@ -25,15 +25,16 @@ jobs:
         skip-pkg-cache: true
         args: --timeout=5m
 
-    - name: Build
-      run: make
-
-    - name: Test
+    - name: Unit Test and Coverage
       run: go test -covermode=count -coverprofile cover.out ./...
 
     - uses: shogo82148/actions-goveralls@v1
       with:
         path-to-profile: cover.out
 
-    - name: Functional Test
-      run: make test
+    - name: CLI Test
+      run: make test-cli
+
+    # make sure we can build the cli
+    - name: Build
+      run: make
