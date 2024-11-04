@@ -1,9 +1,7 @@
 package linter
 
 import (
-	"fmt"
 	"go/ast"
-	"go/token"
 	"golang.org/x/tools/go/analysis"
 
 	"github.com/nunnatsa/ginkgolinter/internal/expression"
@@ -18,13 +16,6 @@ import (
 // The ginkgolinter enforces standards of using ginkgo and gomega.
 //
 // For more details, look at the README.md file
-
-const (
-	linterName            = "ginkgo-linter"
-	focusContainerFound   = linterName + ": Focus container found. This is used only for local debug and should not be part of the actual source code. Consider to replace with %q"
-	focusSpecFound        = linterName + ": Focus spec found. This is used only for local debug and should not be part of the actual source code. Consider to remove it"
-	useBeforeEachTemplate = "use BeforeEach() to assign variable %s"
-)
 
 type GinkgoLinter struct {
 	config *types.Config
@@ -59,7 +50,7 @@ func (l *GinkgoLinter) Run(pass *analysis.Pass) (any, error) {
 				spec, ok := n.(*ast.ValueSpec)
 				if ok {
 					for _, val := range spec.Values {
-						goDeeper = handleGinkgoSpecs(val, fileConfig, pass, ginkgoHndlr) || goDeeper
+						goDeeper = ginkgoHndlr.HandleGinkgoSpecs(val, fileConfig, pass) || goDeeper
 					}
 				}
 				if goDeeper {
@@ -84,7 +75,7 @@ func (l *GinkgoLinter) Run(pass *analysis.Pass) (any, error) {
 			}
 
 			if ginkgoHndlr != nil {
-				if handleGinkgoSpecs(assertionExp, config, pass, ginkgoHndlr) {
+				if ginkgoHndlr.HandleGinkgoSpecs(assertionExp, config, pass) {
 					return true
 				}
 			}
@@ -106,121 +97,6 @@ func (l *GinkgoLinter) Run(pass *analysis.Pass) (any, error) {
 	return nil, nil
 }
 
-func handleGinkgoSpecs(expr ast.Expr, config types.Config, pass *analysis.Pass, ginkgoHndlr ginkgohandler.Handler) bool {
-	goDeeper := false
-	if exp, ok := expr.(*ast.CallExpr); ok {
-		if bool(config.ForbidFocus) && checkFocusContainer(pass, ginkgoHndlr, exp) {
-			goDeeper = true
-		}
-
-		if bool(config.ForbidSpecPollution) && checkAssignmentsInContainer(pass, ginkgoHndlr, exp) {
-			goDeeper = true
-		}
-	}
-	return goDeeper
-}
-
-func checkAssignmentsInContainer(pass *analysis.Pass, ginkgoHndlr ginkgohandler.Handler, exp *ast.CallExpr) bool {
-	foundSomething := false
-	if ginkgoHndlr.IsWrapContainer(exp) {
-		for _, arg := range exp.Args {
-			if fn, ok := arg.(*ast.FuncLit); ok {
-				if fn.Body != nil {
-					if checkAssignments(pass, fn.Body.List) {
-						foundSomething = true
-					}
-					break
-				}
-			}
-		}
-	}
-
-	return foundSomething
-}
-
-func checkAssignments(pass *analysis.Pass, list []ast.Stmt) bool {
-	foundSomething := false
-	for _, stmt := range list {
-		switch st := stmt.(type) {
-		case *ast.DeclStmt:
-			if gen, ok := st.Decl.(*ast.GenDecl); ok {
-				if gen.Tok != token.VAR {
-					continue
-				}
-				for _, spec := range gen.Specs {
-					if valSpec, ok := spec.(*ast.ValueSpec); ok {
-						if checkAssignmentsValues(pass, valSpec.Names, valSpec.Values) {
-							foundSomething = true
-						}
-					}
-				}
-			}
-
-		case *ast.AssignStmt:
-			for i, val := range st.Rhs {
-				if !is[*ast.FuncLit](val) {
-					if id, isIdent := st.Lhs[i].(*ast.Ident); isIdent && id.Name != "_" {
-						reportNoFix(pass, id.Pos(), useBeforeEachTemplate, id.Name)
-						foundSomething = true
-					}
-				}
-			}
-
-		case *ast.IfStmt:
-			if st.Body != nil {
-				if checkAssignments(pass, st.Body.List) {
-					foundSomething = true
-				}
-			}
-			if st.Else != nil {
-				if block, isBlock := st.Else.(*ast.BlockStmt); isBlock {
-					if checkAssignments(pass, block.List) {
-						foundSomething = true
-					}
-				}
-			}
-		}
-	}
-
-	return foundSomething
-}
-
-func checkAssignmentsValues(pass *analysis.Pass, names []*ast.Ident, values []ast.Expr) bool {
-	foundSomething := false
-	for i, val := range values {
-		if !is[*ast.FuncLit](val) {
-			reportNoFix(pass, names[i].Pos(), useBeforeEachTemplate, names[i].Name)
-			foundSomething = true
-		}
-	}
-
-	return foundSomething
-}
-
-func checkFocusContainer(pass *analysis.Pass, ginkgoHndlr ginkgohandler.Handler, exp *ast.CallExpr) bool {
-	foundFocus := false
-	isFocus, id := ginkgoHndlr.GetFocusContainerName(exp)
-	if isFocus {
-		reportNewName(pass, id, id.Name[1:], focusContainerFound, id.Name)
-		foundFocus = true
-	}
-
-	if id != nil && ginkgohandler.IsContainer(id.Name) {
-		for _, arg := range exp.Args {
-			if ginkgoHndlr.IsFocusSpec(arg) {
-				reportNoFix(pass, arg.Pos(), focusSpecFound)
-				foundFocus = true
-			} else if callExp, ok := arg.(*ast.CallExpr); ok {
-				if checkFocusContainer(pass, ginkgoHndlr, callExp) { // handle table entries
-					foundFocus = true
-				}
-			}
-		}
-	}
-
-	return foundFocus
-}
-
 func checkGomegaExpression(gexp *expression.GomegaExpression, config types.Config, reportBuilder *reports.Builder, pass *analysis.Pass) bool {
 	goNested := false
 	if rules.GetMissingAssertionRule().Apply(gexp, config, reportBuilder) {
@@ -240,41 +116,6 @@ func checkGomegaExpression(gexp *expression.GomegaExpression, config types.Confi
 	}
 
 	return goNested
-}
-
-func reportNewName(pass *analysis.Pass, id *ast.Ident, newName string, messageTemplate, oldExpr string) {
-	pass.Report(analysis.Diagnostic{
-		Pos:     id.Pos(),
-		Message: fmt.Sprintf(messageTemplate, newName),
-		SuggestedFixes: []analysis.SuggestedFix{
-			{
-				Message: fmt.Sprintf("should replace %s with %s", oldExpr, newName),
-				TextEdits: []analysis.TextEdit{
-					{
-						Pos:     id.Pos(),
-						End:     id.End(),
-						NewText: []byte(newName),
-					},
-				},
-			},
-		},
-	})
-}
-
-func reportNoFix(pass *analysis.Pass, pos token.Pos, message string, args ...any) {
-	if len(args) > 0 {
-		message = fmt.Sprintf(message, args...)
-	}
-
-	pass.Report(analysis.Diagnostic{
-		Pos:     pos,
-		Message: message,
-	})
-}
-
-func is[T any](x any) bool {
-	_, matchType := x.(T)
-	return matchType
 }
 
 func getTimePkg(file *ast.File) string {
