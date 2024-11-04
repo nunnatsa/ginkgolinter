@@ -1,5 +1,12 @@
 package gomegainfo
 
+import (
+	"go/ast"
+	gotypes "go/types"
+	"golang.org/x/tools/go/analysis"
+	"regexp"
+)
+
 const ( // gomega actual method names
 	expect                 = "Expect"
 	expectWithOffset       = "ExpectWithOffset"
@@ -75,4 +82,31 @@ func IsAssertionFunc(name string) bool {
 		return true
 	}
 	return false
+}
+
+var gomegaTypeRegex = regexp.MustCompile(`github\.com/onsi/gomega/(?:internal|types)\.Gomega`)
+
+func IsGomegaVar(x ast.Expr, pass *analysis.Pass) bool {
+	if tx, ok := pass.TypesInfo.Types[x]; ok {
+		return IsGomegaType(tx.Type)
+	}
+
+	return false
+}
+
+func IsGomegaType(t gotypes.Type) bool {
+	var typeStr string
+	switch ttx := t.(type) {
+	case *gotypes.Pointer:
+		tp := ttx.Elem()
+		typeStr = tp.String()
+
+	case *gotypes.Named:
+		typeStr = ttx.String()
+
+	default:
+		return false
+	}
+
+	return gomegaTypeRegex.MatchString(typeStr)
 }
