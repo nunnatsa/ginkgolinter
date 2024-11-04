@@ -1,9 +1,10 @@
 package actual
 
 import (
-	"github.com/nunnatsa/ginkgolinter/internal/gomegahandler"
-	"github.com/nunnatsa/ginkgolinter/internal/interfaces"
 	gotypes "go/types"
+
+	"github.com/nunnatsa/ginkgolinter/internal/gomegainfo"
+	"github.com/nunnatsa/ginkgolinter/internal/interfaces"
 )
 
 func getAsyncFuncArg(sig *gotypes.Signature) ArgPayload {
@@ -16,7 +17,7 @@ func getAsyncFuncArg(sig *gotypes.Signature) ArgPayload {
 
 	if sig.Params().Len() > 0 {
 		arg := sig.Params().At(0).Type()
-		if gomegahandler.IsGomegaType(arg) && sig.Results().Len() == 0 {
+		if gomegainfo.IsGomegaType(arg) && sig.Results().Len() == 0 {
 			argType |= FuncSigArgType | GomegaParamArgType
 		}
 	}
