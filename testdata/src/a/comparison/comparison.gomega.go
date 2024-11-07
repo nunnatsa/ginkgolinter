@@ -1,9 +1,10 @@
 package comparison
 
 import (
+	"time"
+
 	. "github.com/onsi/ginkgo/v2"
 	g "github.com/onsi/gomega"
-	"time"
 )
 
 var _ = Describe("remove comparison", func() {

@@ -2,6 +2,7 @@ package linter
 
 import (
 	"go/ast"
+
 	"golang.org/x/tools/go/analysis"
 
 	"github.com/nunnatsa/ginkgolinter/internal/expression"

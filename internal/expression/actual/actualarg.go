@@ -4,6 +4,7 @@ import (
 	"go/ast"
 	"go/token"
 	gotypes "go/types"
+
 	"golang.org/x/tools/go/analysis"
 
 	"github.com/nunnatsa/ginkgolinter/internal/expression/value"

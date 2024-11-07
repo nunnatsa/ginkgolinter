@@ -1,11 +1,12 @@
 package rules
 
 import (
+	gotypes "go/types"
+
 	"github.com/nunnatsa/ginkgolinter/internal/expression"
 	"github.com/nunnatsa/ginkgolinter/internal/expression/matcher"
 	"github.com/nunnatsa/ginkgolinter/internal/reports"
 	"github.com/nunnatsa/ginkgolinter/types"
-	gotypes "go/types"
 )
 
 const compareDifferentTypes = "use %[1]s with different types: Comparing %[2]s with %[3]s; either change the expected value type if possible, or use the BeEquivalentTo() matcher, instead of %[1]s()"

@@ -1,8 +1,9 @@
 package gomegahandler
 
 import (
-	"github.com/nunnatsa/ginkgolinter/internal/gomegainfo"
 	"go/ast"
+
+	"github.com/nunnatsa/ginkgolinter/internal/gomegainfo"
 
 	"golang.org/x/tools/go/analysis"
 )

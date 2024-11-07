@@ -2,10 +2,11 @@ package reports
 
 import (
 	"fmt"
-	"github.com/nunnatsa/ginkgolinter/internal/formatter"
 	"go/ast"
 	"go/token"
 	"strings"
+
+	"github.com/nunnatsa/ginkgolinter/internal/formatter"
 
 	"golang.org/x/tools/go/analysis"
 )
