@@ -1,15 +1,13 @@
 package actual
 
 import (
-	"go/ast"
-	"go/token"
-	gotypes "go/types"
-
-	"golang.org/x/tools/go/analysis"
-
 	"github.com/nunnatsa/ginkgolinter/internal/expression/value"
 	"github.com/nunnatsa/ginkgolinter/internal/gomegainfo"
 	"github.com/nunnatsa/ginkgolinter/internal/reverseassertion"
+	"go/ast"
+	"go/token"
+	gotypes "go/types"
+	"golang.org/x/tools/go/analysis"
 )
 
 type ArgType uint64
