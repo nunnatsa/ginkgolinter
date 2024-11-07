@@ -15,10 +15,27 @@ Just run `make build`
 In order to contribute code changes, fork this repository into your own organization, commit the code changes to a new git branch, then push the changes and create a PR.
 
 ### Code Structure
-The main logic of the linter is placed in the `ginkgoLinter::run method`, in the [ginkgo_linter.go](../ginkgo_linter.go) file. 
-
 The code is using the `go/ast` package and the `golang.org/x/tools/go/analysis` module to implement the logic.
 
+The main logic of the linter is placed in the `ginkgoLinter::run method`, in the [ginkgo_linter.go](../ginkgo_linter.go) file. 
+
+The ginkgo related code is under internal/ginkgohandler.
+
+The gomega related code is larger and spread over several packages:
+```
+...
+internal/
+    ...
+    + gomegahandler - holds logic to get expression information, regardless if the gomega import is done with or without dot.
+    + gomegainfo - general utilities for the gomega handling code
+    + expression - gomega expression types and code. Each gomega expression is modeled into these types, to later be processed by the rules
+        + actual - types to model the actual part of the gomega assertion expression
+        + matcher - types to model the matcher part of the gomega assertion expression
+        + value - models a value in several actual and matcher types
+    + rules - the gomega linter rules. A rule recieves a gomega expression and trigger a linter error if needed. 
+    ...
+... 
+```
 ### Testing
 Any functional code change must be tested. Please make sure to add relevant tests that demonstrate that the code changes are working. Run the full test suite to make sure that the code changes didn't break the linter functionality.
 
@@ -55,12 +72,28 @@ If you added a new flag, or need to test your changes with an existing flag, add
 
 To run the unit tests, do:
 ```shell
-go test ./...
+make unit-test
 ```
 
-#### Functional tests
-There is a limited functional test, in [.github/workflows/sanity.yml](../.github/workflows/sanity.yml) running as a github action. The test builds the ginkgolinter executable and runs it against the test data (**Note**: the `want` comments are ignored by the actual linter. They are only working with the `analysistest.Run` function). 
+#### CLI test
+The CLI test is done using [testscript](https://github.com/rogpeppe/go-internal). Meaning, we build a text base isolated 
+environment for each test, with all the required files.
 
-The test counts the number of linter warnings with different combinations of the commandline flags.
+These test files are located under tests/testdata, and contains a test script and the required files within the same
+txtar file.
 
-Make sure to update the expected numbers to match your changes.
+The purpose of these tests is to check the CLI itself. We don't want to test everything there, but only the CLI and its 
+command line parameters. 
+
+If you made a change with the flags, make sure to check this change in the CLI test. For regular change, use the
+unit-tests.
+
+To run the CLI test, run 
+```shell
+make test-cli
+```
+
+To run both unit test and CLI test, run
+```shell
+make test
+```
