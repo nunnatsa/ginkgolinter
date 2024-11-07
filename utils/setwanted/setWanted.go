@@ -3,11 +3,12 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"golang.org/x/sync/errgroup"
 	"log"
 	"os"
 	"strconv"
 	"strings"
+
+	"golang.org/x/sync/errgroup"
 )
 
 func main() {

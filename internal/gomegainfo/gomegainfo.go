@@ -3,8 +3,9 @@ package gomegainfo
 import (
 	"go/ast"
 	gotypes "go/types"
-	"golang.org/x/tools/go/analysis"
 	"regexp"
+
+	"golang.org/x/tools/go/analysis"
 )
 
 const ( // gomega actual method names

@@ -1,12 +1,13 @@
 package rules
 
 import (
+	"go/token"
+
 	"github.com/nunnatsa/ginkgolinter/internal/expression"
 	"github.com/nunnatsa/ginkgolinter/internal/expression/actual"
 	"github.com/nunnatsa/ginkgolinter/internal/expression/matcher"
 	"github.com/nunnatsa/ginkgolinter/internal/reports"
 	"github.com/nunnatsa/ginkgolinter/types"
-	"go/token"
 )
 
 const (

@@ -2,11 +2,13 @@ package cli
 
 import (
 	"fmt"
-	"github.com/nunnatsa/ginkgolinter"
-	"github.com/nunnatsa/ginkgolinter/version"
-	"golang.org/x/tools/go/analysis/singlechecker"
 	"os"
 	"runtime"
+
+	"golang.org/x/tools/go/analysis/singlechecker"
+
+	"github.com/nunnatsa/ginkgolinter"
+	"github.com/nunnatsa/ginkgolinter/version"
 )
 
 func Main() int {

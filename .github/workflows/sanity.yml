@@ -37,4 +37,6 @@ jobs:
 
     # make sure we can build the cli
     - name: Build
-      run: make
+      run: |
+        make build
+        git diff --exit-code

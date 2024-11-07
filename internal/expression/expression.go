@@ -2,10 +2,11 @@ package expression
 
 import (
 	"fmt"
-	"github.com/nunnatsa/ginkgolinter/internal/formatter"
 	"go/ast"
 	"go/token"
 	gotypes "go/types"
+
+	"github.com/nunnatsa/ginkgolinter/internal/formatter"
 
 	"github.com/go-toolsmith/astcopy"
 	"golang.org/x/tools/go/analysis"
