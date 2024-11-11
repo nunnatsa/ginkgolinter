@@ -19,10 +19,9 @@ jobs:
         go-version-file: go.mod
 
     - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v3
+      uses: golangci/golangci-lint-action@v6
       with:
-        version: v1.61.0
-        skip-pkg-cache: true
+        version: v1.62.0
         args: --timeout=5m
 
     - name: Unit Test and Coverage
