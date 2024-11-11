@@ -102,6 +102,10 @@ func TestAllUseCases(t *testing.T) {
 			testData: "a/issue-171",
 		},
 		{
+			testName: "respect the Error() method",
+			testData: "a/issue-173",
+		},
+		{
 			testName: "matchError with func return error-func",
 			testData: "a/issue-174",
 		},
