@@ -56,18 +56,20 @@ func getActualArgPayload(origActualExpr, actualExprClone *ast.CallExpr, pass *an
 
 		case *ast.BinaryExpr:
 			arg = parseBinaryExpr(expr, argExprClone.(*ast.BinaryExpr), pass)
-
-		default:
-			t := pass.TypesInfo.TypeOf(origArgExpr)
-			if sig, ok := t.(*gotypes.Signature); ok {
-				arg = getAsyncFuncArg(sig)
-			}
 		}
 
 	}
 
 	if arg != nil {
 		return arg, actualOffset
+	}
+
+	t := pass.TypesInfo.TypeOf(origArgExpr)
+	if sig, ok := t.(*gotypes.Signature); ok {
+		arg = getAsyncFuncArg(sig)
+		if arg != nil {
+			return arg, actualOffset
+		}
 	}
 
 	return newRegularArgPayload(origArgExpr, argExprClone, pass), actualOffset
