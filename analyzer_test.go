@@ -101,6 +101,10 @@ func TestAllUseCases(t *testing.T) {
 			testName: "nil error-func variable",
 			testData: "a/issue-171",
 		},
+		{
+			testName: "matchError with func return error-func",
+			testData: "a/issue-174",
+		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
 			analysistest.Run(tt, analysistest.TestData(), ginkgolinter.NewAnalyzer(), tc.testData)
