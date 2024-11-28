@@ -1,6 +1,7 @@
 package linter
 
 import (
+	"github.com/nunnatsa/ginkgolinter/gomegaanalyzer"
 	"go/ast"
 
 	"golang.org/x/tools/go/analysis"
@@ -19,18 +20,22 @@ import (
 // For more details, look at the README.md file
 
 type GinkgoLinter struct {
-	config *types.Config
+	config         *types.Config
+	gomegaAnalyzer *analysis.Analyzer
 }
 
 // NewGinkgoLinter return new ginkgolinter object
-func NewGinkgoLinter(config *types.Config) *GinkgoLinter {
+func NewGinkgoLinter(config *types.Config, gomegaAnalyzer *analysis.Analyzer) *GinkgoLinter {
 	return &GinkgoLinter{
-		config: config,
+		config:         config,
+		gomegaAnalyzer: gomegaAnalyzer,
 	}
 }
 
 // Run is the main assertion function
 func (l *GinkgoLinter) Run(pass *analysis.Pass) (any, error) {
+	gomegaAnalyzerRes := pass.ResultOf[l.gomegaAnalyzer].(gomegaanalyzer.Result)
+
 	for _, file := range pass.Files {
 		fileConfig := l.config.Clone()
 
@@ -86,7 +91,8 @@ func (l *GinkgoLinter) Run(pass *analysis.Pass) (any, error) {
 				return true
 			}
 
-			gexp, ok := expression.New(assertionExp, pass, gomegaHndlr, getTimePkg(file))
+			//gexp, ok := expression.New(assertionExp, pass, gomegaHndlr, getTimePkg(file))
+			gexp, ok := gomegaAnalyzerRes[assertionExp]
 			if !ok || gexp == nil {
 				return true
 			}
