@@ -1,6 +1,7 @@
 package actual
 
 import (
+	"github.com/nunnatsa/ginkgolinter/internal/gomegahandler"
 	"go/ast"
 	"go/token"
 	gotypes "go/types"
@@ -40,15 +41,15 @@ func (a ArgType) Is(val ArgType) bool {
 	return a&val != 0
 }
 
-func getActualArgPayload(origActualExpr, actualExprClone *ast.CallExpr, pass *analysis.Pass, actualMethodName string, errMethodExists bool) (ArgPayload, int) {
-	origArgExpr, argExprClone, actualOffset, isGomegaExpr := getActualArg(origActualExpr, actualExprClone, actualMethodName, pass)
+func getActualArgPayload(origActualExpr, actualExprClone *ast.CallExpr, pass *analysis.Pass, info *gomegahandler.GomegaBasicInfo) (ArgPayload, int) {
+	origArgExpr, argExprClone, actualOffset, isGomegaExpr := getActualArg(origActualExpr, actualExprClone, info.MethodName, pass)
 	if !isGomegaExpr {
 		return nil, 0
 	}
 
 	var arg ArgPayload
 
-	if errMethodExists {
+	if info.HasErrorMethod {
 		arg = &ErrorMethodPayload{}
 	} else if value.IsExprError(pass, origArgExpr) {
 		arg = newErrPayload(origArgExpr, argExprClone, pass)

@@ -126,32 +126,35 @@ func newGomegaPass() *analysis.Pass {
 	}
 }
 
-func TestGomegaDotHandler_GetActualFuncName(t *testing.T) {
+func TestGomegaDotHandler_GetGomegaBasicInfo(t *testing.T) {
 	h := &dotHandler{
 		pass: newGomegaPass(),
 	}
 
 	for _, tc := range []struct {
-		name         string
-		exp          *ast.CallExpr
-		expectedOK   bool
-		expectedName string
+		name              string
+		exp               *ast.CallExpr
+		expectedOK        bool
+		expectedName      string
+		expectedGomegaVar bool
 	}{
 		{
 			name: "simple happy case",
 			exp: &ast.CallExpr{
 				Fun: ast.NewIdent(actualName),
 			},
-			expectedOK:   true,
-			expectedName: actualName,
+			expectedOK:        true,
+			expectedName:      actualName,
+			expectedGomegaVar: false,
 		},
 		{
 			name: "non-ident func",
 			exp: &ast.CallExpr{
 				Fun: &ast.CallExpr{},
 			},
-			expectedOK:   false,
-			expectedName: "",
+			expectedOK:        false,
+			expectedName:      "",
+			expectedGomegaVar: false,
 		},
 		{
 			name: "var happy case gomega var",
@@ -161,8 +164,9 @@ func TestGomegaDotHandler_GetActualFuncName(t *testing.T) {
 					Sel: ast.NewIdent(actualName),
 				},
 			},
-			expectedOK:   true,
-			expectedName: actualName,
+			expectedOK:        true,
+			expectedName:      actualName,
+			expectedGomegaVar: true,
 		},
 		{
 			name: "var happy case gomega pointer",
@@ -172,8 +176,9 @@ func TestGomegaDotHandler_GetActualFuncName(t *testing.T) {
 					Sel: ast.NewIdent(actualName),
 				},
 			},
-			expectedOK:   true,
-			expectedName: actualName,
+			expectedOK:        true,
+			expectedName:      actualName,
+			expectedGomegaVar: true,
 		},
 		{
 			name: "non-gomega var",
@@ -183,30 +188,41 @@ func TestGomegaDotHandler_GetActualFuncName(t *testing.T) {
 					Sel: ast.NewIdent(actualName),
 				},
 			},
-			expectedOK:   false,
-			expectedName: "",
+			expectedOK:        false,
+			expectedName:      "",
+			expectedGomegaVar: false,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			name, ok := h.GetActualFuncName(tc.exp)
+			info, ok := h.GetGomegaBasicInfo(tc.exp)
 			if ok != tc.expectedOK {
 				t.Errorf(`expected ok = "%t" but it's "%t"'`, tc.expectedOK, ok)
 			}
-			if name != tc.expectedName {
-				t.Errorf(`expected name = "%s" but it's "%s"'`, tc.expectedName, name)
+
+			if !ok {
+				return
+			}
+
+			if info.MethodName != tc.expectedName {
+				t.Errorf(`expected name = "%s" but it's "%s"'`, tc.expectedName, info.MethodName)
+			}
+
+			if info.UseGomegaVar != tc.expectedGomegaVar {
+				t.Errorf(`expected gomega var to be %T, but it's %T'`, tc.expectedGomegaVar, info.UseGomegaVar)
 			}
 		})
 	}
 }
 
-func TestGomegaNameHandler_GetActualFuncName(t *testing.T) {
+func TestGomegaNameHandler_GetGomegaBasicInfo(t *testing.T) {
 	h := nameHandler{name: "gomega", pass: newGomegaPass()}
 
 	for _, tc := range []struct {
-		name         string
-		exp          *ast.CallExpr
-		expectedOK   bool
-		expectedName string
+		name              string
+		exp               *ast.CallExpr
+		expectedOK        bool
+		expectedName      string
+		expectedGomegaVar bool
 	}{
 		{
 			name: "happy usecase",
@@ -216,24 +232,27 @@ func TestGomegaNameHandler_GetActualFuncName(t *testing.T) {
 					Sel: ast.NewIdent(actualName),
 				},
 			},
-			expectedOK:   true,
-			expectedName: actualName,
+			expectedOK:        true,
+			expectedName:      actualName,
+			expectedGomegaVar: false,
 		},
 		{
 			name: "not a selector",
 			exp: &ast.CallExpr{
 				Fun: ast.NewIdent("name"),
 			},
-			expectedOK:   false,
-			expectedName: "",
+			expectedOK:        false,
+			expectedName:      "",
+			expectedGomegaVar: false,
 		},
 		{
 			name: "CallExpr",
 			exp: &ast.CallExpr{
 				Fun: ast.NewIdent("name"),
 			},
-			expectedOK:   false,
-			expectedName: "",
+			expectedOK:        false,
+			expectedName:      "",
+			expectedGomegaVar: false,
 		},
 		{
 			name: "no gomega",
@@ -243,8 +262,9 @@ func TestGomegaNameHandler_GetActualFuncName(t *testing.T) {
 					Sel: ast.NewIdent(actualName),
 				},
 			},
-			expectedOK:   false,
-			expectedName: "",
+			expectedOK:        false,
+			expectedName:      "",
+			expectedGomegaVar: false,
 		},
 		{
 			name: "gomega variable",
@@ -254,8 +274,9 @@ func TestGomegaNameHandler_GetActualFuncName(t *testing.T) {
 					Sel: ast.NewIdent(actualName),
 				},
 			},
-			expectedOK:   true,
-			expectedName: actualName,
+			expectedOK:        true,
+			expectedName:      actualName,
+			expectedGomegaVar: true,
 		},
 		{
 			name: "gomega pointer",
@@ -265,8 +286,9 @@ func TestGomegaNameHandler_GetActualFuncName(t *testing.T) {
 					Sel: ast.NewIdent(actualName),
 				},
 			},
-			expectedOK:   true,
-			expectedName: actualName,
+			expectedOK:        true,
+			expectedName:      actualName,
+			expectedGomegaVar: true,
 		},
 		{
 			name: "gomega variable from non gomega function",
@@ -276,17 +298,24 @@ func TestGomegaNameHandler_GetActualFuncName(t *testing.T) {
 					Sel: ast.NewIdent(actualName),
 				},
 			},
-			expectedOK:   false,
-			expectedName: "",
+			expectedOK:        false,
+			expectedName:      "",
+			expectedGomegaVar: false,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			name, ok := h.GetActualFuncName(tc.exp)
+			info, ok := h.GetGomegaBasicInfo(tc.exp)
 			if ok != tc.expectedOK {
 				t.Errorf(`expected ok = "%t" but it's "%t"'`, tc.expectedOK, ok)
 			}
-			if name != tc.expectedName {
-				t.Errorf(`expected name = "%s" but it's "%s"'`, tc.expectedName, name)
+			if !ok {
+				return
+			}
+			if info.MethodName != tc.expectedName {
+				t.Errorf(`expected name = "%s" but it's "%s"'`, tc.expectedName, info.MethodName)
+			}
+			if info.UseGomegaVar != tc.expectedGomegaVar {
+				t.Errorf(`expected gomega var to be %T, but it's %T'`, tc.expectedGomegaVar, info.UseGomegaVar)
 			}
 		})
 	}
