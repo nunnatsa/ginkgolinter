@@ -27,10 +27,8 @@ func (h dotHandler) GetActualFuncName(expr *ast.CallExpr) (string, bool) {
 		if x, ok := actualFunc.X.(*ast.CallExpr); ok {
 			return h.GetActualFuncName(x)
 		}
-
-	case *ast.CallExpr:
-		return h.GetActualFuncName(actualFunc)
 	}
+
 	return "", false
 }
 
