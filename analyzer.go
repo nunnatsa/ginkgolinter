@@ -3,6 +3,7 @@ package ginkgolinter
 import (
 	"flag"
 	"fmt"
+	"github.com/nunnatsa/ginkgolinter/gomegaanalyzer"
 
 	"golang.org/x/tools/go/analysis"
 
@@ -13,12 +14,14 @@ import (
 
 // NewAnalyzerWithConfig returns an Analyzer.
 func NewAnalyzerWithConfig(config *types.Config) *analysis.Analyzer {
-	theLinter := linter.NewGinkgoLinter(config)
+	gomegaAnalyser := gomegaanalyzer.New()
+	theLinter := linter.NewGinkgoLinter(config, gomegaAnalyser)
 
 	return &analysis.Analyzer{
-		Name: "ginkgolinter",
-		Doc:  fmt.Sprintf(doc, version.Version()),
-		Run:  theLinter.Run,
+		Name:     "ginkgolinter",
+		Doc:      fmt.Sprintf(doc, version.Version()),
+		Run:      theLinter.Run,
+		Requires: []*analysis.Analyzer{gomegaAnalyser},
 	}
 }
 
