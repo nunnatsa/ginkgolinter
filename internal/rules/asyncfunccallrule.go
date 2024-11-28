@@ -23,7 +23,7 @@ func (r AsyncFuncCallRule) isApplied(gexp *expression.GomegaExpression, config t
 		return false
 	}
 
-	if asyncArg := gexp.GetAsyncActualArg(); asyncRules != nil {
+	if asyncArg := gexp.GetAsyncActualArg(); asyncArg != nil {
 		return !asyncArg.IsValid()
 	}
 
