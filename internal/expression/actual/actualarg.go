@@ -1,7 +1,6 @@
 package actual
 
 import (
-	"github.com/nunnatsa/ginkgolinter/internal/gomegahandler"
 	"go/ast"
 	"go/token"
 	gotypes "go/types"
@@ -9,6 +8,7 @@ import (
 	"golang.org/x/tools/go/analysis"
 
 	"github.com/nunnatsa/ginkgolinter/internal/expression/value"
+	"github.com/nunnatsa/ginkgolinter/internal/gomegahandler"
 	"github.com/nunnatsa/ginkgolinter/internal/gomegainfo"
 	"github.com/nunnatsa/ginkgolinter/internal/reverseassertion"
 )

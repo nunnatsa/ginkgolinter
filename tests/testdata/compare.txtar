@@ -7,7 +7,7 @@ stderr -count=1 'Expect\(exampleInt\).ToNot\(BeZero\(\)\)'
 stderr -count=1 'Expect\(exampleInt\).To\(BeNumerically\(">", 4\)\)'
 
 # suppress compare assertion, still get some matcher-only errors
-! exec ginkgolinter --suppress-compare-assertion=true comparison
+! exec ginkgolinter --suppress-compare-assertion comparison
 ! stdout .
 stderr -count=1 'Expect\(exampleInt == 42\).To\(BeTrue\(\)\)'
 stderr -count=1 'Expect\(exampleInt != 0\).To\(BeTrue\(\)\)'

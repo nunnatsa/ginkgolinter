@@ -6,7 +6,7 @@ stderr -count=1 'Eventually\(withoutArguments\).Should\(Equal\(42\)\)'
 stderr -count=1 'Eventually\(withArguments\).WithArguments\(4, 2\).Should\(Equal\(42\)\)'
 
 # suppress async assersion checks - expect no errors
-exec ginkgolinter --suppress-async-assertion=true async
+exec ginkgolinter --suppress-async-assertion async
 ! stdout .
 ! stderr .
 

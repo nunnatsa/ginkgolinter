@@ -5,7 +5,7 @@ stderr -count=1 'wrong comparison assertion. Consider using .Expect\(p1\)\.To\(B
 stderr -count=1 'comparing a pointer to a value will always fail. Consider using .Expect\(p1\)\.ToNot\(HaveValue\(Equal\(6\)\)\). instead'
 
 # suppress comparison rule. Still expect the compare pointer to value error
-! exec ginkgolinter --suppress-compare-assertion=true pointers
+! exec ginkgolinter --suppress-compare-assertion pointers
 ! stdout .
 ! stderr 'wrong comparison assertion. Consider using .Expect\(p1\)\.To\(BeIdenticalTo\(p2\)\). instead'
 stderr -count=1 'comparing a pointer to a value will always fail. Consider using .Expect\(p1\)\.ToNot\(HaveValue\(Equal\(6\)\)\). instead'

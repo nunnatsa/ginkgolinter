@@ -8,20 +8,20 @@ stderr -count=3 '\(BeEmpty\(\)\)` instead'
 stderr -count=1 '\(HaveCap\(4\)\)` instead'
 
 # suppress len assertion, still get some comparison assertion errors
-! exec ginkgolinter --suppress-len-assertion=true lenassertion
+! exec ginkgolinter --suppress-len-assertion lenassertion
 ! stdout .
 stderr -count=2 'wrong comparison assertion'.
 stderr 'To\(Equal\(4\)\)'
 stderr 'ToNot\(BeZero\(\)\)'
 
 # suppress both len and comparison assertions. expect havelen0 error
-! exec ginkgolinter --suppress-len-assertion=true --suppress-compare-assertion=true lenassertion
+! exec ginkgolinter --suppress-len-assertion --suppress-compare-assertion lenassertion
 ! stdout .
 stderr -count=1 'ginkgo-linter: wrong length assertion.'
 stderr -count=1 '\(BeEmpty\(\)\)` instead'
 
 # suppress both len and comparison assertions. expect no error
-exec ginkgolinter --suppress-len-assertion=true --suppress-compare-assertion=true --allow-havelen-0=true lenassertion
+exec ginkgolinter --suppress-len-assertion --suppress-compare-assertion --allow-havelen-0 lenassertion
 ! stdout .
 ! stderr .
 

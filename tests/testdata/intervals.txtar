@@ -4,7 +4,7 @@ exec ginkgolinter intervals
 ! stderr .
 
 # run ginkgolinter to find wrong async intervals; enable interval check; expect errors
-! exec ginkgolinter --validate-async-intervals=true intervals
+! exec ginkgolinter --validate-async-intervals intervals
 ! stdout .
 stderr -count=1 'multiple issues: timeout defined more than once; polling defined more than once'
 stderr -count=2 'only use time\.Duration for timeout and polling in Eventually\(\) or Consistently\(\)'
@@ -12,7 +12,7 @@ stderr -count=1 'Consistently\(func\(\) bool \{ return true \}, time\.Second\*10
 stderr -count=1 'timeout must not be shorter than the polling interval'
 
 # run ginkgolinter to find wrong async intervals; enable interval check, but suppress async checks; expect no errors
-exec ginkgolinter --validate-async-intervals=true --suppress-async-assertion=true intervals
+exec ginkgolinter --validate-async-intervals --suppress-async-assertion intervals
 ! stdout .
 ! stderr .
 

@@ -4,7 +4,7 @@
 stderr -count=1 'use Equal with different types: Comparing uint64 with int; either change the expected value type if possible, or use the BeEquivalentTo\(\) matcher, instead of Equal\(\)'
 
 # suppress compare-type assertion, expect no additional assertion errors
-exec ginkgolinter --suppress-type-compare-assertion=true comparetypes
+exec ginkgolinter --suppress-type-compare-assertion comparetypes
 ! stdout .
 ! stderr .
 

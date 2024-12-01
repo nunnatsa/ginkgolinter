@@ -6,7 +6,7 @@ stderr -count=1 'wrong error assertion.'
 stderr -count=1 'Success matcher does not support multiple values'
 
 # also enable the force succeed rule
-! exec ginkgolinter --force-succeed=true errassertion
+! exec ginkgolinter --force-succeed errassertion
 ! stdout .
 stderr -count=1 'Success matcher only support a single error value, or function with Gomega as its first parameter'
 stderr -count=1 'wrong error assertion.'
@@ -15,7 +15,7 @@ stderr -count=1 'prefer using the HaveOccurred matcher for non-function error va
 stderr -count=1 'prefer using the Succeed matcher for error function, instead of HaveOccurred.'
 
 # run with -fix, expect wrong error assertion errors
-! exec ginkgolinter --fix --force-succeed=true errassertion
+! exec ginkgolinter --fix --force-succeed errassertion
 ! stdout .
 stderr -count=1 'Success matcher only support a single error value, or function with Gomega as its first parameter'
 stderr -count=1 'wrong error assertion.'

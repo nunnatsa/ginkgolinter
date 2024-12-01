@@ -180,7 +180,7 @@ var _ = Describe("checking something", Focus, func() {
 These container, or the `Focus` spec, must not be part of the final source code, and should only be used locally by the 
 developer.
 
-***This rule is disabled by default***. Use the `--forbid-focus-container=true` command line flag to enable it.  
+***This rule is disabled by default***. Use the `--forbid-focus-container` command line flag to enable it.  
 
 ### Comparing values from different types [BUG]
 
@@ -202,7 +202,7 @@ using casting, or use the `BeEquivalentTo` matcher.
 
 The linter can't guess what is the best solution in each case, and so it won't auto-fix this warning.
 
-To suppress this warning entirely, use the `--suppress-type-compare-assertion=true` command line parameter. 
+To suppress this warning entirely, use the `--suppress-type-compare-assertion` command line parameter. 
 
 To suppress a specific file or line, use the `// ginkgo-linter:ignore-type-compare-warning` comment (see [below](#suppress-warning-from-the-code))
 
@@ -274,7 +274,7 @@ a Gomega object as their first parameter, and returns nothing, e.g. this is a va
 ***Note***: This rule **does not** support auto-fix.
 
 ### Avoid Spec Pollution: Don't Initialize Variables in Container Nodes [BUG/STYLE]:
-***Note***: Only applied when the `--forbid-spec-pollution=true` flag is set (disabled by default).
+***Note***: Only applied when the `--forbid-spec-pollution` flag is set (disabled by default).
 
 According to [ginkgo documentation](https://onsi.github.io/ginkgo/#avoid-spec-pollution-dont-initialize-variables-in-container-nodes), 
 no variable should be assigned within a container node (`Describe`, `Context`, `When` or their `F`, `P` or `X` forms)
@@ -451,7 +451,7 @@ Expect("abc").ShouldNot(BeEmpty()) // => Expect("abc").ToNot(BeEmpty())
 ```
 This rule support auto fixing.
 
-***This rule is disabled by default***. Use the `--force-expect-to=true` command line flag to enable it.
+***This rule is disabled by default***. Use the `--force-expect-to` command line flag to enable it.
 
 ### Async timing interval: multiple timeout or polling intervals [STYLE]
 ***Note***: Only applied when the `suppress-async-assertion` flag is **not set** *and* the `validate-async-intervals`
@@ -522,20 +522,20 @@ will trigger a warning with a suggestion to replace the mather to
   ```go
   Expect(myErrorFunc()).To(Succeed())
   ```
-***This rule is disabled by default***. Use the `--force-succeed=true` command line flag to enable it.
+***This rule is disabled by default***. Use the `--force-succeed` command line flag to enable it.
 
 ***Note***: This rule **does** support auto-fix, when the `--fix` command line parameter is used.
 
 ## Suppress the linter
 ### Suppress warning from command line
-* Use the `--suppress-len-assertion=true` flag to suppress the wrong length and cap assertions warning
-* Use the `--suppress-nil-assertion=true` flag to suppress the wrong nil assertion warning
-* Use the `--suppress-err-assertion=true` flag to suppress the wrong error assertion warning
-* Use the `--suppress-compare-assertion=true` flag to suppress the wrong comparison assertion warning
-* Use the `--suppress-async-assertion=true` flag to suppress the function call in async assertion warning
-* Use the `--forbid-focus-container=true` flag to activate the focused container assertion (deactivated by default)
-* Use the `--suppress-type-compare-assertion=true` to suppress the type compare assertion warning
-* Use the `--allow-havelen-0=true` flag to avoid warnings about `HaveLen(0)`; Note: this parameter is only supported from
+* Use the `--suppress-len-assertion` flag to suppress the wrong length and cap assertions warning
+* Use the `--suppress-nil-assertion` flag to suppress the wrong nil assertion warning
+* Use the `--suppress-err-assertion` flag to suppress the wrong error assertion warning
+* Use the `--suppress-compare-assertion` flag to suppress the wrong comparison assertion warning
+* Use the `--suppress-async-assertion` flag to suppress the function call in async assertion warning
+* Use the `--forbid-focus-container` flag to activate the focused container assertion (deactivated by default)
+* Use the `--suppress-type-compare-assertion` to suppress the type compare assertion warning
+* Use the `--allow-havelen-0` flag to avoid warnings about `HaveLen(0)`; Note: this parameter is only supported from
   command line, and not from a comment.
 
 ### Suppress warning from the code
