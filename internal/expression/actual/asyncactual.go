@@ -6,6 +6,7 @@ import (
 
 	"golang.org/x/tools/go/analysis"
 
+	"github.com/nunnatsa/ginkgolinter/internal/asyncfuncpos"
 	"github.com/nunnatsa/ginkgolinter/internal/intervals"
 )
 
@@ -17,6 +18,7 @@ type AsyncArg struct {
 	pollingInterval intervals.DurationValue
 	tooManyTimeouts bool
 	tooManyPolling  bool
+	asyncPos        *asyncfuncpos.AsyncFuncPos
 }
 
 func newAsyncArg(origExpr, cloneExpr, orig, clone *ast.CallExpr, argType gotypes.Type, pass *analysis.Pass, actualOffset int, timePkg string) *AsyncArg {
@@ -25,15 +27,52 @@ func newAsyncArg(origExpr, cloneExpr, orig, clone *ast.CallExpr, argType gotypes
 		valid   = true
 		timeout intervals.DurationValue
 		polling intervals.DurationValue
+		funcPos *asyncfuncpos.AsyncFuncPos
 	)
 
-	if _, isActualFuncCall := orig.Args[actualOffset].(*ast.CallExpr); isActualFuncCall {
+	switch arg := orig.Args[actualOffset].(type) {
+	case *ast.CallExpr:
 		fun = clone.Args[actualOffset].(*ast.CallExpr)
 		valid = isValidAsyncValueType(argType)
+
+	case *ast.FuncLit:
+		var scope *gotypes.Scope
+		s, ok := pass.TypesInfo.Scopes[arg]
+		if ok {
+			scope = s
+		} else {
+			scope = gotypes.NewScope(nil, arg.Pos(), arg.End(), "")
+		}
+
+		funcPos = &asyncfuncpos.AsyncFuncPos{
+			Scope:   scope,
+			CallPos: arg.Pos(),
+		}
+
+	case *ast.Ident:
+		if _, ok := pass.TypesInfo.TypeOf(arg).(*gotypes.Signature); ok {
+			if s, ok := pass.TypesInfo.Uses[arg]; ok {
+				if theFunc, ok := s.(*gotypes.Func); ok {
+					funcPos = &asyncfuncpos.AsyncFuncPos{
+						Scope:   theFunc.Scope(),
+						CallPos: arg.Pos(),
+					}
+				}
+			}
+		}
+
+	case *ast.SelectorExpr:
+		if sel, ok := pass.TypesInfo.Uses[arg.Sel]; ok {
+			if theFunc, ok := sel.(*gotypes.Func); ok {
+				funcPos = &asyncfuncpos.AsyncFuncPos{
+					Scope:   theFunc.Scope(),
+					CallPos: arg.Pos(),
+				}
+			}
+		}
 	}
 
 	timeoutOffset := actualOffset + 1
-	//var err error
 	tooManyTimeouts := false
 	tooManyPolling := false
 
@@ -87,6 +126,7 @@ func newAsyncArg(origExpr, cloneExpr, orig, clone *ast.CallExpr, argType gotypes
 		pollingInterval: polling,
 		tooManyTimeouts: tooManyTimeouts,
 		tooManyPolling:  tooManyPolling,
+		asyncPos:        funcPos,
 	}
 }
 
@@ -108,6 +148,14 @@ func (a *AsyncArg) TooManyTimeouts() bool {
 
 func (a *AsyncArg) TooManyPolling() bool {
 	return a.tooManyPolling
+}
+
+func (a *AsyncArg) HasAsyncFuncPos() bool {
+	return a.asyncPos != nil
+}
+
+func (a *AsyncArg) AsyncFucPos() *asyncfuncpos.AsyncFuncPos {
+	return a.asyncPos
 }
 
 func isValidAsyncValueType(t gotypes.Type) bool {

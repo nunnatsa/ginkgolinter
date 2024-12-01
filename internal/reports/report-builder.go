@@ -38,6 +38,11 @@ func (b *Builder) OldExp() string {
 }
 
 func (b *Builder) AddIssue(suggestFix bool, issue string, args ...any) {
+	for i, arg := range args {
+		if p, ok := arg.(token.Pos); ok {
+			args[i] = b.formatter.FormatPosition(p)
+		}
+	}
 	if len(args) > 0 {
 		issue = fmt.Sprintf(issue, args...)
 	}

@@ -20,3 +20,7 @@ func (f GoFmtFormatter) Format(exp ast.Expr) string {
 	_ = printer.Fprint(&buf, f.fset, exp)
 	return buf.String()
 }
+
+func (f GoFmtFormatter) FormatPosition(pos token.Pos) string {
+	return f.fset.Position(pos).String()
+}

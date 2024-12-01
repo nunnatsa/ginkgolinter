@@ -1,6 +1,7 @@
 package rules
 
 import (
+	"github.com/nunnatsa/ginkgolinter/gomegaanalyzer"
 	"github.com/nunnatsa/ginkgolinter/internal/expression"
 	"github.com/nunnatsa/ginkgolinter/internal/reports"
 	"github.com/nunnatsa/ginkgolinter/types"
@@ -10,19 +11,26 @@ type Rule interface {
 	Apply(*expression.GomegaExpression, types.Config, *reports.Builder) bool
 }
 
-var rules = Rules{
-	&ForceExpectToRule{},
-	&LenRule{},
-	&CapRule{},
-	&ComparisonRule{},
-	&NilCompareRule{},
-	&ComparePointRule{},
-	&ErrorEqualNilRule{},
-	&MatchErrorRule{},
-	getMatcherOnlyRules(),
-	&EqualDifferentTypesRule{},
-	&HaveOccurredRule{},
-	&SucceedRule{},
+var rules = Rules{}
+
+func GetRules(gomegaRes *gomegaanalyzer.Result) Rules {
+	rules = Rules{
+		NewAsyncGlobalExpect(gomegaRes),
+		&ForceExpectToRule{},
+		&LenRule{},
+		&CapRule{},
+		&ComparisonRule{},
+		&NilCompareRule{},
+		&ComparePointRule{},
+		&ErrorEqualNilRule{},
+		&MatchErrorRule{},
+		getMatcherOnlyRules(),
+		&EqualDifferentTypesRule{},
+		&HaveOccurredRule{},
+		&SucceedRule{},
+	}
+
+	return rules
 }
 
 var asyncRules = Rules{
@@ -32,10 +40,6 @@ var asyncRules = Rules{
 	&MatchErrorRule{},
 	&AsyncSucceedRule{},
 	getMatcherOnlyRules(),
-}
-
-func GetRules() Rules {
-	return rules
 }
 
 func GetAsyncRules() Rules {
