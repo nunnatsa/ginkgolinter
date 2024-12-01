@@ -4,7 +4,7 @@
 stderr -count=3 'wrong nil assertion. Consider using `Expect\(p\).To\(BeNil\(\)\)` instead'
 
 # suppress nil assertion, still get some comparison assertion errors
-! exec ginkgolinter --suppress-nil-assertion=true nilassertion
+! exec ginkgolinter --suppress-nil-assertion nilassertion
 ! stdout .
 stderr -count=1 'use Equal with different types: Comparing \*int with untyped nil; either change the expected value type if possible, or use the BeEquivalentTo\(\) matcher, instead of Equal\(\)'
 stderr -count=1 'wrong boolean assertion. Consider using `Expect\(p == nil\).To\(BeTrue\(\)\)` instead'

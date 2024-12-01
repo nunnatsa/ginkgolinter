@@ -4,19 +4,19 @@ exec ginkgolinter expectto
 ! stderr .
 
 # enable force expect to, expect one error
-! exec ginkgolinter --force-expect-to=true expectto
+! exec ginkgolinter --force-expect-to expectto
 ! stdout .
 stderr -count=1 'must not use Expect with Should'
 stderr -count=1 'Expect\(true\).To\(BeTrue\(\)\)'
 
 # run with -fix, expect error
-! exec ginkgolinter --fix --force-expect-to=true expectto
+! exec ginkgolinter --fix --force-expect-to expectto
 ! stdout .
 stderr -count=1 'must not use Expect with Should'
 stderr -count=1 'Expect\(true\).To\(BeTrue\(\)\)'
 
 # run again after fix, expect no error
-exec ginkgolinter  --force-expect-to=true expectto
+exec ginkgolinter  --force-expect-to expectto
 ! stdout .
 ! stderr .
 

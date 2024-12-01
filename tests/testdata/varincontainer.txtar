@@ -4,7 +4,7 @@ exec ginkgolinter focus
 ! stderr .
 
 # enable forbid-spec-pollution - expect errors
-! exec ginkgolinter --forbid-spec-pollution=true focus
+! exec ginkgolinter --forbid-spec-pollution focus
 ! stdout .
 stderr -count=1 'use BeforeEach\(\) to assign variable vWhen'
 stderr -count=1 'use BeforeEach\(\) to assign variable vContext'

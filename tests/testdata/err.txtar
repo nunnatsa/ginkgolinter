@@ -6,14 +6,14 @@ stderr -count=1 'asserting a non-error type with Succeed matcher'
 stderr -count=1 'the Success matcher does not support multiple values'
 
 # suppress error assertion, still get some comparison assertion errors
-! exec ginkgolinter --suppress-err-assertion=true errassertion
+! exec ginkgolinter --suppress-err-assertion errassertion
 ! stdout .
 stderr -count=2 'wrong nil assertion. Consider using `Expect\(err\).ToNot\(BeNil\(\)\)` instead'
 stderr -count=1 'asserting a non-error type with Succeed matcher'
 stderr -count=1 'the Success matcher does not support multiple values'
 
 # suppress both error and nil assertions. still get some comparison assertion errors
-! exec ginkgolinter --suppress-err-assertion=true --suppress-nil-assertion=true errassertion
+! exec ginkgolinter --suppress-err-assertion --suppress-nil-assertion errassertion
 ! stdout .
 stderr -count=1 'wrong boolean assertion. Consider using `Expect\(err == nil\).To\(BeFalse\(\)\)` instead'
 stderr -count=1 'asserting a non-error type with Succeed matcher'

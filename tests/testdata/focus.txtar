@@ -4,21 +4,21 @@
 stderr -count=1 'wrong length assertion\. Consider using .Expect\("1234"\)\.To\(HaveLen\(4\)\). instead'
 
 # run ginkgolinter to find ginkgo's focused containers; enable the focus check; expect errors
-! exec ginkgolinter --forbid-focus-container=true focus
+! exec ginkgolinter --forbid-focus-container focus
 ! stdout .
 stderr -count=1 'Focus container found. This is used only for local debug and should not be part of the actual source code. Consider to replace with "Context"'
 stderr -count=3 'Focus spec found. This is used only for local debug and should not be part of the actual source code. Consider to remove it'
 stderr -count=1 'wrong length assertion\. Consider using .Expect\("1234"\)\.To\(HaveLen\(4\)\). instead'
 
 # run ginkgolinter with -fix
-! exec ginkgolinter --forbid-focus-container=true -fix focus
+! exec ginkgolinter --forbid-focus-container -fix focus
 ! stdout .
 stderr -count=1 'Focus container found. This is used only for local debug and should not be part of the actual source code. Consider to replace with "Context"'
 stderr -count=3 'Focus spec found. This is used only for local debug and should not be part of the actual source code. Consider to remove it'
 stderr -count=1 'wrong length assertion\. Consider using .Expect\("1234"\)\.To\(HaveLen\(4\)\). instead'
 
 # run ginkgolinter to find wrong async focus, after fix. expect only the focus decorator error
-! exec ginkgolinter --forbid-focus-container=true focus
+! exec ginkgolinter --forbid-focus-container focus
 ! stdout .
 stderr -count=3 'Focus spec found. This is used only for local debug and should not be part of the actual source code. Consider to remove it'
 
