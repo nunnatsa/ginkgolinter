@@ -32,7 +32,7 @@ internal/
         + actual - types to model the actual part of the gomega assertion expression
         + matcher - types to model the matcher part of the gomega assertion expression
         + value - models a value in several actual and matcher types
-    + rules - the gomega linter rules. A rule recieves a gomega expression and trigger a linter error if needed. 
+    + rules - the gomega linter rules. A rule receives a gomega expression and trigger a linter error if needed. 
     ...
 ... 
 ```
