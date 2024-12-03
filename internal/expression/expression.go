@@ -22,6 +22,7 @@ import (
 type GomegaExpression struct {
 	orig  *ast.CallExpr
 	clone *ast.CallExpr
+	pos   token.Pos
 
 	assertionFuncName     string
 	origAssertionFuncName string
@@ -85,6 +86,7 @@ func New(origExpr *ast.CallExpr, pass *analysis.Pass, handler gomegahandler.Hand
 	gexp := &GomegaExpression{
 		orig:  origExpr,
 		clone: exprClone,
+		pos:   origExpr.Pos(),
 
 		assertionFuncName:     origSel.Sel.Name,
 		origAssertionFuncName: origSel.Sel.Name,
@@ -104,6 +106,10 @@ func New(origExpr *ast.CallExpr, pass *analysis.Pass, handler gomegahandler.Hand
 	}
 
 	return gexp, true
+}
+
+func (e *GomegaExpression) Pos() token.Pos {
+	return e.pos
 }
 
 func (e *GomegaExpression) IsMissingAssertion() bool {
