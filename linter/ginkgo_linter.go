@@ -39,7 +39,7 @@ func (l *GinkgoLinter) Run(pass *analysis.Pass) (any, error) {
 	expRules := rules.GetRules(gomegaAnalyzerRes)
 
 	for _, file := range pass.Files {
-		gomegaResults, ok := gomegaAnalyzerRes.GetFileResult(file)
+		_, ok := gomegaAnalyzerRes.GetFileResult(file)
 		if !ok {
 			continue
 		}
@@ -93,22 +93,23 @@ func (l *GinkgoLinter) Run(pass *analysis.Pass) (any, error) {
 				}
 			}
 
-			// no more ginkgo checks. From here it's only gomega. So if there is no gomega handler, exit here.
-			if gomegaHndlr == nil {
-				return true
-			}
-
-			//gexp, ok := expression.New(assertionExp, pass, gomegaHndlr, "time")
-
-			gexp, ok := gomegaResults[assertionExp]
-			if !ok || gexp == nil {
-				return true
-			}
-
-			reportBuilder := reports.NewBuilder(assertionExp, formatter.NewGoFmtFormatter(pass.Fset))
-			return checkGomegaExpression(gexp, config, reportBuilder, pass, expRules)
+			return true
 		})
+
+		fileResult, ok := gomegaAnalyzerRes.GetFileResult(file)
+		if !ok {
+			continue
+		}
+		for origExpr, gomegaExpr := range fileResult {
+			config := fileConfig.Clone()
+			if comments, ok := cm[gomegaExpr.GetStatement()]; ok {
+				config.UpdateFromComment(comments)
+			}
+			rb := reports.NewBuilder(origExpr, formatter.NewGoFmtFormatter(pass.Fset))
+			checkGomegaExpression(gomegaExpr, config, rb, pass, expRules)
+		}
 	}
+
 	return nil, nil
 }
 

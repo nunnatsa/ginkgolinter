@@ -57,6 +57,8 @@ func run(pass *analysis.Pass) (any, error) {
 			continue
 		}
 
+		timePkg := getTimePkg(file)
+
 		fileResult := make(FileResult)
 
 		ast.Inspect(file, func(n ast.Node) bool {
@@ -70,7 +72,7 @@ func run(pass *analysis.Pass) (any, error) {
 				return true
 			}
 
-			expr, ok := expression.New(call, pass, gomegaHndlr, getTimePkg(file))
+			expr, ok := expression.New(stmt, call, pass, gomegaHndlr, timePkg)
 			if !ok {
 				return true
 			}
