@@ -192,6 +192,13 @@ func TestFlags(t *testing.T) {
 				"force-succeed": "true",
 			},
 		},
+		{
+			testName: "forbid global async assertions",
+			testData: []string{"a/asyncglobal"},
+			flags: map[string]string{
+				"forbid-global-assertion": "true",
+			},
+		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
 			analyzer := ginkgolinter.NewAnalyzer()

@@ -3,6 +3,8 @@ package linter
 import (
 	"go/ast"
 
+	"github.com/nunnatsa/ginkgolinter/gomegaanalyzer"
+
 	"golang.org/x/tools/go/analysis"
 
 	"github.com/nunnatsa/ginkgolinter/internal/expression"
@@ -19,19 +21,29 @@ import (
 // For more details, look at the README.md file
 
 type GinkgoLinter struct {
-	config *types.Config
+	config         *types.Config
+	gomegaAnalyzer *analysis.Analyzer
 }
 
 // NewGinkgoLinter return new ginkgolinter object
-func NewGinkgoLinter(config *types.Config) *GinkgoLinter {
+func NewGinkgoLinter(config *types.Config, gomegaAnalyzer *analysis.Analyzer) *GinkgoLinter {
 	return &GinkgoLinter{
-		config: config,
+		config:         config,
+		gomegaAnalyzer: gomegaAnalyzer,
 	}
 }
 
 // Run is the main assertion function
 func (l *GinkgoLinter) Run(pass *analysis.Pass) (any, error) {
+	gomegaAnalyzerRes := pass.ResultOf[l.gomegaAnalyzer].(*gomegaanalyzer.Result)
+	expRules := rules.GetRules(gomegaAnalyzerRes)
+
 	for _, file := range pass.Files {
+		_, ok := gomegaAnalyzerRes.GetFileResult(file)
+		if !ok {
+			continue
+		}
+
 		fileConfig := l.config.Clone()
 
 		cm := ast.NewCommentMap(pass.Fset, file, file.Comments)
@@ -81,24 +93,27 @@ func (l *GinkgoLinter) Run(pass *analysis.Pass) (any, error) {
 				}
 			}
 
-			// no more ginkgo checks. From here it's only gomega. So if there is no gomega handler, exit here.
-			if gomegaHndlr == nil {
-				return true
-			}
-
-			gexp, ok := expression.New(assertionExp, pass, gomegaHndlr, getTimePkg(file))
-			if !ok || gexp == nil {
-				return true
-			}
-
-			reportBuilder := reports.NewBuilder(assertionExp, formatter.NewGoFmtFormatter(pass.Fset))
-			return checkGomegaExpression(gexp, config, reportBuilder, pass)
+			return true
 		})
+
+		fileResult, ok := gomegaAnalyzerRes.GetFileResult(file)
+		if !ok {
+			continue
+		}
+		for origExpr, gomegaExpr := range fileResult {
+			config := fileConfig.Clone()
+			if comments, ok := cm[gomegaExpr.GetStatement()]; ok {
+				config.UpdateFromComment(comments)
+			}
+			rb := reports.NewBuilder(origExpr, formatter.NewGoFmtFormatter(pass.Fset))
+			checkGomegaExpression(gomegaExpr, config, rb, pass, expRules)
+		}
 	}
+
 	return nil, nil
 }
 
-func checkGomegaExpression(gexp *expression.GomegaExpression, config types.Config, reportBuilder *reports.Builder, pass *analysis.Pass) bool {
+func checkGomegaExpression(gexp *expression.GomegaExpression, config types.Config, reportBuilder *reports.Builder, pass *analysis.Pass, expRules rules.Rules) bool {
 	goNested := false
 	if rules.GetMissingAssertionRule().Apply(gexp, config, reportBuilder) {
 		goNested = true
@@ -107,7 +122,7 @@ func checkGomegaExpression(gexp *expression.GomegaExpression, config types.Confi
 			rules.GetAsyncRules().Apply(gexp, config, reportBuilder)
 			goNested = true
 		} else {
-			rules.GetRules().Apply(gexp, config, reportBuilder)
+			expRules.Apply(gexp, config, reportBuilder)
 		}
 	}
 
@@ -117,15 +132,4 @@ func checkGomegaExpression(gexp *expression.GomegaExpression, config types.Confi
 	}
 
 	return goNested
-}
-
-func getTimePkg(file *ast.File) string {
-	timePkg := "time"
-	for _, imp := range file.Imports {
-		if imp.Path.Value == `"time"` && imp.Name != nil {
-			timePkg = imp.Name.Name
-		}
-	}
-
-	return timePkg
 }

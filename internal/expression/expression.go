@@ -20,8 +20,11 @@ import (
 )
 
 type GomegaExpression struct {
+	stmt *ast.ExprStmt
+
 	orig  *ast.CallExpr
 	clone *ast.CallExpr
+	pos   token.Pos
 
 	assertionFuncName     string
 	origAssertionFuncName string
@@ -36,7 +39,7 @@ type GomegaExpression struct {
 	handler gomegahandler.Handler
 }
 
-func New(origExpr *ast.CallExpr, pass *analysis.Pass, handler gomegahandler.Handler, timePkg string) (*GomegaExpression, bool) {
+func New(stmt *ast.ExprStmt, origExpr *ast.CallExpr, pass *analysis.Pass, handler gomegahandler.Handler, timePkg string) (*GomegaExpression, bool) {
 	info, ok := handler.GetGomegaBasicInfo(origExpr)
 	if !ok || !gomegainfo.IsActualMethod(info.MethodName) {
 		return nil, false
@@ -83,8 +86,11 @@ func New(origExpr *ast.CallExpr, pass *analysis.Pass, handler gomegahandler.Hand
 	exprClone.Args[0] = mtchr.Clone
 
 	gexp := &GomegaExpression{
+		stmt: stmt,
+
 		orig:  origExpr,
 		clone: exprClone,
+		pos:   origExpr.Pos(),
 
 		assertionFuncName:     origSel.Sel.Name,
 		origAssertionFuncName: origSel.Sel.Name,
@@ -104,6 +110,14 @@ func New(origExpr *ast.CallExpr, pass *analysis.Pass, handler gomegahandler.Hand
 	}
 
 	return gexp, true
+}
+
+func (e *GomegaExpression) GetStatement() *ast.ExprStmt {
+	return e.stmt
+}
+
+func (e *GomegaExpression) Pos() token.Pos {
+	return e.pos
 }
 
 func (e *GomegaExpression) IsMissingAssertion() bool {
