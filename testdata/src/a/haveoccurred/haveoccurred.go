@@ -47,3 +47,38 @@ var _ = Describe("Succeed", func() {
 	})
 
 })
+
+type myError struct {
+	e string
+}
+
+func (e *myError) Error() string {
+	return e.e
+}
+
+func retErr(str string) *myError {
+	return &myError{e: str}
+}
+
+var _ = Describe("pointer error", func() {
+	Context("err pointer var", func() {
+		It("should not trigger warning", func() {
+			err := &myError{e: "err"}
+			Expect(err).To(HaveOccurred())
+		})
+
+	})
+
+	Context("returned value", func() {
+		It("should not trigger warning", func() {
+			err := retErr("err")
+			Expect(err).To(HaveOccurred())
+		})
+	})
+
+	Context("Succeed", func() {
+		It("should not trigger warning", func() {
+			Expect(retErr("err")).ToNot(Succeed())
+		})
+	})
+})
