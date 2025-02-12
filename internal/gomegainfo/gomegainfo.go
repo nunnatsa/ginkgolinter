@@ -104,16 +104,13 @@ const (
 )
 
 func IsGomegaType(t gotypes.Type) bool {
-	switch ttx := t.(type) {
+	switch ttx := gotypes.Unalias(t).(type) {
 	case *gotypes.Pointer:
 		return IsGomegaType(ttx.Elem())
 
 	case *gotypes.Named:
 		name := ttx.String()
 		return strings.HasSuffix(name, gomegaStructType) || strings.HasSuffix(name, gomegaInterface)
-
-	case *gotypes.Alias:
-		return IsGomegaType(ttx.Rhs())
 	}
 
 	return false
