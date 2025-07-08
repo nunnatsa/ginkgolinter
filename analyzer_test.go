@@ -196,6 +196,11 @@ func TestFlags(t *testing.T) {
 				"force-succeed": "true",
 			},
 		},
+		{
+			testName: "test the force-assertion-description flag",
+			testData: []string{"a/assertiondescription"},
+			flags:    map[string]string{"force-assertion-description": "true"},
+		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
 			analyzer := ginkgolinter.NewAnalyzer()

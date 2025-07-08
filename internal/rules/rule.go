@@ -23,6 +23,7 @@ var rules = Rules{
 	&EqualDifferentTypesRule{},
 	&HaveOccurredRule{},
 	&SucceedRule{},
+	&AssertionDescriptionRule{},
 }
 
 var asyncRules = Rules{
@@ -31,6 +32,7 @@ var asyncRules = Rules{
 	&ErrorEqualNilRule{},
 	&MatchErrorRule{},
 	&AsyncSucceedRule{},
+	&AssertionDescriptionRule{},
 	getMatcherOnlyRules(),
 }
 
