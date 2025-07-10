@@ -6,7 +6,7 @@ import (
 	"github.com/nunnatsa/ginkgolinter/internal/reports"
 )
 
-const assertionDescriptionWarningTemplate = "missing assertion description"
+const assertionDescriptionWarning = "missing assertion description"
 
 // AssertionDescriptionRule checks for missing assertion descriptions in Gomega assertions.
 // It suggests adding a description to improve the clarity of the assertion.
@@ -26,7 +26,7 @@ func (r *AssertionDescriptionRule) Apply(gexp *expression.GomegaExpression, conf
 		return false
 	}
 
-	reportBuilder.AddIssue(false, assertionDescriptionWarningTemplate)
+	reportBuilder.AddIssue(false, assertionDescriptionWarning)
 	return true
 }
 
@@ -35,9 +35,5 @@ func (r *AssertionDescriptionRule) isApplied(gexp *expression.GomegaExpression, 
 		return false
 	}
 
-	return !r.hasDescription(gexp)
-}
-
-func (r *AssertionDescriptionRule) hasDescription(gexp *expression.GomegaExpression) bool {
-	return gexp.HasDescription()
+	return !gexp.HasDescription()
 }
