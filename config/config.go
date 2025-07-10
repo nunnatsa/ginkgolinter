@@ -1,4 +1,4 @@
-package types
+package config
 
 import (
 	"go/ast"
@@ -90,7 +90,6 @@ func (s *Config) UpdateFromComment(commentGroup []*ast.CommentGroup) {
 }
 
 func (s *Config) UpdateFromFile(cm ast.CommentMap) {
-
 	for key, commentGroup := range cm {
 		if s.AllTrue() {
 			break

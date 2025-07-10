@@ -58,7 +58,6 @@ func TestGetGinkgoHandler_noname(t *testing.T) {
 			if string(n) != "ginkgo" {
 				tt.Errorf("import name should be `ginkgo`, but it's %s", string(n))
 			}
-
 		})
 	}
 }
