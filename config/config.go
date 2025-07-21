@@ -11,7 +11,7 @@ const (
 	suppressNilAssertionWarning     = suppressPrefix + "ignore-nil-assert-warning"
 	suppressErrAssertionWarning     = suppressPrefix + "ignore-err-assert-warning"
 	suppressCompareAssertionWarning = suppressPrefix + "ignore-compare-assert-warning"
-	suppressAsyncAsertWarning       = suppressPrefix + "ignore-async-assert-warning"
+	suppressAsyncAssertWarning      = suppressPrefix + "ignore-async-assert-warning"
 	suppressFocusContainerWarning   = suppressPrefix + "ignore-focus-container-warning"
 	suppressTypeCompareWarning      = suppressPrefix + "ignore-type-compare-warning"
 )
@@ -77,7 +77,7 @@ func (s *Config) UpdateFromComment(commentGroup []*ast.CommentGroup) {
 					s.SuppressErr = true
 				case suppressCompareAssertionWarning:
 					s.SuppressCompare = true
-				case suppressAsyncAsertWarning:
+				case suppressAsyncAssertWarning:
 					s.SuppressAsync = true
 				case suppressFocusContainerWarning:
 					s.ForbidFocus = false

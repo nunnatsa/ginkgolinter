@@ -28,20 +28,20 @@ func TestChangeAssertionLogic(t *testing.T) {
 func TestChangeAssertionLogicWithNotTo(t *testing.T) {
 	rev := reverseassertion.ChangeAssertionLogic("NotTo")
 	if rev != "To" {
-		t.Errorf("reverced function of NotTo should be NotTo, but it's %s", rev)
+		t.Errorf("reversed function of NotTo should be NotTo, but it's %s", rev)
 	}
 
 	revRev := reverseassertion.ChangeAssertionLogic(rev)
 
 	if revRev != "ToNot" {
-		t.Errorf("reverced function of To should be ToNot, but it's %s", revRev)
+		t.Errorf("reversed function of To should be ToNot, but it's %s", revRev)
 	}
 }
 
 func TestChangeAssertionLogicWithUnknown(t *testing.T) {
 	rev := reverseassertion.ChangeAssertionLogic("unknown")
 	if rev != "unknown" {
-		t.Errorf("reverced function of unknown should be the same, but it's %s", rev)
+		t.Errorf("reversed function of unknown should be the same, but it's %s", rev)
 	}
 }
 
