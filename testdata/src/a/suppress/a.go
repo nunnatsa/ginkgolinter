@@ -5,7 +5,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Supress wrong length check", func() {
+var _ = Describe("Suppress wrong length check", func() {
 	Context("test ginkgo-linter:ignore-len-assert-warning", func() {
 		It("should ignore length warning", func() {
 			// ginkgo-linter:ignore-len-assert-warning

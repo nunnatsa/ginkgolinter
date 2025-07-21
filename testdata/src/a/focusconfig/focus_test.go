@@ -56,7 +56,7 @@ var _ = Describe("should ignore", func() {
 
 var _ = Describe("suppress", func() {
 	// ginkgo-linter:ignore-focus-container-warning
-	FContext("supress", func() {
+	FContext("suppress", func() {
 		// ginkgo-linter:ignore-focus-container-warning
 		FWhen("suppress", func() {
 			// ginkgo-linter:ignore-focus-container-warning
