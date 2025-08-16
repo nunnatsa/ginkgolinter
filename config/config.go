@@ -30,6 +30,7 @@ type Config struct {
 	ForbidSpecPollution       bool
 	ForceSucceedForFuncs      bool
 	ForceAssertionDescription bool
+	ForeToNot                 bool
 }
 
 func (s *Config) AllTrue() bool {
@@ -51,6 +52,7 @@ func (s *Config) Clone() Config {
 		ForbidSpecPollution:       s.ForbidSpecPollution,
 		ForceSucceedForFuncs:      s.ForceSucceedForFuncs,
 		ForceAssertionDescription: s.ForceAssertionDescription,
+		ForeToNot:                 s.ForeToNot,
 	}
 }
 
