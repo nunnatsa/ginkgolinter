@@ -25,17 +25,31 @@ jobs:
         args: --timeout=5m
 
     - name: Unit Test and Coverage
-      run: go test -covermode=count -coverprofile cover.out ./...
+      run: go test -covermode=count -coverprofile cover.out -coverpkg=./config,./internal/...,./linter ./...
 
-    - uses: shogo82148/actions-goveralls@v1
+    - name: Coveralls
+      continue-on-error: true
+      uses: coverallsapp/github-action@v2
       with:
-        path-to-profile: cover.out
-
-    - name: CLI Test
-      run: make test-cli
+        file: cover.out
+        flag-name: Unit
+        format: golang
 
     # make sure we can build the cli
     - name: Build
       run: |
         make build
         git diff --exit-code
+
+  functional-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: CLI Test
+        run: make test-cli
