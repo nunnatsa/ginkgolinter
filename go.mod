@@ -1,6 +1,6 @@
 module github.com/nunnatsa/ginkgolinter
 
-go 1.23.0
+go 1.24
 
 require (
 	github.com/go-toolsmith/astcopy v1.1.0
