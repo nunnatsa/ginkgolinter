@@ -201,6 +201,11 @@ func TestFlags(t *testing.T) {
 			testData: []string{"a/assertiondescription"},
 			flags:    map[string]string{"force-assertion-description": "true"},
 		},
+		{
+			testName: "simplify To(Not()) expressions",
+			testData: []string{"a/to_and_not"},
+			flags:    map[string]string{"force-tonot": "true"},
+		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
 			analyzer := ginkgolinter.NewAnalyzer()
