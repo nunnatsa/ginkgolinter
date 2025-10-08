@@ -113,6 +113,10 @@ func TestAllUseCases(t *testing.T) {
 			testName: "matchError with func with SpecContext",
 			testData: "a/issue-190",
 		},
+		{
+			testName: "cap and len with expression",
+			testData: "a/issue-211",
+		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
 			analysistest.Run(tt, analysistest.TestData(), ginkgolinter.NewAnalyzer(), tc.testData)
