@@ -1,3 +1,7 @@
+// Treating this as a proper module avoids poluting the
+// ginkgolinter module itself with these test-only dependencies
+// and enables `go mod vendor` for managing the Gingko/Gomega
+// source code.
 module a
 
 go 1.23.0

@@ -75,6 +75,11 @@ func TestAllUseCases(t *testing.T) {
 			testData: "a/noassersion",
 		},
 		{
+			// The entire package doesn't import Gomega directly.
+			testName: "no assertion indirect",
+			testData: "a/noassertionindirect",
+		},
+		{
 			testName: "focus",
 			testData: "a/focus",
 		},
@@ -117,6 +122,10 @@ func TestAllUseCases(t *testing.T) {
 		{
 			testName: "cap and len with expression",
 			testData: "a/issue-211",
+		},
+		{
+			testName: "wrappers",
+			testData: "a/wrappers",
 		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
