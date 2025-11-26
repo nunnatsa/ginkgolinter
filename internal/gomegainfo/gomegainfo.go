@@ -36,15 +36,11 @@ var funcOffsetMap = map[string]int{
 	consistentlyWithOffset: 1,
 }
 
-func IsActualMethod(name string) bool {
-	_, found := funcOffsetMap[name]
-	return found
-}
-
 func ActualArgOffset(methodName string) int {
 	funcOffset, ok := funcOffsetMap[methodName]
 	if !ok {
-		return -1
+		// Assume first argument for unknown methods.
+		return 0
 	}
 	return funcOffset
 }
@@ -63,18 +59,6 @@ func GetAllowedAssertionMethods(actualMethodName string) string {
 	default:
 		return ""
 	}
-}
-
-var asyncFuncSet = map[string]struct{}{
-	eventually:             {},
-	eventuallyWithOffset:   {},
-	consistently:           {},
-	consistentlyWithOffset: {},
-}
-
-func IsAsyncActualMethod(name string) bool {
-	_, ok := asyncFuncSet[name]
-	return ok
 }
 
 func IsAssertionFunc(name string) bool {
