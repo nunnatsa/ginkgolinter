@@ -9,6 +9,7 @@ import (
 )
 
 func TestAllUseCases(t *testing.T) {
+	t.Parallel()
 	for _, tc := range []struct {
 		testName string
 		testData string
@@ -119,12 +120,14 @@ func TestAllUseCases(t *testing.T) {
 		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
+			tt.Parallel()
 			analysistest.Run(tt, analysistest.TestData(), ginkgolinter.NewAnalyzer(), tc.testData)
 		})
 	}
 }
 
 func TestFlags(t *testing.T) {
+	t.Parallel()
 	for _, tc := range []struct {
 		testName string
 		testData []string
@@ -212,6 +215,7 @@ func TestFlags(t *testing.T) {
 		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
+			tt.Parallel()
 			analyzer := ginkgolinter.NewAnalyzer()
 			for flag, value := range tc.flags {
 				err := analyzer.Flags.Set(flag, value)
