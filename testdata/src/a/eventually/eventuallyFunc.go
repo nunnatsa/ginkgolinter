@@ -5,6 +5,8 @@ import (
 	"os"
 	"time"
 
+	"a/wrappers"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -64,6 +66,7 @@ var _ = Describe("Eventually with function", func() {
 		Eventually(slowInt).WithPolling(time.Millisecond * 100).WithTimeout(time.Second * 2).Should(Equal(42))                   // valid
 		Eventually(slowInt).WithPolling(time.Second * 2).WithTimeout(time.Millisecond * 100).Should(Equal(42))                   // not valid, if validate-async-intervals flag is set
 		Eventually(slowInt()).WithPolling(time.Millisecond * 100).WithTimeout(time.Second * 2).Should(Equal(42))                 // want `ginkgo-linter: use a function call in Eventually\. This actually checks nothing, because Eventually receives the function returned value, instead of function itself, and this value is never changed\. Consider using .Eventually\(slowInt\)\.WithPolling\(time\.Millisecond \* 100\)\.WithTimeout\(time\.Second \* 2\)\.Should\(Equal\(42\)\). instead`
+		wrappers.MyEventually(slowInt()).WithPolling(time.Millisecond * 100).WithTimeout(time.Second * 2).Should(Equal(42))      // want `ginkgo-linter: use a function call in MyEventually\. This actually checks nothing, because MyEventually receives the function returned value, instead of function itself, and this value is never changed\. Consider using .wrappers.MyEventually\(slowInt\)\.WithPolling\(time\.Millisecond \* 100\)\.WithTimeout\(time\.Second \* 2\)\.Should\(Equal\(42\)\). instead`
 		Eventually(context.TODO(), slowInt()).WithPolling(time.Millisecond * 100).WithTimeout(time.Second * 2).Should(Equal(42)) // want `ginkgo-linter: use a function call in Eventually\. This actually checks nothing, because Eventually receives the function returned value, instead of function itself, and this value is never changed\. Consider using .Eventually\(context\.TODO\(\), slowInt\)\.WithPolling\(time\.Millisecond \* 100\)\.WithTimeout\(time\.Second \* 2\)\.Should\(Equal\(42\)\). instead`
 		ctx := context.TODO()
 		Eventually(ctx, slowInt()).WithPolling(time.Millisecond * 100).WithTimeout(time.Second * 2).Should(Equal(42)) // want `ginkgo-linter: use a function call in Eventually\. This actually checks nothing, because Eventually receives the function returned value, instead of function itself, and this value is never changed\. Consider using .Eventually\(ctx, slowInt\)\.WithPolling\(time\.Millisecond \* 100\)\.WithTimeout\(time\.Second \* 2\)\.Should\(Equal\(42\)\). instead`

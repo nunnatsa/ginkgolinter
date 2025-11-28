@@ -1,13 +1,15 @@
 package rules
 
 import (
+	"strconv"
+
 	"github.com/nunnatsa/ginkgolinter/config"
 	"github.com/nunnatsa/ginkgolinter/internal/expression"
 	"github.com/nunnatsa/ginkgolinter/internal/gomegainfo"
 	"github.com/nunnatsa/ginkgolinter/internal/reports"
 )
 
-const missingAssertionMessage = `%q: missing assertion method. Expected %s`
+const missingAssertionMessage = `%smissing assertion method. Expected %s`
 
 type MissingAssertionRule struct{}
 
@@ -38,7 +40,15 @@ func (r MissingAssertionRule) Apply(gexp *expression.GomegaExpression, _ config.
 	}
 
 	actualMethodName := gexp.GetActualFuncName()
-	reportBuilder.AddIssue(false, missingAssertionMessage, actualMethodName, gomegainfo.GetAllowedAssertionMethods(actualMethodName))
+	allowed := gomegainfo.GetAllowedAssertionMethods(actualMethodName)
+	var prefix string
+	if actualMethodName != "" {
+		prefix = strconv.Quote(actualMethodName) + ": "
+	}
+	if allowed == "" {
+		allowed = `one of "To/NotTo/To" (for Expect assertions) or "Should/ShouldNot" (for Eventually/Consistently assertions)`
+	}
+	reportBuilder.AddIssue(false, missingAssertionMessage, prefix, allowed)
 
 	return true
 }

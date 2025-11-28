@@ -41,10 +41,6 @@ func (l *GinkgoLinter) Run(pass *analysis.Pass) (any, error) {
 		gomegaHndlr := gomegahandler.GetGomegaHandler(file, pass)
 		ginkgoHndlr := ginkgohandler.GetGinkgoHandler(file)
 
-		if gomegaHndlr == nil && ginkgoHndlr == nil { // no gomega or ginkgo imports => no use in gomega in this file; nothing to do here
-			continue
-		}
-
 		ast.Inspect(file, func(n ast.Node) bool {
 			if ginkgoHndlr != nil {
 				goDeeper := false
@@ -86,8 +82,8 @@ func (l *GinkgoLinter) Run(pass *analysis.Pass) (any, error) {
 				return true
 			}
 
-			gexp, ok := expression.New(assertionExp, pass, gomegaHndlr, getTimePkg(file))
-			if !ok || gexp == nil {
+			gexp := expression.New(assertionExp, pass, gomegaHndlr, getTimePkg(file))
+			if gexp == nil {
 				return true
 			}
 
