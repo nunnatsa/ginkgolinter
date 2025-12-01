@@ -1,0 +1,140 @@
+package comparison
+
+import (
+	"time"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+)
+
+var exampleInt = 1
+
+const constZero = 0
+const constOne = 1
+const constTwo = 2
+const constStr = "abcd"
+
+var exampleFloat32 float32 = 1
+
+const constFloat32 float32 = 1
+
+var err error
+
+func retNum() int {
+	return 1
+}
+
+var _ = Describe("remove comparison", func() {
+	Context("equal/not equal cases", func() {
+		It("should find comparison assertions", func() {
+			Expect(exampleInt).ToNot(BeZero()) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.ToNot\(BeZero\(\)\). instead`
+			Expect(exampleInt).ToNot(BeZero()) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.ToNot\(BeZero\(\)\). instead`
+			Expect(exampleInt).ToNot(BeZero()) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.ToNot\(BeZero\(\)\). instead`
+
+			Expect(exampleInt).ToNot(BeZero()) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.ToNot\(BeZero\(\)\). instead`
+			Expect(exampleInt).ToNot(BeZero()) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.ToNot\(BeZero\(\)\). instead`
+			Expect(exampleInt).ToNot(BeZero()) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.ToNot\(BeZero\(\)\). instead`
+
+			Expect(exampleInt).To(Equal(1))
+			Expect(exampleInt).To(Equal(1)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.To\(Equal\(1\)\). instead`
+			Expect(exampleInt).To(Equal(1)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.To\(Equal\(1\)\). instead`
+
+			Expect(retNum()).To(Equal(1)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(retNum\(\)\)\.To\(Equal\(1\)\). instead`
+			Expect(retNum()).To(Equal(1)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(retNum\(\)\)\.To\(Equal\(1\)\). instead`
+			Expect(retNum()).To(Equal(1)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(retNum\(\)\)\.To\(Equal\(1\)\). instead`
+
+			exampleInt = 0
+
+			Expect(exampleInt).To(BeZero())               // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.To\(BeZero\(\)\). instead`
+			Expect(exampleInt).To(BeZero())               // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.To\(BeZero\(\)\). instead`
+			Expect(exampleInt).WithOffset(5).To(BeZero()) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.WithOffset\(5\)\.To\(BeZero\(\)\). instead`
+		})
+		It("should find comparison assertions", func() {
+			Expect(exampleInt).To(Equal(1)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.To\(Equal\(1\)\). instead`
+			Expect(exampleInt).To(Equal(1)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.To\(Equal\(1\)\). instead`
+		})
+		It("should find comparison assertions", func() {
+			Expect(exampleInt).To(Equal(constOne)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.To\(Equal\(constOne\)\). instead`
+		})
+
+		It("should find comparison assertions", func() {
+			Expect(exampleFloat32).To(Equal(1)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleFloat32\)\.To\(Equal\(1\)\). instead`
+		})
+		It("should find comparison assertions", func() {
+			Expect(exampleFloat32).To(Equal(1.0)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleFloat32\)\.To\(Equal\(1\.0\)\). instead`
+		})
+		It("should find comparison assertions", func() {
+			Expect(exampleFloat32).To(Equal(constOne)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleFloat32\)\.To\(Equal\(constOne\)\). instead`
+		})
+		It("imported const", func() {
+			Expect(time.Millisecond).To(Equal(1000000)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(time\.Millisecond\)\.To\(Equal\(1000000\)\). instead`
+		})
+		It("string const", func() {
+			var s = "abcd"
+			Expect(s).Should(Equal(constStr)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(s\)\.Should\(Equal\(constStr\)\). instead`
+			Expect(s).Should(Equal(constStr)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(s\)\.Should\(Equal\(constStr\)\). instead`
+		})
+	})
+
+	Context("less than", func() {
+		It("check greater than", func() {
+			Expect(exampleInt).To(BeNumerically(">", constZero)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.To\(BeNumerically\(">", constZero\)\). instead`
+			Expect(exampleInt).To(BeNumerically(">", constZero)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.To\(BeNumerically\(">", constZero\)\). instead`
+			Expect(exampleInt).To(BeNumerically(">", 0))
+			Expect(exampleInt).To(BeNumerically(">", 0)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.To\(BeNumerically\(">", 0\)\). instead`
+			Expect(exampleInt).To(BeNumerically(">", 0)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.To\(BeNumerically\(">", 0\)\). instead`
+
+			Expect(retNum()).To(BeNumerically(">", constZero)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(retNum\(\)\)\.To\(BeNumerically\(">", constZero\)\). instead`
+			Expect(retNum()).To(BeNumerically(">", constZero)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(retNum\(\)\)\.To\(BeNumerically\(">", constZero\)\). instead`
+			Expect(retNum()).To(BeNumerically(">", 0))
+			Expect(retNum()).To(BeNumerically(">", 0)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(retNum\(\)\)\.To\(BeNumerically\(">", 0\)\). instead`
+			Expect(retNum()).To(BeNumerically(">", 0)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(retNum\(\)\)\.To\(BeNumerically\(">", 0\)\). instead`
+		})
+
+		It("check greater than or equal", func() {
+			Expect(exampleInt).To(BeNumerically(">=", constZero)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.To\(BeNumerically\(">=", constZero\)\). instead`
+			Expect(exampleInt).To(BeNumerically(">=", constZero)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.To\(BeNumerically\(">=", constZero\)\). instead`
+			Expect(exampleInt).To(BeNumerically(">=", 0))
+			Expect(exampleInt).To(BeNumerically(">=", 0)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.To\(BeNumerically\(">=", 0\)\). instead`
+			Expect(exampleInt).To(BeNumerically(">=", 0)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.To\(BeNumerically\(">=", 0\)\). instead`
+		})
+
+		It("check less than", func() {
+			Expect(exampleInt).To(BeNumerically("<", constTwo)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.To\(BeNumerically\("<", constTwo\)\). instead`
+			Expect(exampleInt).To(BeNumerically("<", constTwo)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.To\(BeNumerically\("<", constTwo\)\). instead`
+			Expect(exampleInt).To(BeNumerically("<", 2))
+			Expect(exampleInt).To(BeNumerically("<", 2)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.To\(BeNumerically\("<", 2\)\). instead`
+			Expect(exampleInt).To(BeNumerically("<", 2)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.To\(BeNumerically\("<", 2\)\). instead`
+		})
+
+		It("check less than or equal", func() {
+			Expect(exampleInt).To(BeNumerically("<=", constTwo)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.To\(BeNumerically\("<=", constTwo\)\). instead`
+			Expect(exampleInt).To(BeNumerically("<=", constTwo)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.To\(BeNumerically\("<=", constTwo\)\). instead`
+			Expect(exampleInt).To(BeNumerically("<=", 2))
+			Expect(exampleInt).To(BeNumerically("<=", 2)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.To\(BeNumerically\("<=", 2\)\). instead`
+			Expect(exampleInt).To(BeNumerically("<=", 2)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.To\(BeNumerically\("<=", 2\)\). instead`
+			Expect(exampleInt).To(BeNumerically("<=", 2)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(exampleInt\)\.To\(BeNumerically\("<=", 2\)\). instead`
+		})
+
+	})
+
+	Context("length comparison", func() {
+		It("should not allow len() comparison", func() {
+			s := []int{1, 2, 3, 4}
+			Expect(s).Should(HaveLen(4)) // want `ginkgo-linter: wrong length assertion\. Consider using .Expect\(s\)\.Should\(HaveLen\(4\)\). instead`
+			Expect(s).Should(HaveLen(4))
+
+			Expect(s).Should(HaveLen(4))                    // want `ginkgo-linter: wrong length assertion\. Consider using .Expect\(s\)\.Should\(HaveLen\(4\)\). instead`
+			Expect(s).ShouldNot(HaveLen(5))                 // want `ginkgo-linter: wrong length assertion\. Consider using .Expect\(s\)\.ShouldNot\(HaveLen\(5\)\). instead`
+			Expect(s).ShouldNot(HaveLen(5))                 // want `ginkgo-linter: wrong length assertion\. Consider using .Expect\(s\)\.ShouldNot\(HaveLen\(5\)\). instead`
+			Expect(s).ShouldNot(BeEmpty())                  // want `ginkgo-linter: wrong length assertion\. Consider using .Expect\(s\)\.ShouldNot\(BeEmpty\(\)\). instead`
+			Expect(len(s)).Should(BeNumerically("<", 5))    // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(len\(s\)\)\.Should\(BeNumerically\("<", 5\)\). instead`
+			Expect(len(s)).Should(BeNumerically("<", 5))    // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(len\(s\)\)\.Should\(BeNumerically\("<", 5\)\). instead`
+			Expect(len(s)).Should(BeNumerically("<", 5))    // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(len\(s\)\)\.Should\(BeNumerically\("<", 5\)\). instead`
+			Expect(len(s)).Should(BeNumerically("<=", 5))   // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(len\(s\)\)\.Should\(BeNumerically\("<=", 5\)\). instead`
+			Expect(len(s)).Should(BeNumerically(">", 3))    // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(len\(s\)\)\.Should\(BeNumerically\(">", 3\)\). instead`
+			Expect(len(s)).Should(BeNumerically(">=", 3))   // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(len\(s\)\)\.Should\(BeNumerically\(">=", 3\)\). instead`
+			Expect(len(s)).ShouldNot(BeNumerically("<", 3)) // want `ginkgo-linter: wrong comparison assertion\. Consider using .Expect\(len\(s\)\)\.ShouldNot\(BeNumerically\("<", 3\)\). instead`
+		})
+	})
+})

@@ -1,0 +1,20 @@
+package len
+
+import (
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+)
+
+var _ = Describe("", func() {
+	It("", func() {
+		s := []int{1, 2, 3, 4}
+		Expect(s).Should(HaveLen(4))               // want `ginkgo-linter: wrong length assertion\. Consider using .Expect\(s\)\.Should\(HaveLen\(4\)\). instead`
+		Expect(s).Should(HaveLen(4))               // want `ginkgo-linter: wrong length assertion\. Consider using .Expect\(s\)\.Should\(HaveLen\(4\)\). instead`
+		Expect(s).WithOffset(1).Should(HaveLen(4)) // want `ginkgo-linter: wrong length assertion\. Consider using .Expect\(s\)\.WithOffset\(1\)\.Should\(HaveLen\(4\)\). instead`
+		Expect(s).WithOffset(1).Should(HaveLen(4)) // want `ginkgo-linter: wrong length assertion\. Consider using .Expect\(s\)\.WithOffset\(1\)\.Should\(HaveLen\(4\)\). instead`
+		s2 := make([]int, 4)
+		copy(s2, s)
+		Expect(s2).Should(HaveLen(len(s))) // want `ginkgo-linter: wrong length assertion\. Consider using .Expect\(s2\)\.Should\(HaveLen\(len\(s\)\)\). instead`
+		Expect(s).Should(HaveLen(4))       // want `ginkgo-linter: wrong length assertion\. Consider using .Expect\(s\)\.Should\(HaveLen\(4\)\). instead`
+	})
+})

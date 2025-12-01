@@ -1,0 +1,14 @@
+package cap
+
+import (
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+)
+
+var _ = Describe("mix len and cap", func() {
+	slice := make([]int, 0)
+	It("compare len with cap", func() {
+		Expect(slice).To(HaveCap(len(slice))) // want `wrong cap assertion. Consider using .Expect\(slice\)\.To\(HaveCap\(len\(slice\)\)\). instead`
+		Expect(slice).To(HaveLen(cap(slice))) // want `wrong length assertion. Consider using .Expect\(slice\)\.To\(HaveLen\(cap\(slice\)\)\). instead`
+	})
+})

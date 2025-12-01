@@ -1,0 +1,37 @@
+package boolean
+
+import (
+	"a/wrappers"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+)
+
+var _ = Describe("boolean warnings", func() {
+	t := true
+	f := false
+
+	It("check Equal(true/false)", func() {
+		Expect(t).To(BeTrue())                  // want `ginkgo-linter: wrong boolean assertion\. Consider using .Expect\(t\)\.To\(BeTrue\(\)\). instead`
+		Expect(f).To(BeFalse())                 // want `ginkgo-linter: wrong boolean assertion\. Consider using .Expect\(f\)\.To\(BeFalse\(\)\). instead`
+		ExpectWithOffset(2, t).Should(BeTrue()) // want `ginkgo-linter: wrong boolean assertion\. Consider using .ExpectWithOffset\(2, t\)\.Should\(BeTrue\(\)\). instead`
+		ExpectWithOffset(2, t).Should(BeTrue()) // want `ginkgo-linter: wrong boolean assertion\. Consider using .ExpectWithOffset\(2, t\)\.Should\(BeTrue\(\)\). instead`
+		Expect(t).WithOffset(2).To(BeTrue())    // want `ginkgo-linter: wrong boolean assertion\. Consider using .Expect\(t\)\.WithOffset\(2\)\.To\(BeTrue\(\)\). instead`
+		Expect(t).To(BeTrue())                  // want `ginkgo-linter: wrong boolean assertion\. Consider using .Expect\(t\)\.To\(BeTrue\(\)\). instead`
+		Expect(f).WithOffset(1).ToNot(BeTrue()) // want `ginkgo-linter: wrong boolean assertion\. Consider using .Expect\(f\)\.WithOffset\(1\)\.ToNot\(BeTrue\(\)\). instead`
+
+		// Wrappers which are named exactly like their wrapped methods are treated like the wrapped method.
+		// The suggestion is just a guess, but perhaps not a bad one.
+		Expect(t).WithOffset(2).To(wrappers.BeTrue()) // want `ginkgo-linter: wrong boolean assertion\. Consider using .Expect\(t\)\.WithOffset\(2\)\.To\(wrappers.BeTrue\(\)\). instead`
+		Expect(t).WithOffset(2).ToNot(wrappers.MyEqual(false))
+	})
+
+	It("check double negative", func() {
+		Expect(t).To(BeTrue())                   // want `ginkgo-linter: avoid double negative assertion\. Consider using .Expect\(t\)\.To\(BeTrue\(\)\). instead`
+		Expect(t).To(BeTrue())                   // want `ginkgo-linter: avoid double negative assertion\. Consider using .Expect\(t\)\.To\(BeTrue\(\)\). instead`
+		Expect(t).WithOffset(2).Should(BeTrue()) // want `ginkgo-linter: avoid double negative assertion\. Consider using .Expect\(t\)\.WithOffset\(2\)\.Should\(BeTrue\(\)\). instead`
+
+		wrappers.MyExpect(t).To(BeTrue())               // want `ginkgo-linter: avoid double negative assertion\. Consider using .wrappers\.MyExpect\(t\)\.To\(BeTrue\(\)\). instead`
+		wrappers.MyExpect(t).WithOffset(2).To(BeTrue()) // want `ginkgo-linter: avoid double negative assertion\. Consider using .wrappers\.MyExpect\(t\)\.WithOffset\(2\)\.To\(BeTrue\(\)\). instead`
+	})
+})

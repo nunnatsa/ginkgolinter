@@ -130,7 +130,7 @@ func TestAllUseCases(t *testing.T) {
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
 			tt.Parallel()
-			analysistest.Run(tt, analysistest.TestData(), ginkgolinter.NewAnalyzer(), tc.testData)
+			analysistest.RunWithSuggestedFixes(tt, analysistest.TestData(), ginkgolinter.NewAnalyzer(), tc.testData)
 		})
 	}
 }
@@ -141,61 +141,73 @@ func TestFlags(t *testing.T) {
 		testName string
 		testData []string
 		flags    map[string]string
+		fix      bool
 	}{
 		{
 			testName: "test the suppress-len-assertion flag",
 			testData: []string{"a/configlen"},
 			flags:    map[string]string{"suppress-len-assertion": "true"},
+			fix:      true,
 		},
 		{
 			testName: "test the suppress-nil-assertion flag",
 			testData: []string{"a/confignil"},
 			flags:    map[string]string{"suppress-nil-assertion": "true"},
+			fix:      true,
 		},
 		{
 			testName: "test the suppress-err-assertion flag",
 			testData: []string{"a/configerr"},
 			flags:    map[string]string{"suppress-err-assertion": "true"},
+			fix:      true,
 		},
 		{
 			testName: "test the suppress-compare-assertion flag",
 			testData: []string{"a/configcompare"},
 			flags:    map[string]string{"suppress-compare-assertion": "true"},
+			fix:      true,
 		},
 		{
 			testName: "test the allow-havelen-0 flag",
 			testData: []string{"a/havelen0config"},
 			flags:    map[string]string{"allow-havelen-0": "true"},
+			fix:      false,
 		},
 		{
 			testName: "test the suppress-async-assertion flag",
 			testData: []string{"a/asyncconfig"},
 			flags:    map[string]string{"suppress-async-assertion": "true"},
+			fix:      true,
 		},
 		{
 			testName: "test the forbid-focus-container flag",
 			testData: []string{"a/focusconfig"},
 			flags:    map[string]string{"forbid-focus-container": "true"},
+			fix:      true,
 		},
 		{
 			testName: "test the suppress-type-compare-assertion flag",
 			testData: []string{"a/comparetypesconfig"},
 			flags:    map[string]string{"suppress-type-compare-assertion": "true"},
+			fix:      false,
 		},
 		{
 			testName: "test the force-expect-to flag",
 			testData: []string{"a/forceExpectTo"},
 			flags:    map[string]string{"force-expect-to": "true"},
+			fix:      true,
 		},
 		{
 			testName: "check async timing intervals",
 			testData: []string{"a/timing"},
 			flags:    map[string]string{"validate-async-intervals": "true"},
+			fix:      true,
 		},
 		{
 			testName: "vars in containers",
 			testData: []string{"a/vars-in-containers"},
 			flags:    map[string]string{"forbid-spec-pollution": "true"},
+			fix:      false,
 		},
 		{
 			testName: "vars in containers + focus containers",
@@ -204,6 +216,7 @@ func TestFlags(t *testing.T) {
 				"forbid-spec-pollution":  "true",
 				"forbid-focus-container": "true",
 			},
+			fix: true,
 		},
 		{
 			testName: "force Succeed/HaveOccurred",
@@ -211,16 +224,19 @@ func TestFlags(t *testing.T) {
 			flags: map[string]string{
 				"force-succeed": "true",
 			},
+			fix: true,
 		},
 		{
 			testName: "test the force-assertion-description flag",
 			testData: []string{"a/assertiondescription"},
 			flags:    map[string]string{"force-assertion-description": "true"},
+			fix:      false,
 		},
 		{
 			testName: "simplify To(Not()) expressions",
 			testData: []string{"a/to_and_not"},
 			flags:    map[string]string{"force-tonot": "true"},
+			fix:      true,
 		},
 	} {
 		t.Run(tc.testName, func(tt *testing.T) {
@@ -233,7 +249,11 @@ func TestFlags(t *testing.T) {
 					return
 				}
 			}
-			analysistest.Run(tt, analysistest.TestData(), analyzer, tc.testData...)
+			if tc.fix {
+				analysistest.RunWithSuggestedFixes(tt, analysistest.TestData(), analyzer, tc.testData...)
+			} else {
+				analysistest.Run(tt, analysistest.TestData(), analyzer, tc.testData...)
+			}
 		})
 	}
 }

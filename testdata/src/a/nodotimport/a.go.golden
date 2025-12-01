@@ -1,0 +1,35 @@
+package nodotimport
+
+import (
+	"github.com/onsi/ginkgo/v2"
+	"github.com/onsi/gomega"
+)
+
+var _ = ginkgo.Describe("no dot import", func() {
+	ginkgo.It("should trigger length warning", func() {
+		const length = 3
+		gomega.Expect("abc").Should(gomega.HaveLen(3))               // want `ginkgo-linter: wrong length assertion\. Consider using .gomega\.Expect\("abc"\)\.Should\(gomega\.HaveLen\(3\)\). instead`
+		gomega.Expect("abc").ShouldNot(gomega.HaveLen(4))            // want `ginkgo-linter: wrong length assertion\. Consider using .gomega\.Expect\("abc"\)\.ShouldNot\(gomega\.HaveLen\(4\)\). instead`
+		gomega.Expect("abc").Should(gomega.HaveLen(length))          // want `ginkgo-linter: wrong length assertion\. Consider using .gomega\.Expect\("abc"\)\.Should\(gomega\.HaveLen\(length\)\). instead`
+		gomega.Expect("").Should(gomega.BeEmpty())                   // want `ginkgo-linter: wrong length assertion\. Consider using .gomega\.Expect\(""\)\.Should\(gomega\.BeEmpty\(\)\). instead`
+		gomega.Expect("abc").ShouldNot(gomega.BeEmpty())             // want `ginkgo-linter: wrong length assertion\. Consider using .gomega\.Expect\("abc"\)\.ShouldNot\(gomega\.BeEmpty\(\)\). instead`
+		gomega.Expect("abc").ShouldNot(gomega.BeEmpty())             // want `ginkgo-linter: wrong length assertion\. Consider using .gomega\.Expect\("abc"\)\.ShouldNot\(gomega\.BeEmpty\(\)\). instead`
+		gomega.Expect("abc").Should(gomega.HaveLen(3))               // want `ginkgo-linter: wrong length assertion\. Consider using .gomega\.Expect\("abc"\)\.Should\(gomega\.HaveLen\(3\)\). instead`
+		gomega.Expect("abc").WithOffset(1).Should(gomega.HaveLen(3)) // want `ginkgo-linter: wrong length assertion\. Consider using .gomega\.Expect\("abc"\)\.WithOffset\(1\)\.Should\(gomega\.HaveLen\(3\)\). instead`
+	})
+	ginkgo.It("should trigger nil warning", func() {
+		var x *int
+		gomega.Expect(x).Should(gomega.BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .gomega\.Expect\(x\)\.Should\(gomega\.BeNil\(\)\). instead`
+		gomega.Expect(x).Should(gomega.BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .gomega\.Expect\(x\)\.Should\(gomega\.BeNil\(\)\). instead`
+		gomega.Expect(x).Should(gomega.BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .gomega\.Expect\(x\)\.Should\(gomega\.BeNil\(\)\). instead`
+		gomega.Expect(x).Should(gomega.BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .gomega\.Expect\(x\)\.Should\(gomega\.BeNil\(\)\). instead`
+		gomega.Expect(x).Should(gomega.BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .gomega\.Expect\(x\)\.Should\(gomega\.BeNil\(\)\). instead`
+	})
+	ginkgo.It("should trigger equal nil warning", func() {
+		var x *int
+		var y = 5
+		var py = &y
+		gomega.Expect(x).Should(gomega.BeNil())     // want `ginkgo-linter: wrong nil assertion\. Consider using .gomega\.Expect\(x\)\.Should\(gomega\.BeNil\(\)\). instead`
+		gomega.Expect(py).ShouldNot(gomega.BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .gomega\.Expect\(py\)\.ShouldNot\(gomega\.BeNil\(\)\). instead`
+	})
+})
