@@ -1,0 +1,120 @@
+package errnil
+
+import (
+	"errors"
+	"fmt"
+	"os"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+
+	"a/mytypes"
+)
+
+func errFunc() error {
+	return nil
+}
+
+func tupleFunc() (error, fmt.Stringer) {
+	return nil, nil
+}
+
+func noErrorFunc() int {
+	return 1
+}
+
+type t struct {
+	err error
+}
+
+func (t) typeErrorFunc() error {
+	return nil
+}
+
+func (t) typeTupleFunc() (error, int) {
+	return errors.New("fake error"), 1
+}
+
+func (t) typeNoErrorFunc() int {
+	return 1
+}
+
+const zero = 0
+
+var _ = Describe("check Expect(err).To(BeNil())", func() {
+	var err error
+	tt := t{}
+
+	It("check custom errors", func() {
+		var arr []int
+		Expect(0).To(BeZero())                     // want `ginkgo-linter: wrong comparison assertion. Consider using .Expect\(0\)\.To\(BeZero\(\)\). instead`
+		Expect(arr).To(BeEmpty())                  // want `ginkgo-linter: wrong length assertion. Consider using .Expect\(arr\)\.To\(BeEmpty\(\)\). instead`
+		Expect(arr).To(BeEmpty())                  // want `ginkgo-linter: wrong length assertion. Consider using .Expect\(arr\)\.To\(BeEmpty\(\)\). instead`
+		Expect(mytypes.MyError).To(HaveOccurred()) // want `ginkgo-linter: wrong error assertion. Consider using .Expect\(mytypes\.MyError\)\.To\(HaveOccurred\(\)\). instead`
+		Expect(mytypes.MyError).To(HaveOccurred()) // want `ginkgo-linter: wrong error assertion. Consider using .Expect\(mytypes\.MyError\)\.To\(HaveOccurred\(\)\). instead`
+
+		e1 := &mytypes.MyErr{}
+		Expect(e1).To(HaveOccurred()) // want `ginkgo-linter: wrong error assertion. Consider using .Expect\(e1\)\.To\(HaveOccurred\(\)\). instead`
+		Expect(e1).To(HaveOccurred()) // want `ginkgo-linter: wrong error assertion. Consider using .Expect\(e1\)\.To\(HaveOccurred\(\)\). instead`
+
+		e2 := os.ErrNoDeadline
+		Expect(e2).To(HaveOccurred()) // want `ginkgo-linter: wrong error assertion. Consider using .Expect\(e2\)\.To\(HaveOccurred\(\)\). instead`
+		Expect(e2).To(HaveOccurred()) // want `ginkgo-linter: wrong error assertion. Consider using .Expect\(e2\)\.To\(HaveOccurred\(\)\). instead`
+	})
+
+	It("check Expect(err).To(BeNil())", func() {
+		Expect(errors.New("fake error")).To(Succeed()) // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(errors\.New\("fake error"\)\)\.To\(Succeed\(\)\). instead`
+		Expect(err).ToNot(HaveOccurred())              // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(err\)\.ToNot\(HaveOccurred\(\)\). instead`
+		ExpectWithOffset(1, err).ToNot(HaveOccurred()) // want `ginkgo-linter: wrong error assertion\. Consider using .ExpectWithOffset\(1, err\)\.ToNot\(HaveOccurred\(\)\). instead`
+		Expect(err).To(HaveOccurred())                 // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(err\)\.To\(HaveOccurred\(\)\). instead`
+		Expect(err).To(HaveOccurred())                 // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(err\)\.To\(HaveOccurred\(\)\). instead`
+		Expect(err).WithOffset(1).To(HaveOccurred())   // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(err\)\.WithOffset\(1\)\.To\(HaveOccurred\(\)\). instead`
+
+		Expect(tt.err).ToNot(HaveOccurred()) // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(tt\.err\)\.ToNot\(HaveOccurred\(\)\). instead`
+
+		Expect(errFunc()).To(Succeed())      // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(errFunc\(\)\)\.To\(Succeed\(\)\). instead`
+		Expect(errFunc()).ToNot(Succeed())   // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(errFunc\(\)\)\.ToNot\(Succeed\(\)\). instead`
+		Expect(tupleFunc()).ToNot(Succeed()) // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(tupleFunc\(\)\)\.ToNot\(Succeed\(\)\). instead`
+		Expect(noErrorFunc()).ToNot(Equal(1))
+
+		Expect(tt.typeErrorFunc()).ToNot(Succeed()) // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(tt\.typeErrorFunc\(\)\)\.ToNot\(Succeed\(\)\). instead`
+		Expect(tt.typeTupleFunc()).ToNot(Succeed()) // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(tt\.typeTupleFunc\(\)\)\.ToNot\(Succeed\(\)\). instead`
+		Expect(tt.typeNoErrorFunc()).ToNot(Equal(1))
+	})
+	It("check Expect(err).To(Equal(nil))", func() {
+		Expect(err).ToNot(HaveOccurred())                  // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(err\)\.ToNot\(HaveOccurred\(\)\). instead`
+		Expect(err).To(HaveOccurred())                     // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(err\)\.To\(HaveOccurred\(\)\). instead`
+		Expect(err).To(HaveOccurred())                     // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(err\)\.To\(HaveOccurred\(\)\). instead`
+		Expect(tt.err).ToNot(HaveOccurred())               // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(tt\.err\)\.ToNot\(HaveOccurred\(\)\). instead`
+		Expect(tt.err).WithOffset(1).ToNot(HaveOccurred()) // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(tt\.err\)\.WithOffset\(1\)\.ToNot\(HaveOccurred\(\)\). instead`
+
+		Expect(errFunc()).To(Succeed())      // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(errFunc\(\)\)\.To\(Succeed\(\)\). instead`
+		Expect(errFunc()).ToNot(Succeed())   // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(errFunc\(\)\)\.ToNot\(Succeed\(\)\). instead`
+		Expect(tupleFunc()).ToNot(Succeed()) // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(tupleFunc\(\)\)\.ToNot\(Succeed\(\)\). instead`
+		Expect(noErrorFunc()).ToNot(Equal(1))
+
+		Expect(tt.typeErrorFunc()).ToNot(Succeed()) // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(tt\.typeErrorFunc\(\)\)\.ToNot\(Succeed\(\)\). instead`
+		Expect(tt.typeTupleFunc()).ToNot(Succeed()) // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(tt\.typeTupleFunc\(\)\)\.ToNot\(Succeed\(\)\). instead`
+		Expect(tt.typeTupleFunc()).ToNot(HaveOccurred())
+		Expect(tt.typeTupleFunc()).To(Succeed())
+		Expect(tt.typeNoErrorFunc()).ToNot(Equal(1))
+	})
+
+	It("check err == nil", func() {
+		Expect(err).ToNot(HaveOccurred())               // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(err\)\.ToNot\(HaveOccurred\(\)\). instead`
+		Expect(err).To(HaveOccurred())                  // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(err\)\.To\(HaveOccurred\(\)\). instead`
+		Expect(err).To(HaveOccurred())                  // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(err\)\.To\(HaveOccurred\(\)\). instead`
+		Expect(err).ToNot(HaveOccurred())               // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(err\)\.ToNot\(HaveOccurred\(\)\). instead`
+		Expect(err).ToNot(HaveOccurred())               // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(err\)\.ToNot\(HaveOccurred\(\)\). instead`
+		Expect(err).WithOffset(1).ToNot(HaveOccurred()) // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(err\)\.WithOffset\(1\)\.ToNot\(HaveOccurred\(\)\). instead`
+		Expect(errFunc()).To(Succeed())                 // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(errFunc\(\)\)\.To\(Succeed\(\)\). instead`
+		Expect(errFunc()).ToNot(Succeed())              // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(errFunc\(\)\)\.ToNot\(Succeed\(\)\). instead`
+
+		Expect(err).ToNot(HaveOccurred())             // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(err\)\.ToNot\(HaveOccurred\(\)\). instead`
+		Expect(err).ToNot(HaveOccurred())             // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(err\)\.ToNot\(HaveOccurred\(\)\). instead`
+		Expect(err).ToNot(HaveOccurred())             // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(err\)\.ToNot\(HaveOccurred\(\)\). instead`
+		Expect(errFunc()).To(Succeed())               // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(errFunc\(\)\)\.To\(Succeed\(\)\). instead`
+		Expect(errFunc()).To(Succeed())               // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(errFunc\(\)\)\.To\(Succeed\(\)\). instead`
+		Expect(errFunc()).WithOffset(1).To(Succeed()) // want `ginkgo-linter: wrong error assertion\. Consider using .Expect\(errFunc\(\)\)\.WithOffset\(1\)\.To\(Succeed\(\)\). instead`
+	})
+})

@@ -1,0 +1,1602 @@
+package nil
+
+import (
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+)
+
+func fNil() *string {
+	return nil
+}
+
+func fNotNil() *string {
+	val := "no nil"
+	return &val
+}
+
+var _ = Describe("", func() {
+
+	var x *int
+	val := 3
+	y := &val
+
+	Context("test Expect", func() {
+		Context("test Should", func() {
+			Context("test BeTrue", func() {
+				It("test nil value", func() {
+					Expect(x).Should(BeNil())               // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+					Expect(x).WithOffset(1).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.WithOffset\(1\)\.Should\(BeNil\(\)\). instead`
+					Expect(x).Should(BeNil())               // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+					Expect(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					Expect(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test BeFalse", func() {
+				It("test nil value", func() {
+					Expect(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+					Expect(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+					Expect(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					Expect(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(true)", func() {
+				It("test nil value", func() {
+					Expect(x).WithOffset(1).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.WithOffset\(1\)\.Should\(BeNil\(\)\). instead`
+					Expect(x).Should(BeNil())               // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+					Expect(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					Expect(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(false)", func() {
+				It("test nil value", func() {
+					Expect(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+					Expect(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+					Expect(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					Expect(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+		})
+		Context("test Should(Not())", func() {
+			Context("test BeTrue", func() {
+				It("test nil value", func() {
+					Expect(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+					Expect(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+					Expect(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					Expect(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test BeFalse", func() {
+				It("test nil value", func() {
+					Expect(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+					Expect(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+					Expect(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					Expect(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(false)", func() {
+				It("test nil value", func() {
+					Expect(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+					Expect(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+					Expect(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					Expect(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(true)", func() {
+				It("test nil value", func() {
+					Expect(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+					Expect(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+					Expect(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					Expect(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+		})
+
+		Context("test To", func() {
+			Context("test BeTrue", func() {
+				It("test nil value", func() {
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test BeFalse", func() {
+				It("test nil value", func() {
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(true)", func() {
+				It("test nil value", func() {
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(false)", func() {
+				It("test nil value", func() {
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+		})
+		Context("test To(Not())", func() {
+			Context("test BeTrue", func() {
+				It("test nil value", func() {
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test BeFalse", func() {
+				It("test nil value", func() {
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(false)", func() {
+				It("test nil value", func() {
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(true)", func() {
+				It("test nil value", func() {
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+		})
+
+		Context("test ShouldNot", func() {
+			Context("test BeFalse", func() {
+				It("test nil value", func() {
+					Expect(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+					Expect(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+					Expect(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					Expect(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test BeTrue", func() {
+				It("test nil value", func() {
+					Expect(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+					Expect(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+					Expect(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					Expect(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(true)", func() {
+				It("test nil value", func() {
+					Expect(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+					Expect(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+					Expect(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					Expect(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(false)", func() {
+				It("test nil value", func() {
+					Expect(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+					Expect(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+					Expect(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					Expect(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+		})
+
+		Context("test NotTo", func() {
+			Context("test BeFalse", func() {
+				It("test nil value", func() {
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test BeTrue", func() {
+				It("test nil value", func() {
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).NotTo(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.NotTo\(BeNil\(\)\). instead`
+					Expect(y).NotTo(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.NotTo\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).NotTo(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.NotTo\(BeNil\(\)\). instead`
+					Expect(fNotNil()).NotTo(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.NotTo\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(true)", func() {
+				It("test nil value", func() {
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).NotTo(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.NotTo\(BeNil\(\)\). instead`
+					Expect(y).NotTo(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.NotTo\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).NotTo(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.NotTo\(BeNil\(\)\). instead`
+					Expect(fNotNil()).NotTo(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.NotTo\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(false)", func() {
+				It("test nil value", func() {
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+		})
+		Context("test ToNot", func() {
+			Context("test BeFalse", func() {
+				It("test nil value", func() {
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test BeTrue", func() {
+				It("test nil value", func() {
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(true)", func() {
+				It("test nil value", func() {
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(false)", func() {
+				It("test nil value", func() {
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+					Expect(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Expect(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Expect(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Expect\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+		})
+	})
+
+	Context("test ExpectWithOffset", func() {
+		Context("test Should", func() {
+			Context("test BeTrue", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.Should\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ShouldNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test BeFalse", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.Should\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ShouldNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(true)", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.Should\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ShouldNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(false)", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.Should\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ShouldNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+		})
+		Context("test Should(Not())", func() {
+			Context("test BeTrue", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.Should\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ShouldNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test BeFalse", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.Should\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ShouldNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(false)", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.Should\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ShouldNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(true)", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.Should\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ShouldNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+		})
+
+		Context("test To", func() {
+			Context("test BeTrue", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test BeFalse", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(true)", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(false)", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+		})
+		Context("test To(Not())", func() {
+			Context("test BeTrue", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test BeFalse", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(false)", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(true)", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+		})
+
+		Context("test ShouldNot", func() {
+			Context("test BeFalse", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.Should\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ShouldNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test BeTrue", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.Should\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ShouldNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(true)", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.Should\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ShouldNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(false)", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.Should\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ShouldNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+		})
+
+		Context("test NotTo", func() {
+			Context("test BeFalse", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test BeTrue", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).NotTo(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.NotTo\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).NotTo(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.NotTo\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).NotTo(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.NotTo\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).NotTo(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.NotTo\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(true)", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).NotTo(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.NotTo\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).NotTo(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.NotTo\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).NotTo(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.NotTo\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).NotTo(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.NotTo\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(false)", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+		})
+		Context("test ToNot", func() {
+			Context("test BeFalse", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test BeTrue", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(true)", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(false)", func() {
+				It("test nil value", func() {
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					ExpectWithOffset(1, fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .ExpectWithOffset\(1, fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+		})
+	})
+
+	Context("test Ω", func() {
+		Context("test Should", func() {
+			Context("test BeTrue", func() {
+				It("test nil value", func() {
+					Ω(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.Should\(BeNil\(\)\). instead`
+					Ω(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+					Ω(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					Ω(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test BeFalse", func() {
+				It("test nil value", func() {
+					Ω(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.Should\(BeNil\(\)\). instead`
+					Ω(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+					Ω(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					Ω(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(true)", func() {
+				It("test nil value", func() {
+					Ω(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.Should\(BeNil\(\)\). instead`
+					Ω(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+					Ω(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					Ω(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(false)", func() {
+				It("test nil value", func() {
+					Ω(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.Should\(BeNil\(\)\). instead`
+					Ω(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+					Ω(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					Ω(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+		})
+		Context("test Should(Not())", func() {
+			Context("test BeTrue", func() {
+				It("test nil value", func() {
+					Ω(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.Should\(BeNil\(\)\). instead`
+					Ω(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+					Ω(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					Ω(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test BeFalse", func() {
+				It("test nil value", func() {
+					Ω(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.Should\(BeNil\(\)\). instead`
+					Ω(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+					Ω(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					Ω(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(false)", func() {
+				It("test nil value", func() {
+					Ω(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.Should\(BeNil\(\)\). instead`
+					Ω(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+					Ω(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					Ω(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(true)", func() {
+				It("test nil value", func() {
+					Ω(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.Should\(BeNil\(\)\). instead`
+					Ω(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+					Ω(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					Ω(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+		})
+
+		Context("test To", func() {
+			Context("test BeTrue", func() {
+				It("test nil value", func() {
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test BeFalse", func() {
+				It("test nil value", func() {
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(true)", func() {
+				It("test nil value", func() {
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(false)", func() {
+				It("test nil value", func() {
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+		})
+		Context("test To(Not())", func() {
+			Context("test BeTrue", func() {
+				It("test nil value", func() {
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test BeFalse", func() {
+				It("test nil value", func() {
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(false)", func() {
+				It("test nil value", func() {
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(true)", func() {
+				It("test nil value", func() {
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+		})
+
+		Context("test ShouldNot", func() {
+			Context("test BeFalse", func() {
+				It("test nil value", func() {
+					Ω(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.Should\(BeNil\(\)\). instead`
+					Ω(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+					Ω(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					Ω(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test BeTrue", func() {
+				It("test nil value", func() {
+					Ω(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.Should\(BeNil\(\)\). instead`
+					Ω(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+					Ω(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					Ω(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(true)", func() {
+				It("test nil value", func() {
+					Ω(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.Should\(BeNil\(\)\). instead`
+					Ω(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+					Ω(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					Ω(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(false)", func() {
+				It("test nil value", func() {
+					Ω(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.Should\(BeNil\(\)\). instead`
+					Ω(x).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+					Ω(y).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+					Ω(fNil()).Should(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.Should\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ShouldNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ShouldNot\(BeNil\(\)\). instead`
+				})
+			})
+		})
+
+		Context("test NotTo", func() {
+			Context("test BeFalse", func() {
+				It("test nil value", func() {
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test BeTrue", func() {
+				It("test nil value", func() {
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).NotTo(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.NotTo\(BeNil\(\)\). instead`
+					Ω(y).NotTo(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.NotTo\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).NotTo(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.NotTo\(BeNil\(\)\). instead`
+					Ω(fNotNil()).NotTo(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.NotTo\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(true)", func() {
+				It("test nil value", func() {
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).NotTo(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.NotTo\(BeNil\(\)\). instead`
+					Ω(y).NotTo(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.NotTo\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).NotTo(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.NotTo\(BeNil\(\)\). instead`
+					Ω(fNotNil()).NotTo(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.NotTo\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(false)", func() {
+				It("test nil value", func() {
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+		})
+		Context("test ToNot", func() {
+			Context("test BeFalse", func() {
+				It("test nil value", func() {
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test BeTrue", func() {
+				It("test nil value", func() {
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(true)", func() {
+				It("test nil value", func() {
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+			Context("test Equal(false)", func() {
+				It("test nil value", func() {
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+					Ω(x).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(x\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil value", func() {
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(y).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(y\)\.ToNot\(BeNil\(\)\). instead`
+				})
+				It("test nil func", func() {
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+					Ω(fNil()).To(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNil\(\)\)\.To\(BeNil\(\)\). instead`
+				})
+				It("test non-nil func", func() {
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+					Ω(fNotNil()).ToNot(BeNil()) // want `ginkgo-linter: wrong nil assertion\. Consider using .Ω\(fNotNil\(\)\)\.ToNot\(BeNil\(\)\). instead`
+				})
+			})
+		})
+	})
+
+	Context("valid (x == nil) cases", func() {
+		It("should not trigger warning", func() {
+			var x *int
+			Expect(x == nil).To(BeElementOf([]bool{true, false}))
+		})
+	})
+})

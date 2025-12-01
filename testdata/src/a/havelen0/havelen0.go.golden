@@ -1,0 +1,21 @@
+package havelen0
+
+import (
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+)
+
+const EMPTY = 0
+
+var _ = Describe("test HaveLen(0)", func() {
+	It("should replace HaveLen(0) with BeEmpty()", func() {
+		x := make([]int, 0)
+		Expect(x).To(BeEmpty())               // want `ginkgo-linter: wrong length assertion\. Consider using .Expect\(x\)\.To\(BeEmpty\(\)\). instead`
+		Expect(x).WithOffset(1).To(BeEmpty()) // want `ginkgo-linter: wrong length assertion\. Consider using .Expect\(x\)\.WithOffset\(1\)\.To\(BeEmpty\(\)\). instead`
+		Expect(x).To(BeEmpty())               // want `ginkgo-linter: wrong length assertion\. Consider using .Expect\(x\)\.To\(BeEmpty\(\)\). instead`
+
+		x = append(x, 1)
+		Expect(x).ToNot(BeEmpty()) // want `ginkgo-linter: wrong length assertion\. Consider using .Expect\(x\)\.ToNot\(BeEmpty\(\)\). instead`
+		Expect(x).ToNot(BeEmpty()) // want `ginkgo-linter: wrong length assertion\. Consider using .Expect\(x\)\.ToNot\(BeEmpty\(\)\). instead`
+	})
+})

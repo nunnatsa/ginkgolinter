@@ -1,0 +1,26 @@
+package len
+
+import (
+	. "github.com/onsi/ginkgo/v2"
+	g "github.com/onsi/gomega"
+)
+
+var _ = Describe("", func() {
+	It("", func() {
+		s := []int{1, 2, 3, 4}
+		g.Expect(s).Should(g.HaveLen(4))               // want `ginkgo-linter: wrong length assertion\. Consider using .g\.Expect\(s\)\.Should\(g\.HaveLen\(4\)\). instead`
+		g.Expect(s).Should(g.HaveLen(4))               // want `ginkgo-linter: wrong length assertion\. Consider using .g\.Expect\(s\)\.Should\(g\.HaveLen\(4\)\). instead`
+		g.Expect(s).Should(g.HaveLen(4))               // want `ginkgo-linter: wrong length assertion\. Consider using .g\.Expect\(s\)\.Should\(g\.HaveLen\(4\)\). instead`
+		g.Expect(s).WithOffset(1).Should(g.HaveLen(4)) // want `ginkgo-linter: wrong length assertion\. Consider using .g\.Expect\(s\)\.WithOffset\(1\)\.Should\(g\.HaveLen\(4\)\). instead`
+		g.Expect(s).WithOffset(1).Should(g.HaveLen(4)) // want `ginkgo-linter: wrong length assertion\. Consider using .g\.Expect\(s\)\.WithOffset\(1\)\.Should\(g\.HaveLen\(4\)\). instead`
+	})
+	It("", func() {
+		s := []int{1, 2, 3, 4}
+		g.Expect(s).Should(g.HaveLen(4))                  // want `ginkgo-linter: wrong length assertion\. Consider using .g\.Expect\(s\)\.Should\(g\.HaveLen\(4\)\). instead`
+		g.Expect(s).Should(g.HaveLen(4))                  // want `ginkgo-linter: wrong length assertion\. Consider using .g\.Expect\(s\)\.Should\(g\.HaveLen\(4\)\). instead`
+		g.Expect(s).Should(g.HaveLen(4))                  // want `ginkgo-linter: wrong length assertion\. Consider using .g\.Expect\(s\)\.Should\(g\.HaveLen\(4\)\). instead`
+		g.Expect(s).WithOffset(1).Should(g.HaveLen(4))    // want `ginkgo-linter: wrong length assertion\. Consider using .g\.Expect\(s\)\.WithOffset\(1\)\.Should\(g\.HaveLen\(4\)\). instead`
+		g.Expect(s).WithOffset(1).Should(g.HaveLen(4))    // want `ginkgo-linter: wrong length assertion\. Consider using .g\.Expect\(s\)\.WithOffset\(1\)\.Should\(g\.HaveLen\(4\)\). instead`
+		g.Expect(s).WithOffset(1).ShouldNot(g.HaveLen(5)) // want `ginkgo-linter: wrong length assertion\. Consider using .g\.Expect\(s\)\.WithOffset\(1\)\.ShouldNot\(g\.HaveLen\(5\)\). instead`
+	})
+})
