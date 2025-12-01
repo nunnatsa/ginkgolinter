@@ -52,7 +52,10 @@ func init() {
 	flag.Parse()
 }
 
-var moduleRegex = regexp.MustCompile(`(?m)^module [a-zA-Z0-9_]+$`)
+var (
+	srcModuleRegex   = regexp.MustCompile(`(?m)^module [a-zA-Z0-9_]+$`)
+	txtarModuleRegex = regexp.MustCompile(`(?ms)\A.*^module [a-zA-Z0-9_]+$`)
+)
 
 func readSourceFiles() ([]byte, []byte, error) {
 	goMod, err := os.ReadFile(filepath.Join(*sourceDir, "go.mod"))
@@ -87,11 +90,11 @@ func updateFile(filename string) error {
 	for i, file := range txtarFile.Files {
 		switch fileName := file.Name; fileName {
 		case "go.mod":
-			pkgLine := moduleRegex.Find(file.Data)
+			pkgLine := srcModuleRegex.Find(file.Data)
 			if pkgLine == nil {
 				return fmt.Errorf("can't find the module line in file %q", fileName)
 			}
-			txtarFile.Files[i].Data = moduleRegex.ReplaceAll(goMod, pkgLine)
+			txtarFile.Files[i].Data = txtarModuleRegex.ReplaceAll(goMod, pkgLine)
 		case "go.sum":
 			txtarFile.Files[i].Data = goSum
 		default:

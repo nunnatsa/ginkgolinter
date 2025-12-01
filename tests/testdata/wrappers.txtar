@@ -51,10 +51,6 @@ func MyExpect(value any) g.Assertion {
 }
 
 -- go.mod --
-// Treating this as a proper module avoids poluting the
-// ginkgolinter module itself with these test-only dependencies
-// and enables `go mod vendor` for managing the Gingko/Gomega
-// source code.
 module tonot
 
 go 1.24.0
