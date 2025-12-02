@@ -25,7 +25,7 @@ var _ = Describe("check async intervals", func() {
 	gomega.Eventually(func() bool { return true }, tm.Millisecond*9, timeout).Should(gomega.BeTrue())                      // want `timeout must not be shorter than the polling interval`
 	gomega.Eventually(func() bool { return true }, timeout, tm.Millisecond*9).WithPolling(timeout).Should(gomega.BeTrue()) // want `polling defined more than once`
 
-	gomega.Eventually(func() bool { return true }, tm.Second, tm.Second*uint(2)).Should(gomega.BeTrue())    // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
-	gomega.Eventually(func() bool { return true }, tm.Second, tm.Second*float64(2)).Should(gomega.BeTrue()) // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
-	gomega.Eventually(func() bool { return true }, "3s", tm.Second*int32(2)).Should(gomega.BeTrue())        // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
+	gomega.Eventually(func() bool { return true }, tm.Second, tm.Second*2).Should(gomega.BeTrue())   // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
+	gomega.Eventually(func() bool { return true }, tm.Second, tm.Second*2).Should(gomega.BeTrue())   // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
+	gomega.Eventually(func() bool { return true }, tm.Second*3, tm.Second*2).Should(gomega.BeTrue()) // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
 })
