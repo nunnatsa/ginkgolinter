@@ -70,26 +70,41 @@ var _ = Describe("check async intervals", func() {
 	})
 
 	It("non-duration values", func() {
-		Eventually(func() bool { return true }, time.Second).Should(BeTrue())                       // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
-		Eventually(func() bool { return true }, time.Second*uint(2)).Should(BeTrue())               // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
-		Eventually(func() bool { return true }, time.Second).Should(BeTrue())                       // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
-		Eventually(func() bool { return true }, time.Second*float64(2)).Should(BeTrue())            // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
-		Eventually(func() bool { return true }, "3s").Should(BeTrue())                              // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
-		Eventually(func() bool { return true }, time.Second*int32(2)).Should(BeTrue())              // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
-		Eventually(func() bool { return true }, time.Second*int64(2)).Should(BeTrue())              // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
-		Eventually(func() bool { return true }, time.Second, time.Second*int64(2)).Should(BeTrue()) // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
-		Eventually(func() bool { return true }, time.Second, "2s").Should(BeTrue())                 // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
+		Eventually(func() bool { return true }, time.Second).Should(BeTrue())                                 // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
+		Eventually(func() bool { return true }, time.Second*2).Should(BeTrue())                               // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
+		Eventually(func() bool { return true }, time.Second).Should(BeTrue())                                 // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
+		Eventually(func() bool { return true }, time.Second*2).Should(BeTrue())                               // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
+		Eventually(func() bool { return true }, time.Second*3).Should(BeTrue())                               // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
+		Eventually(func() bool { return true }, time.Second*2).Should(BeTrue())                               // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
+		Eventually(func() bool { return true }, time.Second*2).Should(BeTrue())                               // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
+		Eventually(func() bool { return true }, time.Second, time.Second*2).Should(BeTrue())                  // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
+		Eventually(func() bool { return true }, time.Second, time.Second*2).Should(BeTrue())                  // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
+		Eventually(func() bool { return true }, time.Second*pkg.TimeoutSeconds, pkg.Timeout).Should(BeTrue()) // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\).*time\.Second\*pkg\.TimeoutSeconds, pkg\.Timeout\)`
 	})
+
+	It("non-duration - strings", func() {
+		Eventually(func() bool { return true }, time.Second*20, time.Second).Should(BeTrue())                                                                   // want `multiple issues: only use time\.Duration.* only use time.Duration.* time\.Second\*20, time\.Second`
+		Eventually(func() bool { return true }, time.Hour+time.Minute*2+time.Millisecond*300, time.Millisecond*300).Should(BeTrue())                            // want `multiple issues: only use time\.Duration.* only use time.Duration.* time\.Hour\+time\.Minute\*2\+time\.Millisecond\*300, time\.Millisecond\*300`
+		Eventually(func() bool { return true }, time.Minute, time.Second).Should(BeTrue())                                                                      // want `multiple issues: only use time\.Duration.* only use time.Duration.* time\.Minute, time\.Second`
+		Eventually(func() bool { return true }, time.Hour*3+time.Minute*7+time.Second*5, time.Hour).Should(BeTrue())                                            // want `multiple issues: only use time\.Duration.* only use time.Duration.* time\.Hour\*3\+time\.Minute\*7\+time\.Second\*5, time\.Hour`
+		Eventually(func() bool { return true }, time.Hour, time.Minute).Should(BeTrue())                                                                        // want `multiple issues: only use time\.Duration.* only use time.Duration.* time\.Hour, time\.Minute`
+		Eventually(func() bool { return true }, time.Minute, time.Second).Should(BeTrue())                                                                      // want `multiple issues: only use time\.Duration.* only use time.Duration.* time\.Minute, time\.Second`
+		Eventually(func() bool { return true }, time.Second, time.Millisecond).Should(BeTrue())                                                                 // want `multiple issues: only use time\.Duration.* only use time.Duration.* time\.Second, time\.Millisecond`
+		Eventually(func() bool { return true }, time.Millisecond, time.Microsecond).Should(BeTrue())                                                            // want `multiple issues: only use time\.Duration.* only use time.Duration.* time\.Millisecond, time\.Microsecond`
+		Eventually(func() bool { return true }, time.Microsecond, time.Nanosecond).Should(BeTrue())                                                             // want `multiple issues: only use time\.Duration.* only use time.Duration.* time\.Microsecond, time\.Nanosecond`
+		Eventually(func() bool { return true }, time.Hour*6+time.Minute*5+time.Second*4+time.Millisecond+time.Microsecond*2+time.Nanosecond*3).Should(BeTrue()) // want `only use time.Duration.* time\.Hour\*6\+time\.Minute\*5\+time\.Second\*4\+time\.Millisecond\+time\.Microsecond\*2\+time\.Nanosecond\*3`
+	})
+
 	It("non-duration values + context", func() {
-		Eventually(context.Background(), func() bool { return true }, time.Second).Should(BeTrue())                       // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
-		Eventually(context.Background(), func() bool { return true }, time.Second*uint(2)).Should(BeTrue())               // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
-		Eventually(context.Background(), func() bool { return true }, time.Second).Should(BeTrue())                       // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
-		Eventually(context.Background(), func() bool { return true }, time.Second*float64(2)).Should(BeTrue())            // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
-		Eventually(context.Background(), func() bool { return true }, "3s").Should(BeTrue())                              // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
-		Eventually(context.Background(), func() bool { return true }, time.Second*int32(2)).Should(BeTrue())              // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
-		Eventually(context.Background(), func() bool { return true }, time.Second*int64(2)).Should(BeTrue())              // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
-		Eventually(context.Background(), func() bool { return true }, time.Second, time.Second*int64(2)).Should(BeTrue()) // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
-		Eventually(context.Background(), func() bool { return true }, time.Second, "2s").Should(BeTrue())                 // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
+		Eventually(context.Background(), func() bool { return true }, time.Second).Should(BeTrue())                // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
+		Eventually(context.Background(), func() bool { return true }, time.Second*2).Should(BeTrue())              // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
+		Eventually(context.Background(), func() bool { return true }, time.Second).Should(BeTrue())                // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
+		Eventually(context.Background(), func() bool { return true }, time.Second*2).Should(BeTrue())              // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
+		Eventually(context.Background(), func() bool { return true }, time.Second*3).Should(BeTrue())              // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
+		Eventually(context.Background(), func() bool { return true }, time.Second*2).Should(BeTrue())              // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
+		Eventually(context.Background(), func() bool { return true }, time.Second*2).Should(BeTrue())              // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
+		Eventually(context.Background(), func() bool { return true }, time.Second, time.Second*2).Should(BeTrue()) // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
+		Eventually(context.Background(), func() bool { return true }, time.Second, time.Second*2).Should(BeTrue()) // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
 	})
 
 	It("multiple timeout", func() {

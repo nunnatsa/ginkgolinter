@@ -28,7 +28,7 @@ var _ = Describe("check async intervals", func() {
 	Eventually(func() bool { return true }, tm.Second*60*60*24*356, tm.Second*(10+factor)).Should(BeTrue()) // valid, many multiplication
 	Eventually(func() bool { return true }, timeout, tm.Millisecond*9).Should(BeTrue())                     // const
 	Eventually(func() bool { return true }, tm.Millisecond*9, timeout).Should(BeTrue())                     // want `timeout must not be shorter than the polling interval`
-	Eventually(func() bool { return true }, tm.Second, tm.Second*uint(2)).Should(BeTrue())                  // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
-	Eventually(func() bool { return true }, tm.Second, tm.Second*float64(2)).Should(BeTrue())               // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
-	Eventually(func() bool { return true }, "3s", tm.Second*int32(2)).Should(BeTrue())                      // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
+	Eventually(func() bool { return true }, tm.Second, tm.Second*2).Should(BeTrue())                        // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
+	Eventually(func() bool { return true }, tm.Second, tm.Second*2).Should(BeTrue())                        // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
+	Eventually(func() bool { return true }, tm.Second*3, tm.Second*2).Should(BeTrue())                      // want `only use time.Duration for timeout and polling in Eventually\(\) or Consistently\(\)`
 })
