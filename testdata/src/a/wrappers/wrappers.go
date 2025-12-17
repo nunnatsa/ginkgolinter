@@ -1,10 +1,22 @@
 package wrappers
 
 import (
+	"testing"
+
 	gtypes "github.com/onsi/gomega/types"
 
 	g "github.com/onsi/gomega"
 )
+
+type MyTB interface {
+	Error(args ...any)
+	Errorf(format string, args ...any)
+	Fatal(args ...any)
+	Fatalf(format string, args ...any)
+}
+
+var _ MyTB = &testing.T{}
+var _ MyTB = &testing.B{}
 
 var Expect = g.Expect
 
@@ -12,6 +24,7 @@ func MyExpect(value any) g.Assertion {
 	return g.Expect(value)
 }
 
+// value = func(tb MyTB) without return value is okay, failures can be reported via tb.Error/Fatal/Errorf/Fatalf.
 func MyEventually(value any) g.AsyncAssertion {
 	return g.Eventually(value)
 }
