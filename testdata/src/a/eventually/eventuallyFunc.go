@@ -78,6 +78,12 @@ var _ = Describe("Eventually with function", func() {
 		Eventually(os.Getwd).Should(Equal("something"))   // valid
 		Eventually(os.Getwd()).Should(Equal("something")) // want `ginkgo-linter: use a function call in Eventually\. This actually checks nothing, because Eventually receives the function returned value, instead of function itself, and this value is never changed\. Consider using .Eventually\(os\.Getwd\)\.Should\(Equal\("something"\)\). instead`
 
+		Eventually(func(g Gomega) {}).Should(Succeed())
+		wrappers.MyEventually(func(tb wrappers.MyTB) {}).Should(Succeed())
+		Eventually(func() {}).Should(Succeed())            // want `ginkgo-linter: Success matcher only support a single error value, or function with Gomega as its first parameter`
+		wrappers.MyEventually(func() {}).Should(Succeed()) // want `ginkgo-linter: Success matcher only support a single error value, or function with Gomega as its first parameter`
+		wrappers.MyEventually(func(tb wrappers.MyTB) {}).Should(Succeed())
+
 		tst := test{}
 		Eventually(tst.slowInt).Should(Equal(42))                           // valid
 		Eventually(retMethod(tst)).Should(Equal(42))                        // valid. The function returns a method
