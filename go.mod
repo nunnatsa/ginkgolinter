@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/go-toolsmith/astcopy v1.1.0
-	github.com/rogpeppe/go-internal v1.14.1
+	github.com/rogpeppe/go-internal v1.15.0
 	golang.org/x/tools v0.45.0
 )
 
