@@ -7,20 +7,36 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+func numWithErr() (int, error) {
+	return 42, nil
+}
+
+func numNum() (int, int) {
+	return 42, 42
+}
+
 var _ = Describe("HaveOccurred", func() {
 	It("HaveOccurred for non error types", func() {
 		err := fmt.Errorf("err")
 		Expect(err).To(HaveOccurred())
 	})
+
 	It("HaveOccurred for non error types", func() {
 		var p *int
 		Expect(p).To(HaveOccurred()) // want `ginkgo-linter: asserting a non-error type with HaveOccurred matcher`
 	})
 
-	It("HaveOccurred for non error types", func() {
+	It("HaveOccurred for error function", func() {
 		Expect(fmt.Errorf("err")).To(HaveOccurred()) // want `prefer using the Succeed matcher for error function, instead of HaveOccurred. Consider using .Expect\(fmt\.Errorf\("err"\)\)\.ToNot\(Succeed\(\)\). instead`
 	})
 
+	It("HaveOccurred for Error() with non error type", func() {
+		Expect(numNum()).Error().To(HaveOccurred()) // want `ginkgo-linter: asserting a non-error type with HaveOccurred matcher`
+	})
+
+	It("valid: HaveOccurred for Error()", func() {
+		Expect(numWithErr()).Error().To(HaveOccurred())
+	})
 })
 
 var _ = Describe("Succeed", func() {
@@ -33,8 +49,15 @@ var _ = Describe("Succeed", func() {
 		Expect(p).To(Succeed()) // want `ginkgo-linter: asserting a non-error type with Succeed matcher`
 	})
 
-	It("Succeed for non error types", func() {
+	It("Succeed for Error() with non error type", func() {
+		Expect(numNum()).Error().To(Succeed()) // want `ginkgo-linter: asserting a non-error type with Succeed matcher`
+	})
+
+	It("valid: Succeed for error types", func() {
 		Expect(fmt.Errorf("err")).To(Succeed())
 	})
 
+	It("valid: Succeed for Error()", func() {
+		Expect(numWithErr()).Error().To(Succeed())
+	})
 })
