@@ -1,0 +1,39 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - name: Build all artifacts
+        run: make build-all
+        env:
+          VERSION: ${{ github.ref_name }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          generate_release_notes: true
+          files: |
+            bin/ginkgolinter-amd64-linux
+            bin/ginkgolinter-arm64-linux
+            bin/ginkgolinter-386-linux
+            bin/ginkgolinter-amd64-darwin
+            bin/ginkgolinter-arm64-darwin
+            bin/ginkgolinter-amd64.exe
+            bin/ginkgolinter-arm64.exe
