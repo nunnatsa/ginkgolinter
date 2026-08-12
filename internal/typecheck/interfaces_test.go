@@ -6,8 +6,8 @@ import (
 	"go/parser"
 	"go/token"
 	gotypes "go/types"
+	"regexp"
 	"runtime"
-	"strings"
 	"testing"
 )
 
@@ -114,16 +114,14 @@ func mustTypecheck(src string) *gotypes.Package {
 	return pkg
 }
 
+var packageNameRegex = regexp.MustCompile(`(?m)^package (.+)$`)
+
 // pkgName extracts the package name from src, which must contain a package header.
 func pkgName(src string) string {
-	const kw = "package "
-	if i := strings.Index(src, kw); i >= 0 {
-		after := src[i+len(kw):]
-		n := len(after)
-		if i := strings.IndexAny(after, "\n\t ;/"); i >= 0 {
-			n = i
-		}
-		return after[:n]
+	submatch := packageNameRegex.FindStringSubmatch(src)
+	if len(submatch) != 2 {
+		panic("missing package header: " + src)
 	}
-	panic("missing package header: " + src)
+
+	return submatch[1]
 }
