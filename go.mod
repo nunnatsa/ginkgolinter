@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/go-toolsmith/astcopy v1.1.0
 	github.com/rogpeppe/go-internal v1.16.0
-	golang.org/x/tools v0.48.0
+	golang.org/x/tools v0.49.0
 )
 
 require (
